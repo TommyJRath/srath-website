@@ -1,0 +1,23 @@
+[
+  {
+    "slug": "ever-after",
+    "name": "Ever After",
+    "tagline": "A wedding planner for Android: countdown, checklist, budget, guests and vendors in one place.",
+    "description": "Ever After is a wedding planner for Android. It brings the countdown to your wedding day, your checklist, budget, guest list and vendor list together in one place, styled like a letterpress stationery set.\n\nPick your wedding colours from eight schemes or choose your own, and use the app in light mode, dark mode or following your phone. Everything you enter is stored on your phone. There is no account to create.\n\nEver After is free with a small banner ad. A one-time \"Remove ads\" purchase turns the ads off.",
+    "category": "Lifestyle",
+    "packageName": "com.srath.everafter",
+    "icon": "/images/apps/ever-after/icon.png",
+    "playStoreUrl": "",
+    "features": [
+      "Countdown to the wedding day",
+      "Wedding checklist with a starter list of tasks",
+      "Budget with expenses",
+      "Guest list and vendor list",
+      "Eight wedding colour schemes, or your own colour",
+      "Light and dark appearance",
+      "Available in 19 languages",
+      "Data stays on your phone, no account needed"
+    ],
+    "screenshots": []
+  }
+]

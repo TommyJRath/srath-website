@@ -1,0 +1,18 @@
+{
+  "name": "srath-website",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Static website for SRATH (srath.dk), hosted on GitHub Pages.",
+  "type": "module",
+  "engines": {
+    "node": ">=18.17"
+  },
+  "scripts": {
+    "build": "node src/build.mjs",
+    "verify": "node scripts/verify.mjs",
+    "check": "node src/build.mjs && node scripts/verify.mjs",
+    "dev": "node scripts/serve.mjs --watch",
+    "preview": "node src/build.mjs && node scripts/serve.mjs",
+    "verify:live": "node scripts/check-live.mjs https://srath.dk/app-ads.txt"
+  }
+}

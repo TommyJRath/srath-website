@@ -1,0 +1,10 @@
+# Keep LF line endings in the repository and on checkout, on every OS.
+* text=auto eol=lf
+
+# app-ads.txt must never be altered by line-ending conversion.
+public/app-ads.txt text eol=lf
+
+*.png binary
+*.ico binary
+*.jpg binary
+*.webp binary

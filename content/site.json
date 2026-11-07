@@ -1,0 +1,14 @@
+{
+  "name": "SRATH",
+  "url": "https://srath.dk",
+  "description": "SRATH is an independent software development business based in Denmark that designs, develops and publishes mobile applications on Google Play.",
+  "email": "tommyjon@srath.dk",
+  "googlePlayDeveloperUrl": "",
+  "legal": {
+    "owner": "Tommy Jonas Rath",
+    "businessType": "Sole proprietorship (enkeltmandsvirksomhed)",
+    "country": "Denmark",
+    "cvr": "44989786",
+    "address": ""
+  }
+}

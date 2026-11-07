@@ -5,6 +5,7 @@
     "status": "Opening soon",
     "description": "An upcoming webshop.",
     "url": "https://baiganyo.dk",
-    "linkLabel": "baiganyo.dk"
+    "linkLabel": "baiganyo.dk",
+    "logo": "/images/projects/baiganyo-logo.svg"
   }
 ]

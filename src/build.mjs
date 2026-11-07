@@ -99,8 +99,10 @@ function loadContent() {
     for (const field of ['name', 'type', 'description']) {
       if (!p[field]) errors.push(`projects.json[${i}]: missing required field "${field}".`);
     }
-    if (p.icon && p.icon.startsWith('/') && !fs.existsSync(path.join(PUBLIC, p.icon))) {
-      errors.push(`projects.json[${i}]: image not found: public${p.icon}`);
+    for (const img of [p.icon, p.logo]) {
+      if (img && img.startsWith('/') && !fs.existsSync(path.join(PUBLIC, img))) {
+        errors.push(`projects.json[${i}]: image not found: public${img}`);
+      }
     }
   }
 

@@ -167,7 +167,9 @@ export function appGrid(apps) {
 function projectCard(p) {
   const external = /^https?:\/\//.test(p.url || '');
   const rel = external ? ' rel="noopener noreferrer"' : '';
-  const visual = p.icon
+  const visual = p.logo
+    ? `<span class="project-logo"><img src="${esc(p.logo)}" alt="${esc(p.name)} logo" width="96" height="39" loading="lazy" decoding="async"></span>`
+    : p.icon
     ? `<img class="app-icon" src="${esc(p.icon)}" alt="" width="56" height="56" loading="lazy" decoding="async">`
     : `<span class="app-icon project-monogram" aria-hidden="true">${esc(p.name.charAt(0))}</span>`;
   return `<article class="card app-card project-card reveal">

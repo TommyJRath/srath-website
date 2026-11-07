@@ -104,11 +104,11 @@ The home page lists everything in `content/projects.json` (for example the Baiga
   "description": "An upcoming webshop.",
   "url": "https://baiganyo.dk",
   "linkLabel": "baiganyo.dk",
-  "icon": "/images/projects/baiganyo.png"
+  "logo": "/images/projects/baiganyo-logo.svg"
 }
 ```
 
-`name`, `type` and `description` are required. Without an `icon`, the card shows the first letter of the name. When the webshop opens, change `status` (for example to `"Open"`) and write a proper `description`.
+`name`, `type` and `description` are required. Use `icon` for a square icon, or `logo` for a wide logo (shown on a light tile, like Baiganyo's moustache). Without either, the card shows the first letter of the name. When the webshop opens, change `status` (for example to `"Open"`) and write a proper `description`.
 
 ## Adding an application
 

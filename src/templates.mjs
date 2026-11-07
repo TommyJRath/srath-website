@@ -17,13 +17,14 @@ export const icons = {
   play: '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4.5v15a.8.8 0 0 0 1.2.7l12.4-7.5a.8.8 0 0 0 0-1.4L7.2 3.8A.8.8 0 0 0 6 4.5Z"/></svg>',
   back: '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>',
   code: '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m8 7-5 5 5 5M16 7l5 5-5 5"/></svg>',
+  linkedin: '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 10v7M8 7v.01M12 17v-4a2 2 0 0 1 4 0v4M12 10v7"/></svg>',
   doc: '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8l-5-5Z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg>',
 };
 
 const logoMark = (id) => `<svg class="logo-mark" viewBox="0 0 32 32" aria-hidden="true"><defs><linearGradient id="${id}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2dd4bf"/><stop offset="1" stop-color="#818cf8"/></linearGradient></defs><rect width="32" height="32" rx="8" fill="url(#${id})"/><path d="M22 10H10v6h12v6H10" fill="none" stroke="#0b0d12" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 
 export function layout({ site, assets, path, title, description, body, noindex = false, jsonLd = null }) {
-  const fullTitle = path === '/' ? `${site.name} — Independent software development` : `${title} · ${site.name}`;
+  const fullTitle = path === '/' ? `${site.name} — ${site.tagline}` : `${title} · ${site.name}`;
   const canonical = `${site.url}${path}`;
   const year = new Date().getUTCFullYear();
 
@@ -71,7 +72,7 @@ ${body}
   <div class="container footer-inner">
     <div class="footer-brand">
       <a class="brand" href="/">${logoMark('logo-f')}<span class="brand-name">${esc(site.name)}</span></a>
-      <p class="muted small">Independent software development · ${esc(site.legal.country)}</p>
+      <p class="muted small">${esc(site.tagline)}</p>
       ${legalLine(site)}
     </div>
     <nav class="footer-nav" aria-label="Footer">
@@ -79,8 +80,10 @@ ${body}
         <h2 class="footer-heading">Site</h2>
         <ul>
           <li><a href="/">Home</a></li>
+          <li><a href="/#projects">Projects</a></li>
           <li><a href="/apps/">Apps</a></li>
           <li><a href="/contact/">Contact</a></li>
+          ${site.linkedin ? `<li><a href="${esc(site.linkedin)}" rel="noopener noreferrer me">LinkedIn</a></li>` : ''}
         </ul>
       </div>
       <div>
@@ -159,4 +162,29 @@ export function appCard(app) {
 export function appGrid(apps) {
   if (!apps.length) return '<p class="muted">No applications have been added yet.</p>';
   return `<div class="grid app-grid">\n${apps.map(appCard).join('\n')}\n</div>`;
+}
+
+function projectCard(p) {
+  const external = /^https?:\/\//.test(p.url || '');
+  const rel = external ? ' rel="noopener noreferrer"' : '';
+  const visual = p.icon
+    ? `<img class="app-icon" src="${esc(p.icon)}" alt="" width="56" height="56" loading="lazy" decoding="async">`
+    : `<span class="app-icon project-monogram" aria-hidden="true">${esc(p.name.charAt(0))}</span>`;
+  return `<article class="card app-card project-card reveal">
+  ${p.url ? `<a class="app-card-link" href="${esc(p.url)}"${rel} aria-label="${esc(p.name)}"></a>` : ''}
+  <div class="app-card-head">
+    ${visual}
+    <div>
+      <h3 class="app-card-title">${esc(p.name)} ${p.sample ? '<span class="badge badge-warn">Sample</span>' : ''}</h3>
+      <p class="muted small">${esc(p.type)}${p.status ? ` · <span class="status">${esc(p.status)}</span>` : ''}</p>
+    </div>
+  </div>
+  <p class="app-card-tagline">${esc(p.description)}</p>
+  ${p.url ? `<div class="app-card-links"><a href="${esc(p.url)}"${rel}>${esc(p.linkLabel || 'Visit')} ${external ? icons.external : icons.arrow}</a></div>` : ''}
+</article>`;
+}
+
+export function projectGrid(projects) {
+  if (!projects.length) return '<p class="muted">Nothing to show yet.</p>';
+  return `<div class="grid app-grid">\n${projects.map(projectCard).join('\n')}\n</div>`;
 }

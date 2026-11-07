@@ -13,6 +13,7 @@ Website for **SRATH**, a Danish sole proprietorship that develops and publishes 
 - [Project structure](#project-structure)
 - [Local development](#local-development)
 - [Site configuration](#site-configuration)
+- [Projects on the home page](#projects-on-the-home-page)
 - [Adding an application](#adding-an-application)
 - [Privacy policies](#privacy-policies)
 - [app-ads.txt](#app-adstxt)
@@ -26,7 +27,8 @@ Website for **SRATH**, a Danish sole proprietorship that develops and publishes 
 
 ```
 content/
-  site.json              Business name, contact email, CVR, etc.
+  site.json              Business name, contact email, CVR, about text, LinkedIn
+  projects.json          Non-app projects on the home page (e.g. the webshop)
   apps.json              One entry per application
   privacy/
     _TEMPLATE.md         Starting point for a new policy (ignored by the build)
@@ -81,11 +83,32 @@ Edit `content/site.json`:
 | Field | Purpose |
 | --- | --- |
 | `email` | **Required before launch.** Contact address used in every mailto link and the `{{contactEmail}}` placeholder in policies. |
+| `tagline` | Short line used in the home page title and footer. |
+| `about` | The "About" text on the home page. Markdown, so links like `[text](https://example.com)` work. |
+| `linkedin` | Your LinkedIn URL, shown on the home page and in the footer. Leave empty to hide. |
 | `legal.owner` | Owner of the sole proprietorship, shown under business information on the contact page. |
 | `legal.cvr` | Your CVR number, shown in the footer and on the contact page. Danish law generally requires businesses to show their CVR number on their website. |
 | `legal.address` | Optional. Shown on the contact page if set. |
 | `url` | `https://srath.dk`. Used for canonical URLs and the sitemap. |
 | `description` | Used for search engines and social previews. |
+
+## Projects on the home page
+
+The home page lists everything in `content/projects.json` (for example the Baiganyo webshop), followed automatically by every app in `apps.json`.
+
+```json
+{
+  "name": "Baiganyo",
+  "type": "Webshop",
+  "status": "Opening soon",
+  "description": "An upcoming webshop.",
+  "url": "https://baiganyo.dk",
+  "linkLabel": "baiganyo.dk",
+  "icon": "/images/projects/baiganyo.png"
+}
+```
+
+`name`, `type` and `description` are required. Without an `icon`, the card shows the first letter of the name. When the webshop opens, change `status` (for example to `"Open"`) and write a proper `description`.
 
 ## Adding an application
 

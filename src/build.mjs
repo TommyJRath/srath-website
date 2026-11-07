@@ -2,6 +2,7 @@
 //
 //   content/site.json        business details and contact email
 //   content/apps.json        one entry per application
+//   content/projects.json    other projects on the home page (apps are added automatically)
 //   content/privacy/*.md     one privacy policy per application (file name = app slug)
 //   public/                  copied verbatim to the site root (app-ads.txt, CNAME, images, ...)
 //   src/styles.css, main.js  published under /assets/
@@ -13,7 +14,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { esc, parseFrontMatter, renderMarkdown } from './markdown.mjs';
-import { layout, pageHeader, appGrid, emailLink, playButton, sampleBadge, icons } from './templates.mjs';
+import { layout, pageHeader, appGrid, projectGrid, emailLink, playButton, sampleBadge, icons } from './templates.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const CONTENT = path.join(ROOT, 'content');
@@ -41,6 +42,7 @@ function paragraphs(text) {
 function loadContent() {
   const site = readJson('site.json');
   const apps = readJson('apps.json');
+  const projects = fs.existsSync(path.join(CONTENT, 'projects.json')) ? readJson('projects.json') : [];
   const errors = [];
   const warnings = [];
 
@@ -93,15 +95,43 @@ function loadContent() {
     }
   }
 
-  return { site, apps, policies, errors, warnings };
+  for (const [i, p] of projects.entries()) {
+    for (const field of ['name', 'type', 'description']) {
+      if (!p[field]) errors.push(`projects.json[${i}]: missing required field "${field}".`);
+    }
+    if (p.icon && p.icon.startsWith('/') && !fs.existsSync(path.join(PUBLIC, p.icon))) {
+      errors.push(`projects.json[${i}]: image not found: public${p.icon}`);
+    }
+  }
+
+  return { site, apps, projects, policies, errors, warnings };
 }
 
 // ---------------------------------------------------------------------------
 // Pages
 // ---------------------------------------------------------------------------
 
-function homePage({ site, apps }) {
-  const featured = apps.slice(0, 6);
+function homePage({ site, apps, projects }) {
+  const cards = [
+    ...projects,
+    ...apps.map((app) => ({
+      name: app.name,
+      type: 'Android app',
+      status: app.playStoreUrl ? 'On Google Play' : 'Coming soon',
+      description: app.tagline,
+      icon: app.icon,
+      url: `/apps/${app.slug}/`,
+      linkLabel: 'App details',
+      sample: app.sample,
+    })),
+  ];
+  const facts = [
+    site.legal.owner && ['Owner', esc(site.legal.owner)],
+    ['Business type', 'Sole proprietorship'],
+    ['Country', esc(site.legal.country)],
+    site.legal.cvr && ['CVR', esc(site.legal.cvr)],
+  ].filter(Boolean);
+
   return {
     path: '/',
     title: site.name,
@@ -114,59 +144,49 @@ function homePage({ site, apps }) {
       ...(site.email && { email: site.email }),
       address: { '@type': 'PostalAddress', addressCountry: 'DK' },
       ...(site.legal.cvr && { vatID: `DK${site.legal.cvr}` }),
-      ...(site.legal.owner && { founder: { '@type': 'Person', name: site.legal.owner } }),
+      ...(site.legal.owner && {
+        founder: { '@type': 'Person', name: site.legal.owner, ...(site.linkedin && { sameAs: [site.linkedin] }) },
+      }),
     },
     body: `<section class="hero">
   <div class="hero-bg" aria-hidden="true"></div>
   <div class="container hero-inner">
-    <p class="eyebrow enter">Independent software development · ${esc(site.legal.country)}</p>
-    <h1 class="hero-title enter">Mobile apps, designed and built <span class="gradient-text">independently</span>.</h1>
-    <p class="lead enter">${esc(site.name)} is a Danish sole proprietorship that designs, develops and publishes mobile applications on Google Play.</p>
+    <p class="eyebrow enter">${esc(site.name)} · ${esc(site.legal.country)}</p>
+    <h1 class="hero-title enter">A small business for <span class="gradient-text">independent projects</span>.</h1>
+    <p class="lead enter">${esc(site.name)} is the Danish sole proprietorship of ${esc(site.legal.owner || site.name)}: the home of the upcoming webshop Baiganyo and of Android apps built in spare time.</p>
     <div class="actions enter">
-      <a class="btn btn-primary" href="/apps/">View apps ${icons.arrow}</a>
+      <a class="btn btn-primary" href="#projects">See projects ${icons.arrow}</a>
       <a class="btn btn-ghost" href="/contact/">Get in touch</a>
     </div>
   </div>
 </section>
 
-<section class="section" aria-labelledby="apps-heading">
+<section class="section" id="projects" aria-labelledby="projects-heading">
   <div class="container">
     <div class="section-head">
       <div>
-        <p class="eyebrow">Applications</p>
-        <h2 id="apps-heading">Apps</h2>
+        <p class="eyebrow">Projects</p>
+        <h2 id="projects-heading">What ${esc(site.name)} is working on</h2>
       </div>
-      <a class="text-link" href="/apps/">All apps ${icons.arrow}</a>
     </div>
-    ${appGrid(featured)}
+    ${projectGrid(cards)}
   </div>
 </section>
 
 <section class="section section-alt" aria-labelledby="about-heading">
-  <div class="container">
-    <div class="section-head">
-      <div>
-        <p class="eyebrow">About</p>
-        <h2 id="about-heading">How ${esc(site.name)} works</h2>
-      </div>
+  <div class="container about">
+    <div class="prose">
+      <p class="eyebrow">About</p>
+      <h2 id="about-heading">The person behind ${esc(site.name)}</h2>
+      ${renderMarkdown(site.about || '').html}
     </div>
-    <div class="grid feature-grid">
-      <div class="card feature reveal">
-        <span class="feature-icon">${icons.code}</span>
-        <h3>Built independently</h3>
-        <p class="muted">Every app is designed, developed and maintained by ${esc(site.name)}, an independent developer based in ${esc(site.legal.country)}.</p>
-      </div>
-      <div class="card feature reveal">
-        <span class="feature-icon">${icons.play}</span>
-        <h3>Published on Google Play</h3>
-        <p class="muted">Apps are distributed through the Google Play Store, where you can install them and receive updates.</p>
-      </div>
-      <div class="card feature reveal">
-        <span class="feature-icon">${icons.shield}</span>
-        <h3>Clear privacy information</h3>
-        <p class="muted">Each app has its own publicly accessible privacy policy on this website, showing the date it was last updated.</p>
-      </div>
-    </div>
+    <aside class="card info-card reveal" aria-label="Business details">
+      <h3 class="info-title">Business details</h3>
+      <dl class="info-list">
+        ${facts.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('\n        ')}
+      </dl>
+      ${site.linkedin ? `<a class="btn btn-ghost about-link" href="${esc(site.linkedin)}" rel="noopener noreferrer me">${icons.linkedin}LinkedIn profile</a>` : ''}
+    </aside>
   </div>
 </section>
 
@@ -174,8 +194,8 @@ function homePage({ site, apps }) {
   <div class="container">
     <div class="card cta reveal">
       <div>
-        <h2 id="contact-heading">Questions or feedback?</h2>
-        <p class="muted">For support, privacy enquiries or business matters, send an email and include the name of the app if your question concerns one.</p>
+        <h2 id="contact-heading">Get in touch</h2>
+        <p class="muted">Questions about the webshop, an app or anything else? Send an email.</p>
       </div>
       <div class="cta-actions">
         ${site.email ? emailLink(site, { className: 'btn btn-primary', label: `${icons.mail}${esc(site.email)}` }) : '<a class="btn btn-primary" href="/contact/">Contact</a>'}

@@ -170,6 +170,15 @@ code { font-family: var(--mono); font-size: .9em; background: var(--surface-2); 
 .cta h2 { font-size: 1.5rem; }
 .cta p { margin: 0; max-width: 560px; }
 
+/* Projects & about ------------------------------------------------------------------ */
+.project-card .app-icon { width: 56px; height: 56px; }
+.project-monogram { display: grid; place-items: center; font-size: 1.5rem; font-weight: 800; color: var(--accent-ink); background: linear-gradient(135deg, var(--accent), var(--accent-2)); border: 0; }
+.status { color: var(--accent); }
+.about { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 48px; align-items: start; }
+.about .prose p:not(.eyebrow) { font-size: 1.05rem; color: #c9cdd6; }
+.about-link { width: 100%; margin-top: 20px; }
+@media (max-width: 860px) { .about { grid-template-columns: 1fr; gap: 32px; } }
+
 /* App page ------------------------------------------------------------------- */
 .app-hero-inner { display: flex; gap: clamp(20px, 4vw, 36px); align-items: flex-start; flex-wrap: wrap; }
 .app-hero-inner > div { flex: 1 1 320px; }

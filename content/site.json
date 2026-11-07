@@ -1,14 +1,16 @@
 {
   "name": "SRATH",
+  "tagline": "Independent projects by Tommy Jonas Rath",
   "url": "https://srath.dk",
-  "description": "SRATH is an independent software development business based in Denmark that designs, develops and publishes mobile applications on Google Play.",
+  "description": "SRATH is the Danish sole proprietorship of Tommy Jonas Rath: the home of the upcoming Baiganyo webshop and independently developed Android apps.",
   "email": "tommyjon@srath.dk",
-  "googlePlayDeveloperUrl": "",
   "legal": {
     "owner": "Tommy Jonas Rath",
     "businessType": "Sole proprietorship (enkeltmandsvirksomhed)",
     "country": "Denmark",
     "cvr": "44989786",
     "address": ""
-  }
+  },
+  "linkedin": "https://www.linkedin.com/in/tommy-rath/",
+  "about": "I'm Tommy Jonas Rath. SRATH is my sole proprietorship, registered in Denmark.\n\nI work full time as a software developer. SRATH is where my own projects live: the upcoming webshop Baiganyo, and Android apps I build in my spare time because I enjoy it."
 }

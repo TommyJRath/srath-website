@@ -152,6 +152,7 @@ function homePage({ site, apps, projects }) {
     },
     body: `<section class="hero">
   <div class="hero-bg" aria-hidden="true"></div>
+  <div class="hero-spot" aria-hidden="true"></div>
   <div class="container hero-inner">
     <p class="eyebrow enter">${esc(site.name)} · ${esc(site.legal.country)}</p>
     <h1 class="hero-title enter">A small business for <span class="gradient-text">independent projects</span>.</h1>

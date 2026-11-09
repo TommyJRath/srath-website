@@ -129,6 +129,45 @@ code { font-family: var(--mono); font-size: .9em; background: var(--surface-2); 
   mask-image: radial-gradient(ellipse at 50% 30%, #000 20%, transparent 75%);
   -webkit-mask-image: radial-gradient(ellipse at 50% 30%, #000 20%, transparent 75%);
 }
+/* Cursor spotlight: brighter grid lines and a highlighted cell that follow the mouse (see main.js). */
+.hero-spot {
+  --mx: -999px; --my: -999px;
+  position: absolute; inset: 0; pointer-events: none;
+  opacity: 0; transition: opacity .6s var(--ease);
+}
+.hero.is-pointing .hero-spot { opacity: 1; }
+.hero-spot::before {
+  content: ""; position: absolute; inset: 0;
+  background:
+    radial-gradient(260px circle at var(--mx) var(--my), rgba(45, 212, 191, .10), transparent 70%),
+    linear-gradient(rgba(45, 212, 191, .55) 1px, transparent 1px) 0 0 / 48px 48px,
+    linear-gradient(90deg, rgba(129, 140, 248, .55) 1px, transparent 1px) 0 0 / 48px 48px;
+  mask-image: radial-gradient(200px circle at var(--mx) var(--my), #000, transparent 75%);
+  -webkit-mask-image: radial-gradient(200px circle at var(--mx) var(--my), #000, transparent 75%);
+}
+.hero-spot::after {
+  content: ""; position: absolute; left: 0; top: 0; width: 47px; height: 47px;
+  transform: translate(var(--cx, -999px), var(--cy, -999px));
+  background: linear-gradient(135deg, rgba(45, 212, 191, .22), rgba(129, 140, 248, .22));
+  box-shadow: 0 0 24px rgba(45, 212, 191, .25);
+  transition: transform .18s var(--ease);
+}
+/* Cells the visitor has clicked stay lit (see main.js). */
+.hero-lit { position: absolute; inset: 0; pointer-events: none; }
+.lit-cell {
+  position: absolute; left: 0; top: 0; width: 47px; height: 47px;
+  transform: translate(var(--x), var(--y));
+  background: linear-gradient(135deg, rgba(45, 212, 191, .38), rgba(129, 140, 248, .38));
+  box-shadow: 0 0 28px rgba(45, 212, 191, .35), inset 0 0 0 1px rgba(94, 234, 212, .4);
+  animation: lit-in .45s var(--ease) both;
+}
+.lit-cell.is-off { animation: lit-out .35s var(--ease) both; }
+@keyframes lit-in {
+  from { opacity: 0; transform: translate(var(--x), var(--y)) scale(.5); }
+  60% { opacity: 1; transform: translate(var(--x), var(--y)) scale(1.08); }
+  to { opacity: 1; transform: translate(var(--x), var(--y)) scale(1); }
+}
+@keyframes lit-out { to { opacity: 0; transform: translate(var(--x), var(--y)) scale(.6); } }
 .hero-inner { position: relative; }
 .hero-title { max-width: 820px; }
 

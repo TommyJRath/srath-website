@@ -126,11 +126,12 @@ The home page lists everything in `content/projects.json` (for example the Baiga
      "icon": "/images/apps/my-app/icon.png",
      "playStoreUrl": "https://play.google.com/store/apps/details?id=dk.srath.myapp",
      "features": ["Optional", "bullet points"],
-     "screenshots": [{ "src": "/images/apps/my-app/1.webp", "alt": "Main screen" }]
+     "screenshots": [{ "src": "/images/apps/my-app/1.webp", "alt": "Main screen" }],
+     "status": "Under development"
    }
    ```
 
-   Required: `slug`, `name`, `tagline`, `description`, `icon`. The `slug` becomes the permanent URL (`/apps/my-app/`, `/privacy/my-app/`), so **do not change it after you have given the privacy URL to Google Play.** The order in the file is the order shown on the site.
+   Required: `slug`, `name`, `tagline`, `description`, `icon`. Optional `status` (for example "Under development") is shown instead of "Coming soon" while there is no Google Play link. The `slug` becomes the permanent URL (`/apps/my-app/`, `/privacy/my-app/`), so **do not change it after you have given the privacy URL to Google Play.** The order in the file is the order shown on the site.
 3. Create `content/privacy/<slug>.md` from the template (see below).
 4. Run `npm run check`, then commit and push.
 

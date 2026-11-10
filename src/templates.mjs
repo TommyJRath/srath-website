@@ -134,7 +134,8 @@ export function sampleBadge(app) {
 
 export function playButton(app, className = 'btn btn-primary') {
   if (!app.playStoreUrl) {
-    const label = app.sample ? 'Google Play link not set' : 'Coming soon to Google Play';
+    // An optional status in apps.json ("Under development") replaces the default wording.
+    const label = app.sample ? 'Google Play link not set' : app.status ? `${app.status} · not on Google Play yet` : 'Coming soon to Google Play';
     return `<span class="${className} is-disabled" aria-disabled="true">${icons.play}${label}</span>`;
   }
   return `<a class="${className}" href="${esc(app.playStoreUrl)}" rel="noopener noreferrer">${icons.play}Get it on Google Play</a>`;

@@ -66,7 +66,7 @@ function loadContent() {
     if (app.playStoreUrl && !/^https:\/\/play\.google\.com\//.test(app.playStoreUrl)) {
       errors.push(`${where}: playStoreUrl should start with https://play.google.com/`);
     }
-    if (!app.playStoreUrl && !app.sample) warnings.push(`${where}: playStoreUrl is empty — shown as "Coming soon to Google Play".`);
+    if (!app.playStoreUrl && !app.sample && !app.status) warnings.push(`${where}: playStoreUrl is empty — shown as "Coming soon to Google Play".`);
     if (app.sample) warnings.push(`${where}: is SAMPLE data — replace or remove before going live.`);
     for (const img of [app.icon, ...(app.screenshots ?? []).map((s) => s.src)]) {
       if (img && img.startsWith('/') && !fs.existsSync(path.join(PUBLIC, img))) {
@@ -119,7 +119,7 @@ function homePage({ site, apps, projects }) {
     ...apps.map((app) => ({
       name: app.name,
       type: 'Android app',
-      status: app.playStoreUrl ? 'On Google Play' : 'Coming soon',
+      status: app.status || (app.playStoreUrl ? 'On Google Play' : 'Coming soon'),
       description: app.tagline,
       icon: app.icon,
       url: `/apps/${app.slug}/`,

@@ -1,11 +1,12 @@
 ---
-lastUpdated: 2026-11-10
+lastUpdated: 2026-11-11
 placeholder: true
 ---
 
 <!--
-  Draft written from the app's code on 10 November 2026, while the app is under development.
-  Review it, then set placeholder: false. Update it before ads or purchases are added.
+  Draft written from the app's code on 10 November 2026, while the app is under development,
+  and updated on 11 November 2026 for the Plus purchase.
+  Review it, then set placeholder: false. Update it before ads are added.
 -->
 
 {{appName}} is a receipt and warranty app for Android made by {{developerName}}. This policy explains what happens to your information when you use the app.
@@ -28,6 +29,10 @@ When you scan a receipt, the text and any barcode are read on your phone by Goog
 - **Sending a receipt.** When you send a receipt, for example to someone who got a present, the app opens your phone's share menu. The receipt goes only to the app and the person you choose. The message includes a short line about {{appName}}.
 - **Searching for a product.** When you tap **Search online** on a receipt line, the product name is passed to the search app or browser you choose, which handles it under its own privacy policy.
 
+## {{appName}} Plus
+
+Plus is a one-time purchase handled entirely by Google Play. We never see your payment details. When you buy Plus, and each time the app opens, the app asks Google Play whether your Google account owns Plus, so it can unlock the Plus features. That is all the app learns about your purchase. Google handles the payment under its own privacy policy: <https://policies.google.com/privacy>
+
 ## Reminders and app lock
 
 Reminders about warranties and return windows are created on your phone. If you turn on the app lock, your fingerprint, face or PIN is checked by Android. The app never sees them.
@@ -49,7 +54,7 @@ You can delete a receipt at any time from the receipt itself. Uninstalling the a
 
 ## Changes
 
-{{appName}} is still under development. If this policy changes, for example if ads or purchases are added, the new version will be posted on this page with a new date before the change reaches the app.
+{{appName}} is still under development. If this policy changes, for example if ads are added, the new version will be posted on this page with a new date before the change reaches the app.
 
 ## Contact
 

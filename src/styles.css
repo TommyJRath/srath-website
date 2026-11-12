@@ -237,6 +237,7 @@ code { font-family: var(--mono); font-size: .9em; background: var(--surface-2); 
 .info-list dd { margin: 0; text-align: right; overflow-wrap: anywhere; }
 
 .screenshots { display: flex; gap: 16px; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 12px; scrollbar-color: var(--border-strong) transparent; }
+.screenshots .screenshot-video { width: clamp(220px, 52vw, 292px); height: auto; aspect-ratio: 9 / 16; border-radius: 18px; border: 1px solid var(--border); scroll-snap-align: start; flex: none; background: var(--surface); }
 .screenshots img { width: clamp(180px, 42vw, 240px); height: auto; aspect-ratio: 6 / 13; object-fit: cover; border-radius: 18px; border: 1px solid var(--border); scroll-snap-align: start; flex: none; background: var(--surface); }
 
 .check-list { list-style: none; padding: 0; }

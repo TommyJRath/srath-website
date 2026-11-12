@@ -74,6 +74,11 @@
       "Available in 19 languages, with any currency",
       "Data stays on your phone, no account needed"
     ],
+    "video": {
+      "src": "/images/apps/kvit-og-frit/video-scan-pile.mp4",
+      "poster": "/images/apps/kvit-og-frit/video-scan-pile-poster.webp",
+      "alt": "Scanning three receipts, then the warranty reminders, in a short silent video"
+    },
     "screenshots": [
       {
         "src": "/images/apps/kvit-og-frit/1-home.webp",

@@ -68,7 +68,7 @@ function loadContent() {
     }
     if (!app.playStoreUrl && !app.sample && !app.status) warnings.push(`${where}: playStoreUrl is empty — shown as "Coming soon to Google Play".`);
     if (app.sample) warnings.push(`${where}: is SAMPLE data — replace or remove before going live.`);
-    for (const img of [app.icon, ...(app.screenshots ?? []).map((s) => s.src)]) {
+    for (const img of [app.icon, ...(app.screenshots ?? []).map((s) => s.src), app.video?.src, app.video?.poster]) {
       if (img && img.startsWith('/') && !fs.existsSync(path.join(PUBLIC, img))) {
         errors.push(`${where}: image not found: public${img}`);
       }
@@ -270,9 +270,10 @@ function appPage({ site }, app, policy) {
     </div>
   </div>
 </section>
-${screenshots.length ? `<section class="section section-tight" aria-label="Screenshots">
+${screenshots.length || app.video ? `<section class="section section-tight" aria-label="Screenshots">
   <div class="container">
     <div class="screenshots" tabindex="0" aria-label="Screenshots, scrollable">
+      ${app.video ? `<video class="screenshot-video" src="${esc(app.video.src)}"${app.video.poster ? ` poster="${esc(app.video.poster)}"` : ''} width="270" height="480" autoplay muted loop playsinline controls preload="metadata" aria-label="${esc(app.video.alt || `${app.name} video`)}"></video>` : ''}
       ${screenshots.map((s) => `<img src="${esc(s.src)}" alt="${esc(s.alt || `${app.name} screenshot`)}" width="240" height="520" loading="lazy" decoding="async">`).join('\n      ')}
     </div>
   </div>

@@ -100,5 +100,26 @@
         "alt": "Dark appearance"
       }
     ]
+  },
+  {
+    "slug": "regnorm",
+    "name": "Regnorm",
+    "tagline": "A plant care app for Android that waters by the weather: it follows the rain, sun and frost where your garden is.",
+    "description": "Regnorm keeps track of your plants, outside and inside. For the garden it reads the weather from the Danish Meteorological Institute (DMI) and works out, plant by plant, when the soil is getting dry, so you don't water after a day of rain. Houseplants follow a watering schedule that slows down in winter.\n\nA worm in a speech bubble tells you what needs doing, and warns you before a frost night. You can also track how tall your plants grow, note pot sizes and get a nudge when one has outgrown its pot, and see what to sow, plant and harvest each month.\n\nEverything is stored on your phone. There is no account to create.\n\nRegnorm is under development and not yet on Google Play. Features may change before it is released.",
+    "category": "House & Home",
+    "packageName": "com.srath.regnorm",
+    "icon": "/images/apps/regnorm/icon.png",
+    "playStoreUrl": "",
+    "features": [
+      "Watering by the weather for garden plants, from DMI's open data",
+      "Watering schedules for houseplants, gentler in winter",
+      "Frost warnings for plants that can't take it",
+      "Plant heights and pot sizes, with repotting suggestions",
+      "A garden calendar for sowing, planting and harvest",
+      "An optional morning reminder",
+      "Available in 19 languages",
+      "Data stays on your phone, no account needed"
+    ],
+    "screenshots": []
   }
 ]

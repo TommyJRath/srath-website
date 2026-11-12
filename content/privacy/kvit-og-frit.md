@@ -1,12 +1,12 @@
 ---
-lastUpdated: 2026-11-11
-placeholder: true
+lastUpdated: 2026-11-12
+placeholder: false
 ---
 
 <!--
-  Draft written from the app's code on 10 November 2026, while the app is under development,
-  and updated on 11 November 2026 for the Plus purchase.
-  Review it, then set placeholder: false. Update it before ads are added.
+  Written from the app's code on 10 November 2026, updated on 11 November 2026 for the Plus purchase
+  and on 12 November 2026 for the banner ad. Reviewed and published 12 November 2026.
+  Keep it in step with the app's Data safety answers in Play Console (KvitOgFrit/LAUNCH.md, Part 6).
 -->
 
 {{appName}} is a receipt and warranty app for Android made by {{developerName}}. This policy explains what happens to your information when you use the app.
@@ -26,12 +26,24 @@ When you scan a receipt, the text and any barcode are read on your phone by Goog
 
 ## When you choose to share
 
-- **Sending a receipt.** When you send a receipt, for example to someone who got a present, the app opens your phone's share menu. The receipt goes only to the app and the person you choose. The message includes a short line about {{appName}}.
+- **Sending a receipt.** When you send a receipt, for example to someone who got a present, the app opens your phone's share menu. The receipt goes only to the app and the person you choose. The message includes a short line about {{appName}}, unless you turn that off in **Settings**.
 - **Searching for a product.** When you tap **Search online** on a receipt line, the product name is passed to the search app or browser you choose, which handles it under its own privacy policy.
+
+## Ads
+
+Without Plus, {{appName}} shows one banner ad at the bottom of the home screen, provided by Google AdMob. Ads are never shown next to an open receipt, at the counter, while scanning or in a claim. The ad never sees your receipts. To show and measure ads, Google and its advertising partners may collect:
+
+- your device's advertising ID
+- your approximate location, based on your IP address
+- information about your device and how ads are viewed and clicked
+
+In the EU/EEA, the UK and Switzerland, the app asks for your consent before personalised ads are shown. You can change your choice at any time under **Settings → Ad privacy choices** in the app. You can also reset or delete your advertising ID in your phone's settings. With Plus, no ads are shown and AdMob is not started.
+
+Read how Google uses data: <https://policies.google.com/technologies/partner-sites>
 
 ## {{appName}} Plus
 
-Plus is a one-time purchase handled entirely by Google Play. We never see your payment details. When you buy Plus, and each time the app opens, the app asks Google Play whether your Google account owns Plus, so it can unlock the Plus features. That is all the app learns about your purchase. Google handles the payment under its own privacy policy: <https://policies.google.com/privacy>
+Plus is a one-time purchase handled entirely by Google Play. We never see your payment details. When you buy Plus, and each time the app opens, the app asks Google Play whether your Google account owns Plus, so it can unlock the Plus features and turn off the ad. That is all the app learns about your purchase. Google handles the payment under its own privacy policy: <https://policies.google.com/privacy>
 
 ## Reminders and app lock
 
@@ -40,9 +52,8 @@ Reminders about warranties and return windows are created on your phone. If you 
 ## What we do not do
 
 - We do not sell your data.
-- We do not use analytics or tracking tools.
+- We do not use analytics or tracking tools of our own.
 - We do not ask you to create an account.
-- The app does not show ads.
 
 ## Deleting your data
 
@@ -54,7 +65,10 @@ You can delete a receipt at any time from the receipt itself. Uninstalling the a
 
 ## Changes
 
-{{appName}} is still under development. If this policy changes, for example if ads are added, the new version will be posted on this page with a new date before the change reaches the app.
+If this policy changes, the new version will be posted on this page with a new date before the change reaches the app.
+
+- 12 November 2026: added the banner ad for people without Plus.
+- 11 November 2026: added {{appName}} Plus.
 
 ## Contact
 

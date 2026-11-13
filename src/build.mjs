@@ -3,6 +3,8 @@
 //   content/site.json        business details and contact email
 //   content/apps.json        one entry per application
 //   content/projects.json    other projects on the home page (apps are added automatically)
+//   content/partners.json    suppliers and partners, shown on /partners/ and the home page
+//   content/games.json       browser games; each game's files live in public/games/<slug>/
 //   content/privacy/*.md     one privacy policy per application (file name = app slug)
 //   public/                  copied verbatim to the site root (app-ads.txt, CNAME, images, ...)
 //   src/styles.css, main.js  published under /assets/
@@ -43,6 +45,8 @@ function loadContent() {
   const site = readJson('site.json');
   const apps = readJson('apps.json');
   const projects = fs.existsSync(path.join(CONTENT, 'projects.json')) ? readJson('projects.json') : [];
+  const partners = fs.existsSync(path.join(CONTENT, 'partners.json')) ? readJson('partners.json') : [];
+  const games = fs.existsSync(path.join(CONTENT, 'games.json')) ? readJson('games.json') : [];
   const errors = [];
   const warnings = [];
 
@@ -106,16 +110,121 @@ function loadContent() {
     }
   }
 
-  return { site, apps, projects, policies, errors, warnings };
+  for (const [i, p] of partners.entries()) {
+    for (const field of ['name', 'type']) {
+      if (!p[field]) errors.push(`partners.json[${i}]: missing required field "${field}".`);
+    }
+    if (p.url && !/^https?:\/\//.test(p.url)) errors.push(`partners.json[${i}]: url must start with https://`);
+    for (const img of [p.icon, p.logo]) {
+      if (img && img.startsWith('/') && !fs.existsSync(path.join(PUBLIC, img))) {
+        errors.push(`partners.json[${i}]: image not found: public${img}`);
+      }
+    }
+  }
+
+  for (const [i, g] of games.entries()) {
+    for (const field of ['slug', 'name', 'tagline', 'description']) {
+      if (!g[field]) errors.push(`games.json[${i}]: missing required field "${field}".`);
+    }
+    if (g.slug && !SLUG.test(g.slug)) errors.push(`games.json[${i}]: slug must be lowercase letters, digits and hyphens.`);
+    for (const file of ['game.js', 'game.css']) {
+      if (g.slug && !fs.existsSync(path.join(PUBLIC, 'games', g.slug, file))) {
+        errors.push(`games.json[${i}]: missing public/games/${g.slug}/${file}`);
+      }
+    }
+    if (g.icon && g.icon.startsWith('/') && !fs.existsSync(path.join(PUBLIC, g.icon))) {
+      errors.push(`games.json[${i}]: image not found: public${g.icon}`);
+    }
+  }
+
+  return { site, apps, projects, partners, games, policies, errors, warnings };
+}
+
+/** Maps a games.json entry to the card shape used by projectGrid. */
+function gameCard(g) {
+  return { name: g.name, type: 'Browser game', status: 'Play now', description: g.tagline, icon: g.icon, url: `/games/${g.slug}/`, linkLabel: 'Play' };
+}
+
+/** Cache-busted URL for a file in public/, e.g. a game's script. */
+function versioned(url) {
+  const hash = crypto.createHash('sha256').update(fs.readFileSync(path.join(PUBLIC, url))).digest('hex').slice(0, 10);
+  return `${url}?v=${hash}`;
+}
+
+function gamesIndexPage({ site, games }) {
+  return {
+    path: '/games/',
+    title: 'Games',
+    description: `Free browser games by ${site.name}. No ads, no sign-up.`,
+    body: `${pageHeader({
+      eyebrow: 'Games',
+      title: 'Browser games',
+      lead: 'Small games that run right here in your browser. No ads, no account, and nothing to install.',
+    })}
+<section class="section section-tight">
+  <div class="container">
+    ${projectGrid(games.map(gameCard))}
+  </div>
+</section>`,
+  };
+}
+
+function gamePage({ site }, game) {
+  const base = `/games/${game.slug}`;
+  const words = fs.existsSync(path.join(PUBLIC, 'games', game.slug, 'words.js'));
+  return {
+    path: `${base}/`,
+    title: game.name,
+    description: game.tagline,
+    head: `<link rel="stylesheet" href="${versioned(`${base}/game.css`)}">`,
+    jsonLd: {
+      '@context': 'https://schema.org',
+      '@type': 'VideoGame',
+      name: game.name,
+      description: game.description,
+      url: `${site.url}${base}/`,
+      gamePlatform: 'Web browser',
+      applicationCategory: 'Game',
+      isAccessibleForFree: true,
+      author: { '@type': 'Organization', name: site.name, url: site.url },
+    },
+    body: `<section class="game-shell">
+  <div class="container">
+    <a class="back-link" href="/games/">${icons.back}All games</a>
+    <h1 class="sr-only">${esc(game.name)}</h1>
+    <div id="${game.slug}" class="gw">
+      <noscript><p class="muted">${esc(game.name)} needs JavaScript to run.</p></noscript>
+    </div>
+  </div>
+</section>
+<section class="section section-tight">
+  <div class="container narrow prose">
+    <h2>About ${esc(game.name)}</h2>
+    ${paragraphs(game.description)}
+  </div>
+</section>
+${words ? `<script src="${versioned(`${base}/words.js`)}" defer></script>
+` : ''}<script src="${versioned(`${base}/game.js`)}" defer></script>`,
+  };
+}
+
+/** Maps a partners.json entry to the card shape used by projectGrid. */
+function partnerCard(p) {
+  return {
+    ...p,
+    status: p.project,
+    linkLabel: p.linkLabel || (p.url ? new URL(p.url).hostname.replace(/^www\./, '') : ''),
+  };
 }
 
 // ---------------------------------------------------------------------------
 // Pages
 // ---------------------------------------------------------------------------
 
-function homePage({ site, apps, projects }) {
+function homePage({ site, apps, projects, partners, games }) {
   const cards = [
     ...projects,
+    ...games.map(gameCard),
     ...apps.map((app) => ({
       name: app.name,
       type: 'Android app',
@@ -175,7 +284,20 @@ function homePage({ site, apps, projects }) {
     ${projectGrid(cards)}
   </div>
 </section>
-
+${partners.length ? `
+<section class="section section-tight" aria-labelledby="partners-heading">
+  <div class="container">
+    <div class="section-head">
+      <div>
+        <p class="eyebrow">Partners</p>
+        <h2 id="partners-heading">Suppliers and partners</h2>
+      </div>
+      <a class="text-link" href="/partners/">All partners ${icons.arrow}</a>
+    </div>
+    ${projectGrid(partners.slice(0, 6).map(partnerCard))}
+  </div>
+</section>
+` : ''}
 <section class="section section-alt" aria-labelledby="about-heading">
   <div class="container about">
     <div class="prose">
@@ -299,7 +421,7 @@ ${screenshots.length || app.video ? `<section class="section section-tight" aria
   };
 }
 
-function privacyIndexPage({ site, apps, policies }) {
+function privacyIndexPage({ site, apps, policies, games }) {
   const rows = apps.map((app) => {
     const policy = policies.get(app.slug);
     return `<li class="card policy-row reveal">
@@ -331,7 +453,7 @@ function privacyIndexPage({ site, apps, policies }) {
   <div class="container narrow prose">
     <h2 id="website">This website</h2>
     <p>This website does not use cookies, analytics, advertising or other tracking scripts, and it does not load fonts or other resources from third parties.</p>
-    <p>The website is hosted on GitHub Pages, a service provided by GitHub, Inc. When you visit the site, GitHub processes technical information such as your IP address in order to deliver the pages and keep the service secure. See the <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement" rel="noopener noreferrer">GitHub General Privacy Statement</a> for details.</p>
+    ${games.length ? '<p>The browser games save your progress and statistics in your own browser (local storage) so you can continue where you left off. This data never leaves your device, and you can delete it by clearing the site data for srath.dk in your browser.</p>\n' : ''}    <p>The website is hosted on GitHub Pages, a service provided by GitHub, Inc. When you visit the site, GitHub processes technical information such as your IP address in order to deliver the pages and keep the service secure. See the <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement" rel="noopener noreferrer">GitHub General Privacy Statement</a> for details.</p>
     <p>If you contact ${esc(site.name)} by email, your message and address are used only to respond to your enquiry. Contact: ${emailLink(site)}.</p>
   </div>
 </section>`,
@@ -376,6 +498,42 @@ ${html}
     </div>
   </div>
 </article>`,
+  };
+}
+
+function partnersPage({ site, partners }) {
+  // Group by project (e.g. "Baiganyo"), keeping the order of partners.json.
+  const groups = new Map();
+  for (const p of partners) {
+    const key = p.project || 'Other';
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(p);
+  }
+  const sections = [...groups].map(([name, list], i) => `<section class="section section-tight" aria-labelledby="partners-${i}">
+  <div class="container">
+    <h2 id="partners-${i}" class="h3">${esc(name)}</h2>
+    ${projectGrid(list.map(partnerCard))}
+  </div>
+</section>`);
+
+  return {
+    path: '/partners/',
+    title: 'Partners',
+    description: `Suppliers and partners that ${site.name} works with.`,
+    noindex: !partners.length,
+    body: `${pageHeader({
+      eyebrow: 'Partners',
+      title: 'Suppliers and partners',
+      lead: `Companies ${esc(site.name)} works with, including suppliers for the Baiganyo webshop.`,
+    })}
+${sections.length ? sections.join('\n') : `<section class="section section-tight">
+  <div class="container"><p class="muted">Partners will be listed here soon.</p></div>
+</section>`}
+<section class="section section-tight">
+  <div class="container">
+    <p class="muted small">Interested in working together? Email ${emailLink(site, { subject: 'Partnership' })}.</p>
+  </div>
+</section>`,
   };
 }
 
@@ -496,7 +654,7 @@ export function build({ quiet = false } = {}) {
   fs.cpSync(PUBLIC, DIST, { recursive: true });
 
   const assets = { css: publishAsset('styles.css'), js: publishAsset('main.js') };
-  const ctx = { site: content.site, assets };
+  const ctx = { site: content.site, assets, hasPartners: content.partners.length > 0, hasGames: content.games.length > 0 };
 
   const pages = [
     homePage(content),
@@ -504,6 +662,8 @@ export function build({ quiet = false } = {}) {
     ...content.apps.map((app) => appPage(content, app, content.policies.get(app.slug))),
     privacyIndexPage(content),
     ...content.apps.map((app) => privacyPage(content, app, content.policies.get(app.slug))),
+    ...(content.games.length ? [gamesIndexPage(content), ...content.games.map((g) => gamePage(content, g))] : []),
+    partnersPage(content),
     contactPage(content),
     notFoundPage(),
   ];

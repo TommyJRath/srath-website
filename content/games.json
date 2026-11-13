@@ -1,0 +1,9 @@
+[
+  {
+    "slug": "gridword",
+    "name": "Gridword",
+    "tagline": "Guess the five-letter word in six tries. A new word every day.",
+    "description": "A daily word puzzle. Guess the hidden five-letter word in six tries: teal tiles are letters in the right spot, indigo tiles are in the word but somewhere else. Everyone gets the same word each day, and a practice mode gives you as many extra words as you like.",
+    "icon": "/games/gridword/icon.svg"
+  }
+]

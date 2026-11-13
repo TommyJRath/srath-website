@@ -14,6 +14,8 @@ Website for **SRATH**, a Danish sole proprietorship that develops and publishes 
 - [Local development](#local-development)
 - [Site configuration](#site-configuration)
 - [Projects on the home page](#projects-on-the-home-page)
+- [Browser games](#browser-games)
+- [Partners and suppliers](#partners-and-suppliers)
 - [Adding an application](#adding-an-application)
 - [Privacy policies](#privacy-policies)
 - [app-ads.txt](#app-adstxt)
@@ -29,6 +31,8 @@ Website for **SRATH**, a Danish sole proprietorship that develops and publishes 
 content/
   site.json              Business name, contact email, CVR, about text, LinkedIn
   projects.json          Non-app projects on the home page (e.g. the webshop)
+  partners.json          Suppliers and partners (/partners/)
+  games.json             Browser games (/games/)
   apps.json              One entry per application
   privacy/
     _TEMPLATE.md         Starting point for a new policy (ignored by the build)
@@ -59,6 +63,7 @@ Generated URLs:
 | `/apps/<slug>/` | One page per entry in `apps.json` |
 | `/privacy/` | Policy index and privacy notice for the website |
 | `/privacy/<slug>/` | `content/privacy/<slug>.md` |
+| `/partners/` | `content/partners.json` |
 | `/contact/` | Contact and business information |
 | `/app-ads.txt`, `/robots.txt`, `/CNAME` | `public/` |
 | `/sitemap.xml` | Generated. Excludes sample apps and placeholder policies. |
@@ -109,6 +114,41 @@ The home page lists everything in `content/projects.json` (for example the Baiga
 ```
 
 `name`, `type` and `description` are required. Use `icon` for a square icon, or `logo` for a wide logo (shown on a light tile, like Baiganyo's moustache). Without either, the card shows the first letter of the name. When the webshop opens, change `status` (for example to `"Open"`) and write a proper `description`.
+
+## Browser games
+
+`content/games.json` lists the games. Each game's own files live in `public/games/<slug>/` and are copied unchanged. The build creates `/games/` (the list) and `/games/<slug>/` (the game page, inside the normal site layout), adds a Games tab to the menu and puts each game on the home page.
+
+```json
+{ "slug": "gridword", "name": "Gridword", "tagline": "One line for cards.", "description": "Longer text under the game.", "icon": "/games/gridword/icon.svg" }
+```
+
+A game folder must contain `game.js` and `game.css`, and may contain `words.js` (loaded first). The page provides an empty `<div id="<slug>">` for the game to fill. Games must not load anything from other sites or use cookies or ads, so the website privacy notice stays true. Progress may be stored in `localStorage`; the privacy page mentions this automatically while any game exists.
+
+**Gridword** (`public/games/gridword/`) is a daily five-letter word game:
+
+- `words.js`: `answers` (hand-picked common words, one per day, shuffled with a fixed seed) and `valid` (all other accepted guesses, from the public-domain ENABLE word list).
+- The daily word depends only on the visitor's local date. Gridword #1 is 13 November 2026, and the 793 answers last until January 2029. To add answers, append to the list. Keep the existing order, or past and future days change.
+- Statistics and today's progress are saved in the visitor's browser under `gridword:v1`.
+
+## Partners and suppliers
+
+`content/partners.json` lists suppliers and partners, for example the webshop's suppliers. They appear on `/partners/`, grouped by `project`, and the first six also appear on the home page.
+
+```json
+[
+  {
+    "name": "Supplier name",
+    "type": "Supplier",
+    "project": "Baiganyo",
+    "description": "What they supply.",
+    "url": "https://supplier.example",
+    "logo": "/images/partners/supplier.svg"
+  }
+]
+```
+
+`name` and `type` are required. `url`, `description`, `logo` (wide) or `icon` (square) and `linkLabel` (defaults to the domain) are optional. While the list is empty, the Partners link is hidden from the menu, footer and home page, and the page is left out of search engines. Ask a supplier before listing them, and use their logo only with their permission.
 
 ## Adding an application
 

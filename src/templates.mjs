@@ -23,7 +23,13 @@ export const icons = {
 
 const logoMark = (id) => `<svg class="logo-mark" viewBox="0 0 32 32" aria-hidden="true"><defs><linearGradient id="${id}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2dd4bf"/><stop offset="1" stop-color="#818cf8"/></linearGradient></defs><rect width="32" height="32" rx="8" fill="url(#${id})"/><path d="M22 10H10v6h12v6H10" fill="none" stroke="#0b0d12" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 
-export function layout({ site, assets, path, title, description, body, noindex = false, jsonLd = null }) {
+export function layout({ site, assets, hasPartners = false, hasGames = false, path, title, description, body, head = '', noindex = false, jsonLd = null }) {
+  const nav = [
+    NAV[0],
+    hasGames && { href: '/games/', label: 'Games' },
+    hasPartners && { href: '/partners/', label: 'Partners' },
+    ...NAV.slice(1),
+  ].filter(Boolean);
   const fullTitle = path === '/' ? `${site.name} — ${site.tagline}` : `${title} · ${site.name}`;
   const canonical = `${site.url}${path}`;
   const year = new Date().getUTCFullYear();
@@ -51,7 +57,7 @@ ${noindex ? '<meta name="robots" content="noindex">\n' : ''}<meta name="theme-co
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="stylesheet" href="${assets.css}">
-<script src="${assets.js}" defer></script>
+${head ? `${head}\n` : ''}<script src="${assets.js}" defer></script>
 ${jsonLd ? `<script type="application/ld+json">${JSON.stringify(jsonLd).replace(/</g, '\\u003c')}</script>\n` : ''}</head>
 <body>
 <a class="skip-link" href="#main">Skip to content</a>
@@ -60,7 +66,7 @@ ${jsonLd ? `<script type="application/ld+json">${JSON.stringify(jsonLd).replace(
     <a class="brand" href="/" aria-label="${esc(site.name)} — home">${logoMark('logo-h')}<span class="brand-name">${esc(site.name)}</span></a>
     <nav aria-label="Main">
       <ul class="nav-list">
-        ${NAV.map((n) => `<li><a href="${n.href}"${path.startsWith(n.href) ? ' aria-current="page"' : ''}>${n.label}</a></li>`).join('\n        ')}
+        ${nav.map((n) => `<li><a href="${n.href}"${path.startsWith(n.href) ? ' aria-current="page"' : ''}>${n.label}</a></li>`).join('\n        ')}
       </ul>
     </nav>
   </div>
@@ -82,6 +88,8 @@ ${body}
           <li><a href="/">Home</a></li>
           <li><a href="/#projects">Projects</a></li>
           <li><a href="/apps/">Apps</a></li>
+          ${hasGames ? '<li><a href="/games/">Games</a></li>' : ''}
+          ${hasPartners ? '<li><a href="/partners/">Partners</a></li>' : ''}
           <li><a href="/contact/">Contact</a></li>
           ${site.linkedin ? `<li><a href="${esc(site.linkedin)}" rel="noopener noreferrer me">LinkedIn</a></li>` : ''}
         </ul>

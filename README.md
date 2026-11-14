@@ -164,8 +164,7 @@ The relay also keeps anonymous global stats (`relay/src/stats.js`, one Durable O
 
 - **Gridword** (`/stats/gridword`): guesses (7 = not solved), solving time (from the first letter typed) and daily streak, per day. The server repeats the game's seeded shuffle to know each day's word, and only accepts a finished game whose guesses fit it, for today's day number (±1). Day boards are deleted two days later. `relay/gen-answers.mjs` copies the answers from `public/games/gridword/words.js` into the Worker before each dev run and deploy, and changes to `words.js` trigger a relay deploy.
 - **BREACH://** (`br-time`, `br-commands`): submitted once, when root is reached. Plausibility limits: at least 60 seconds and 12 commands.
-- **Trails, Knockout, Ricochet** (`<game>-streak-<computer players>`): solo win streaks against the computer, one board per number of computer players. A streak is added when it ends; while it grows, the game shows the rank it would have.
-- **In the browser:** `public/games/stats.js` (loaded on every game page with a `relay`) provides `SrathStats.submit`, `rank`, `gridword` and `describe`. On `localhost`/`127.0.0.1` it uses the local relay.
+- **In the browser:** `public/games/stats.js` (loaded on game pages with `"rankings": true` and a `relay` in `games.json`) provides `SrathStats.submit`, `rank`, `gridword`, `describe` and `lead` (distance to first place). On `localhost`/`127.0.0.1` it uses the local relay.
 - **Limits:** results are checked for range, and an address can submit 60 results an hour (counted in memory only). Browser games can't be made cheat-proof; Gridword is the one that is verified.
 
 **Setting up Cloudflare (once):**

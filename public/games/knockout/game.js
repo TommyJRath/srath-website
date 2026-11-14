@@ -29,6 +29,7 @@
   var FALL_TIME = 0.7;            // seconds a puck takes to fall off the edge
   var CREDIT_TIME = 3;            // a fall within this long after a hit counts as a knockout by the hitter
   var SETUP_KEY = 'knockout:setup';
+  try { localStorage.removeItem('knockout:streaks'); } catch (e) { /* the win streaks that used to be ranked */ }
 
   // Arenas: one is picked for each round (the first round is always Classic), so rounds feel different.
   var ARENAS = {
@@ -651,36 +652,6 @@
       buttons
     );
     live.textContent = who(winner) + ' won the match.';
-    streakRank(winner);
-  }
-
-  // Win streaks against the computer (solo games only), ranked anonymously against everyone's
-  // for the same number of computer pucks (see /games/stats.js). A streak is added when it ends.
-  function streakRank(winner) {
-    if (net || setup.mode !== 'solo') return;
-    var bots = setup.bots, all = load('knockout:streaks', {}), cur = all[bots] || 0, board = 'knockout-streak-' + bots;
-    var won = isMe(winner);
-    all[bots] = won ? cur + 1 : 0;
-    save('knockout:streaks', all);
-    var body = overlay.querySelector('.ko-body');
-    if (!body) return;
-    var vs = bots === 1 ? '1 computer puck' : bots + ' computer pucks';
-    var stats = window.SrathStats && SrathStats.available ? SrathStats : null;
-    var winText = function (v) { return v + (v === 1 ? ' win' : ' wins'); };
-    var line = el('p', 'ko-global');
-    body.append(line);
-    if (!won && cur < 1) {
-      // No streak yet: say how to start one, and what the longest one is.
-      line.textContent = 'No win streak against ' + vs + ' yet. Win a match to start one.';
-      if (stats) stats.top(board).then(function (t) { if (t.total) line.textContent += ' The longest streak so far is ' + t.top + '.'; }, function () {});
-    } else if (won) {
-      cur++;
-      line.textContent = 'Win streak against ' + vs + ': ' + cur + '.';
-      if (stats) stats.rank(board, cur).then(function (r) { line.textContent = 'Win streak against ' + vs + ': ' + cur + '. Rank: ' + stats.describe(r, 'streak') + '. ' + stats.lead(r, winText); }, function () {});
-    } else {
-      line.textContent = 'Your win streak of ' + cur + ' against ' + vs + ' ended.';
-      if (stats) stats.submit(board, cur).then(function (r) { line.textContent = 'Your win streak of ' + cur + ' against ' + vs + ' ended. Rank: ' + stats.describe(r, 'streak') + '. ' + stats.lead(r, winText); }, function () {});
-    }
   }
 
   // ---------------------------------------------------------------------------

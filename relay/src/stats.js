@@ -1,6 +1,6 @@
 // Anonymous global stats for the srath.dk browser games.
 //
-// When a game ends, the page sends its result (number of guesses, a time, a win streak) and gets back
+// When a game ends, the page sends its result (number of guesses, a time, a command count) and gets back
 // its rank. Only counts are stored: "on board X, N results had value V". No names, no IP addresses,
 // no identifiers of any kind. Gridword's daily boards are deleted two days after their day.
 //
@@ -22,9 +22,6 @@ const BOARDS = {
   'br-commands': { lower: true, min: 12, max: 100000 },
   'br-time': { lower: true, min: 60, max: 30 * 86400 },            // seconds
 };
-for (const game of ['trails', 'knockout', 'ricochet']) {
-  for (let bots = 1; bots <= 5; bots++) BOARDS[game + '-streak-' + bots] = { lower: false, min: 1, max: 1000 };
-}
 
 // The same shuffle as the game, so the server knows each day's word.
 function mulberry32(seed) {
@@ -73,6 +70,8 @@ export class Stats extends DurableObject {
     super(ctx, env);
     this.sql = ctx.storage.sql;
     this.sql.exec('CREATE TABLE IF NOT EXISTS counts (board TEXT NOT NULL, day INTEGER NOT NULL, value INTEGER NOT NULL, n INTEGER NOT NULL, PRIMARY KEY (board, day, value))');
+    // The arcade games' win streaks are no longer ranked; remove any that were stored.
+    this.sql.exec("DELETE FROM counts WHERE board LIKE '%-streak-%'");
     this.rates = new Map();   // address -> { start, count }; in memory only, never stored
   }
 
@@ -89,7 +88,6 @@ export class Stats extends DurableObject {
         const q = Object.fromEntries(url.searchParams);
         if (url.pathname === '/stats/gridword') return json(this.gridword({ day: +q.day, guesses: q.guesses ? q.guesses.split(',') : [], time: +q.time, streak: +q.streak, mine: q.mine === '1' }, false));
         if (url.pathname === '/stats/rank') return json(this.single(q.board, +q.value, false));
-        if (url.pathname === '/stats/top') return json(this.top(q.board));
       }
       return json({ error: 'not found' }, 404);
     } catch (e) {
@@ -133,14 +131,6 @@ export class Stats extends DurableObject {
       value, rank: better + 1, total, beats: total > 1 ? Math.floor((worse / (total - 1)) * 100) : 0,
       best: top.best, bestCount: tied.length ? tied[0].n : 0, lower: b.lower, added: !!added,
     };
-  }
-
-  // The best value on an all-time board, and how many results it has.
-  top(board) {
-    const b = BOARDS[board];
-    if (!b || b.day) throw new Error('unknown board');
-    const row = this.sql.exec((b.lower ? 'SELECT MIN(value)' : 'SELECT MAX(value)') + ' AS top, COALESCE(SUM(n), 0) AS total FROM counts WHERE board = ? AND day = -1', board).one();
-    return { top: row.top, total: row.total };
   }
 
   single(board, value, add) {

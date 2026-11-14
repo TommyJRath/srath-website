@@ -25,6 +25,7 @@
   var WALL = 6;                   // wall thickness
   var END_DELAY = 1.4;            // shots keep flying this long after the last-but-one tank is hit
   var SETUP_KEY = 'ricochet:setup';
+  try { localStorage.removeItem('ricochet:streaks'); } catch (e) { /* the win streaks that used to be ranked */ }
 
   var COLORS = [
     { name: 'Teal', hex: '#2dd4bf' }, { name: 'Indigo', hex: '#818cf8' }, { name: 'Amber', hex: '#fbbf24' },
@@ -814,36 +815,6 @@
       buttons
     );
     live.textContent = who(winner) + ' won the match.';
-    streakRank(winner);
-  }
-
-  // Win streaks against the computer (solo games only), ranked anonymously against everyone's
-  // for the same number of computer tanks (see /games/stats.js). A streak is added when it ends.
-  function streakRank(winner) {
-    if (net || setup.mode !== 'solo') return;
-    var bots = setup.bots, all = load('ricochet:streaks', {}), cur = all[bots] || 0, board = 'ricochet-streak-' + bots;
-    var won = isMe(winner);
-    all[bots] = won ? cur + 1 : 0;
-    save('ricochet:streaks', all);
-    var body = overlay.querySelector('.ri-body');
-    if (!body) return;
-    var vs = bots === 1 ? '1 computer tank' : bots + ' computer tanks';
-    var stats = window.SrathStats && SrathStats.available ? SrathStats : null;
-    var winText = function (v) { return v + (v === 1 ? ' win' : ' wins'); };
-    var line = el('p', 'ri-global');
-    body.append(line);
-    if (!won && cur < 1) {
-      // No streak yet: say how to start one, and what the longest one is.
-      line.textContent = 'No win streak against ' + vs + ' yet. Win a match to start one.';
-      if (stats) stats.top(board).then(function (t) { if (t.total) line.textContent += ' The longest streak so far is ' + t.top + '.'; }, function () {});
-    } else if (won) {
-      cur++;
-      line.textContent = 'Win streak against ' + vs + ': ' + cur + '.';
-      if (stats) stats.rank(board, cur).then(function (r) { line.textContent = 'Win streak against ' + vs + ': ' + cur + '. Rank: ' + stats.describe(r, 'streak') + '. ' + stats.lead(r, winText); }, function () {});
-    } else {
-      line.textContent = 'Your win streak of ' + cur + ' against ' + vs + ' ended.';
-      if (stats) stats.submit(board, cur).then(function (r) { line.textContent = 'Your win streak of ' + cur + ' against ' + vs + ' ended. Rank: ' + stats.describe(r, 'streak') + '. ' + stats.lead(r, winText); }, function () {});
-    }
   }
 
   // ---------------------------------------------------------------------------

@@ -37,8 +37,6 @@
     submit: function (board, value) { return call('/stats/submit', { board: board, value: value }); },
     // The rank a value would have, without adding it.
     rank: function (board, value) { return call('/stats/rank?board=' + encodeURIComponent(board) + '&value=' + encodeURIComponent(value)); },
-    // The best result on a board so far: { top, total }.
-    top: function (board) { return call('/stats/top?board=' + encodeURIComponent(board)); },
     // Gridword's daily result; the server checks the guesses against the day's word. Without add, it looks up
     // the ranks of a result that was added earlier.
     gridword: function (result, add) {

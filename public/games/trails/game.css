@@ -146,5 +146,3 @@
 .tr-swatch:hover:not(:disabled) { transform: scale(1.12); }
 .tr-swatch[aria-pressed="true"] { border-color: #fff; box-shadow: 0 0 0 2px var(--c), 0 0 14px var(--c); }
 .tr-swatch:disabled { opacity: .18; cursor: not-allowed; box-shadow: none; }
-
-.tr-global { color: var(--text); font-size: .9rem; margin: 12px 0 0 !important; }

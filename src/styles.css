@@ -244,6 +244,13 @@ code { font-family: var(--mono); font-size: .9em; background: var(--surface-2); 
 .check-list li { position: relative; padding-left: 28px; margin-bottom: 8px; }
 .check-list li::before { content: ""; position: absolute; left: 4px; top: .55em; width: 10px; height: 6px; border-left: 2px solid var(--accent); border-bottom: 2px solid var(--accent); transform: rotate(-45deg); }
 
+/* Tech stack: a terminal-style list, each line starting with a prompt chevron. */
+.tech-list { list-style: none; padding: 14px 18px; margin: 0 0 1em; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg-alt); font-size: .95rem; }
+.tech-list li { position: relative; padding-left: 22px; margin: 0 0 6px; color: var(--muted); }
+.tech-list li:last-child { margin-bottom: 0; }
+.tech-list li::before { content: "›"; position: absolute; left: 4px; top: -1px; color: var(--accent); font: 700 1.05rem var(--mono); }
+.tech-list strong { color: var(--text); font-weight: 600; }
+
 /* Prose (policies & descriptions) ------------------------------------------------ */
 .prose { max-width: 72ch; }
 .prose h2 { font-size: 1.4rem; margin-top: 2em; padding-top: .25em; }

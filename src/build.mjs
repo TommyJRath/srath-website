@@ -65,6 +65,8 @@ function loadContent() {
       if (!app[field]) errors.push(`${where}: missing required field "${field}".`);
     }
     if (app.slug && !SLUG.test(app.slug)) errors.push(`${where}: slug must be lowercase letters, digits and hyphens.`);
+    if (app.tech && !Array.isArray(app.tech)) errors.push(`${where}: "tech" must be a list of strings.`);
+    if (!app.sample && !(app.tech || []).length) warnings.push(`${where}: no "tech" list, so the page has no tech stack section.`);
     if (seen.has(app.slug)) errors.push(`${where}: duplicate slug.`);
     seen.add(app.slug);
     if (app.playStoreUrl && !/^https:\/\/play\.google\.com\//.test(app.playStoreUrl)) {
@@ -127,6 +129,8 @@ function loadContent() {
       if (!g[field]) errors.push(`games.json[${i}]: missing required field "${field}".`);
     }
     if (g.slug && !SLUG.test(g.slug)) errors.push(`games.json[${i}]: slug must be lowercase letters, digits and hyphens.`);
+    if (g.tech && !Array.isArray(g.tech)) errors.push(`games.json[${i}]: "tech" must be a list of strings.`);
+    if (!(g.tech || []).length) warnings.push(`games.json[${i}] (${g.slug}): no "tech" list, so the page has no tech stack section.`);
     if (g.slug && !fs.existsSync(path.join(PUBLIC, 'games', g.slug, 'game.js'))) {
       errors.push(`games.json[${i}]: missing public/games/${g.slug}/game.js`);
     }
@@ -136,6 +140,19 @@ function loadContent() {
   }
 
   return { site, apps, projects, partners, games, policies, errors, warnings };
+}
+
+/**
+ * "Tech stack" section for an app or game page. Each entry in `tech` is either a plain string, or
+ * "Name: what it is used for", which is shown with the name in bold.
+ */
+function techStack(tech) {
+  if (!Array.isArray(tech) || !tech.length) return '';
+  const items = tech.map((t) => {
+    const i = t.indexOf(': ');
+    return i === -1 ? `<li>${esc(t)}</li>` : `<li><strong>${esc(t.slice(0, i))}</strong> ${esc(t.slice(i + 2))}</li>`;
+  });
+  return `<h3>Tech stack</h3>\n      <ul class="tech-list">${items.join('')}</ul>`;
 }
 
 /** Maps a games.json entry to the card shape used by projectGrid. */
@@ -201,6 +218,7 @@ function gamePage({ site }, game) {
   <div class="container narrow prose">
     <h2>About ${esc(game.name)}</h2>
     ${paragraphs(game.description)}
+    ${techStack(game.tech)}
   </div>
 </section>
 ${scripts.map((src) => `<script src="${versioned(src)}" defer></script>`).join('\n')}`,
@@ -451,6 +469,7 @@ ${screenshots.length || app.video ? `<section class="section section-tight" aria
       <h2>About ${esc(app.name)}</h2>
       ${paragraphs(app.description)}
       ${features.length ? `<h3>Features</h3>\n      <ul class="check-list">${features.map((f) => `<li>${esc(f)}</li>`).join('')}</ul>` : ''}
+      ${techStack(app.tech)}
     </div>
     <aside class="card info-card" aria-label="App information">
       <h2 class="info-title">Information</h2>

@@ -51,6 +51,16 @@
         "src": "/images/apps/ever-after/8-home-dark.webp",
         "alt": "Dark appearance"
       }
+    ],
+    "tech": [
+      "Kotlin: the whole app, with Jetpack Compose and Material 3 for the interface",
+      "Compose Canvas: custom drawing for the letterpress look (ruled lines, stamps, pen ticks)",
+      "On-device storage: everything saved as JSON files on the phone, with no server and no account",
+      "Google AdMob: a small banner ad, with the User Messaging Platform for GDPR consent",
+      "Google Play Billing: the one-time \"Remove ads\" purchase",
+      "Google Play In-App Review: an occasional request for a rating",
+      "Localisation: English plus 18 translations, with a per-app language setting on Android 13+",
+      "Android 8.0 (API 26) and newer, built with Gradle and shrunk with R8"
     ]
   },
   {
@@ -104,6 +114,21 @@
         "src": "/images/apps/kvit-og-frit/6-home-dark.webp",
         "alt": "Dark appearance"
       }
+    ],
+    "tech": [
+      "Kotlin: the whole app, with Jetpack Compose and Material 3 for the interface",
+      "ML Kit Document Scanner: captures and crops receipts with the camera",
+      "ML Kit Text Recognition: reads the receipt on the device (OCR)",
+      "ML Kit Barcode Scanning and ZXing: reads and shows receipt barcodes",
+      "WorkManager and notifications: reminders before a warranty or return window runs out",
+      "AndroidX Biometric: optional fingerprint or face lock",
+      "PdfDocument and FileProvider: PDF export and sharing",
+      "Home-screen widget: the next warranties and return windows to act on",
+      "On-device storage: receipts saved as JSON and JPEG files on the phone",
+      "Google AdMob: a small banner ad, with the User Messaging Platform for GDPR consent",
+      "Google Play Billing: the one-time \"Remove ads\" purchase",
+      "Localisation: English plus 18 translations, with a per-app language setting on Android 13+",
+      "Android 8.0 (API 26) and newer, built with Gradle and shrunk with R8"
     ]
   },
   {
@@ -125,6 +150,19 @@
       "Available in 19 languages",
       "Data stays on your phone, no account needed"
     ],
-    "screenshots": []
+    "screenshots": [],
+    "tech": [
+      "Kotlin: the whole app, with Jetpack Compose and Material 3 for the interface",
+      "DMI open data API: weather forecasts (HARMONIE model) and climate data from the Danish Meteorological Institute, CC BY 4.0",
+      "Location: the weather is fetched for where your garden is",
+      "AlarmManager and notifications: a daily watering reminder",
+      "Home-screen widget",
+      "Built-in plant catalogue: a CSV file of plants and their care needs",
+      "On-device storage: plants and settings saved as JSON on the phone",
+      "Google AdMob: a small banner ad, with the User Messaging Platform for GDPR consent",
+      "Google Play Billing: the one-time \"Remove ads\" purchase",
+      "Localisation: English plus 18 translations, with a per-app language setting on Android 13+",
+      "Android 8.0 (API 26) and newer, built with Gradle and shrunk with R8"
+    ]
   }
 ]

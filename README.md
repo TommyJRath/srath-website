@@ -120,8 +120,10 @@ The home page lists everything in `content/projects.json` (for example the Baiga
 `content/games.json` lists the games. Each game's own files live in `public/games/<slug>/` and are copied unchanged. The build creates `/games/` (the list) and `/games/<slug>/` (the game page, inside the normal site layout), adds a Games tab to the menu and puts each game on the home page.
 
 ```json
-{ "slug": "gridword", "name": "Gridword", "tagline": "One line for cards.", "description": "Longer text under the game.", "icon": "/games/gridword/icon.svg" }
+{ "slug": "gridword", "name": "Gridword", "tagline": "One line for cards.", "description": "Longer text under the game.", "icon": "/games/gridword/icon.svg", "tech": ["Plain JavaScript: no frameworks"] }
 ```
+
+The `tech` list becomes the "Tech stack" section on the game page, just like for apps.
 
 A game folder must contain `game.js`, and may contain `game.css` and `words.js` (loaded before `game.js`). The page provides an empty `<div id="<slug>">` for the game to fill. Games must not load anything from other sites or use cookies or ads, so the website privacy notice stays true. Progress may be stored in `localStorage`; the privacy page mentions this automatically while any game exists.
 
@@ -188,7 +190,7 @@ On the home page, all games share a single "Browser games" card that links to `/
    }
    ```
 
-   Required: `slug`, `name`, `tagline`, `description`, `icon`. Optional `status` (for example "Under development") is shown instead of "Coming soon" while there is no Google Play link. The `slug` becomes the permanent URL (`/apps/my-app/`, `/privacy/my-app/`), so **do not change it after you have given the privacy URL to Google Play.** The order in the file is the order shown on the site.
+   Required: `slug`, `name`, `tagline`, `description`, `icon`. Add a `tech` list too: each entry is shown under "Tech stack" on the page, and an entry written as `"Name: what it is used for"` shows the name in bold. Take it from the app's real dependencies (`gradle/libs.versions.toml`, `app/build.gradle.kts`), not from memory. Optional `status` (for example "Under development") is shown instead of "Coming soon" while there is no Google Play link. The `slug` becomes the permanent URL (`/apps/my-app/`, `/privacy/my-app/`), so **do not change it after you have given the privacy URL to Google Play.** The order in the file is the order shown on the site.
 3. Create `content/privacy/<slug>.md` from the template (see below).
 4. Run `npm run check`, then commit and push.
 

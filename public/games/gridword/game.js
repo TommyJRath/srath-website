@@ -368,11 +368,16 @@
   function loadGlobal() {
     if (!window.SrathStats || !SrathStats.available || state.mode !== 'daily' || !state.done) return;
     var add = !store.daily.submitted;
+    // Mark it as sent first, so a reload while it's on its way can't send it twice.
+    if (add) { store.daily.submitted = true; save(); }
     SrathStats.gridword(dailyResult(), add).then(function (data) {
-      if (add) { store.daily.submitted = true; save(); }
       global = data;
       fillGlobal();
-    }, function () { global = { failed: true }; fillGlobal(); });
+    }, function () {
+      if (add) { store.daily.submitted = false; save(); }
+      global = { failed: true };
+      fillGlobal();
+    });
   }
 
   function globalBox() {
@@ -391,13 +396,16 @@
     box.append(el('h3', 'gw-dist-title', 'Today, everyone'));
     var won = global.guesses.value <= TRIES;
     var lines = [];
-    lines.push([won ? 'Solved in ' + global.guesses.value : 'Not solved', SrathStats.describe(global.guesses, 'player')]);
-    if (global.time) lines.push(['Time ' + clockText(global.time.value), SrathStats.describe(global.time, 'solver')]);
-    lines.push(['Streak ' + global.streak.value, SrathStats.describe(global.streak, 'player')]);
+    var guessText = function (v) { return v + (v === 1 ? ' guess' : ' guesses'); };
+    var dayText = function (v) { return v + (v === 1 ? ' day' : ' days'); };
+    lines.push([won ? 'Solved in ' + global.guesses.value : 'Not solved', SrathStats.describe(global.guesses, 'player'), won ? SrathStats.lead(global.guesses, guessText) : '']);
+    if (global.time) lines.push(['Time ' + clockText(global.time.value), SrathStats.describe(global.time, 'solver'), SrathStats.lead(global.time, clockText)]);
+    lines.push(['Streak ' + global.streak.value, SrathStats.describe(global.streak, 'player'), global.streak.value ? SrathStats.lead(global.streak, dayText) : '']);
     var list = el('ul', 'gw-ranks');
     lines.forEach(function (l) {
       var li = el('li');
       li.append(el('strong', null, l[0]), el('span', null, l[1]));
+      if (l[2]) li.append(el('em', 'gw-lead', l[2]));
       list.append(li);
     });
     box.append(list);

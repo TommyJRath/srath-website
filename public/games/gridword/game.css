@@ -118,3 +118,5 @@
 .gw-ranks li { display: flex; justify-content: space-between; gap: 12px; }
 .gw-ranks span { color: var(--muted); text-align: right; }
 .gw-dist-global .gw-bar { min-width: 22px; }
+.gw-ranks li { flex-wrap: wrap; }
+.gw-lead { flex-basis: 100%; text-align: right; font-style: normal; font-size: .8rem; color: var(--accent); margin-top: -2px; }

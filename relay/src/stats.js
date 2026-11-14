@@ -87,7 +87,7 @@ export class Stats extends DurableObject {
         if (url.pathname === '/stats/submit') return json(this.single(body.board, body.value, true));
       } else if (request.method === 'GET') {
         const q = Object.fromEntries(url.searchParams);
-        if (url.pathname === '/stats/gridword') return json(this.gridword({ day: +q.day, guesses: q.guesses ? q.guesses.split(',') : [], time: +q.time, streak: +q.streak }, false));
+        if (url.pathname === '/stats/gridword') return json(this.gridword({ day: +q.day, guesses: q.guesses ? q.guesses.split(',') : [], time: +q.time, streak: +q.streak, mine: q.mine === '1' }, false));
         if (url.pathname === '/stats/rank') return json(this.single(q.board, +q.value, false));
         if (url.pathname === '/stats/top') return json(this.top(q.board));
       }
@@ -126,7 +126,13 @@ export class Stats extends DurableObject {
     const total = row.total + (added ? 0 : 1);
     const better = b.lower ? row.below : row.above;    // results that beat this one
     const worse = b.lower ? row.above : row.below;     // results this one beats
-    return { value, rank: better + 1, total, beats: total > 1 ? Math.floor((worse / (total - 1)) * 100) : 0 };
+    // First place, so the game can say how far away it is. best: the best value; bestCount: how many have it.
+    const top = this.sql.exec((b.lower ? 'SELECT MIN(value)' : 'SELECT MAX(value)') + ' AS best FROM counts WHERE board = ? AND day = ?', board, day).one();
+    const tied = top.best == null ? [] : this.sql.exec('SELECT n FROM counts WHERE board = ? AND day = ? AND value = ?', board, day, top.best).toArray();
+    return {
+      value, rank: better + 1, total, beats: total > 1 ? Math.floor((worse / (total - 1)) * 100) : 0,
+      best: top.best, bestCount: tied.length ? tied[0].n : 0, lower: b.lower, added: !!added,
+    };
   }
 
   // The best value on an all-time board, and how many results it has.
@@ -158,6 +164,7 @@ export class Stats extends DurableObject {
     const streak = Math.max(0, Math.min(Math.floor(body.streak) || 0, day + 1));
     const time = Math.floor(body.time) || 0;
     const timeOk = solved && time >= BOARDS['gw-time'].min && time <= BOARDS['gw-time'].max;
+    const counted = add || !!body.mine;   // mine: looking up a result that was added earlier (after a reload)
 
     if (add) {
       this.add('gw-guesses', day, guessValue);
@@ -170,9 +177,9 @@ export class Stats extends DurableObject {
     for (const r of this.sql.exec('SELECT value, n FROM counts WHERE board = ? AND day = ?', 'gw-guesses', day)) dist[r.value - 1] = r.n;
     return {
       day,
-      guesses: this.rank('gw-guesses', day, guessValue, add),
-      time: timeOk ? this.rank('gw-time', day, time, add) : null,
-      streak: this.rank('gw-streak', day, streak, add),
+      guesses: this.rank('gw-guesses', day, guessValue, counted),
+      time: timeOk ? this.rank('gw-time', day, time, counted) : null,
+      streak: this.rank('gw-streak', day, streak, counted),
       dist,
     };
   }

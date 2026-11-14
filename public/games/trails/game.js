@@ -635,6 +635,7 @@
     if (!body) return;
     var vs = bots === 1 ? '1 computer dot' : bots + ' computer dots';
     var stats = window.SrathStats && SrathStats.available ? SrathStats : null;
+    var winText = function (v) { return v + (v === 1 ? ' win' : ' wins'); };
     var line = el('p', 'tr-global');
     body.append(line);
     if (!won && cur < 1) {
@@ -644,10 +645,10 @@
     } else if (won) {
       cur++;
       line.textContent = 'Win streak against ' + vs + ': ' + cur + '.';
-      if (stats) stats.rank(board, cur).then(function (r) { line.textContent = 'Win streak against ' + vs + ': ' + cur + '. Rank: ' + stats.describe(r, 'streak') + '.'; }, function () {});
+      if (stats) stats.rank(board, cur).then(function (r) { line.textContent = 'Win streak against ' + vs + ': ' + cur + '. Rank: ' + stats.describe(r, 'streak') + '. ' + stats.lead(r, winText); }, function () {});
     } else {
       line.textContent = 'Your win streak of ' + cur + ' against ' + vs + ' ended.';
-      if (stats) stats.submit(board, cur).then(function (r) { line.textContent = 'Your win streak of ' + cur + ' against ' + vs + ' ended. Rank: ' + stats.describe(r, 'streak') + '.'; }, function () {});
+      if (stats) stats.submit(board, cur).then(function (r) { line.textContent = 'Your win streak of ' + cur + ' against ' + vs + ' ended. Rank: ' + stats.describe(r, 'streak') + '. ' + stats.lead(r, winText); }, function () {});
     }
   }
 

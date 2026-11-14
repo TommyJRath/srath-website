@@ -970,8 +970,9 @@
       if (!r[0] && !r[1]) return;
       print('');
       print('Global ranking, all players (anonymous):', 't-head');
-      if (r[0]) print('  time      ' + clock(state.elapsed) + '   ' + SrathStats.describe(r[0], 'player'), 't-ok');
-      if (r[1]) print('  commands  ' + state.commands + '   ' + SrathStats.describe(r[1], 'player'), 't-ok');
+      var commandText = function (v) { return v + (v === 1 ? ' command' : ' commands'); };
+      if (r[0]) print('  time      ' + clock(state.elapsed) + '   ' + SrathStats.describe(r[0], 'player') + '   ' + SrathStats.lead(r[0], clock), 't-ok');
+      if (r[1]) print('  commands  ' + state.commands + '   ' + SrathStats.describe(r[1], 'player') + '   ' + SrathStats.lead(r[1], commandText), 't-ok');
       renderPrompt();
     });
   }

@@ -10,7 +10,7 @@
 import { DurableObject } from 'cloudflare:workers';
 
 const CODE = /^[A-HJ-NP-Z2-9]{5}$/;   // invite codes: no 0/O or 1/I to mix up
-const GAMES = ['trails', 'knockout']; // games that can be played online
+const GAMES = ['trails', 'knockout', 'ricochet']; // games that can be played online
 const MAX_PLAYERS = 6;                // seats 0 (host) to 5
 const MAX_HOST_BYTES = 48 * 1024;     // a game-state message from the host
 const MAX_GUEST_BYTES = 256;          // a steering message from a guest

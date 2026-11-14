@@ -51,7 +51,9 @@ scripts/
   verify.mjs             Post-build checks: app-ads.txt, required files, broken links
   check-live.mjs         Checks the deployed https://srath.dk/app-ads.txt
   serve.mjs              Local preview server
-.github/workflows/deploy.yml
+.github/workflows/deploy.yml   Builds and deploys the site
+.github/workflows/relay.yml    Deploys relay/ to Cloudflare
+relay/                   Cloudflare Worker for online Trails games (see "Trails online play")
 ```
 
 Generated URLs:
@@ -137,12 +139,43 @@ On the home page, all games share a single "Browser games" card that links to `/
 - **Saved progress:** progress, achievements and history are saved in the visitor's browser under `breach:v2`. Players can type `reset confirm` to start over.
 - **Testing:** in the browser console, `localStorage.removeItem('breach:v2')` and a reload give a fresh start.
 
-**Trails** (`public/games/trails/`) is an arcade game: dots leave lines, you steer only left and right, and touching a line knocks you out. Gaps open in each line every few seconds (with a warning ring), and during your own gap you can hop over lines. It has computer dots, two players on one keyboard, nine power-ups that can each be switched off in the menu, and full screen.
+**Trails** (`public/games/trails/`) is an arcade game: dots leave lines, you steer only left and right, and touching a line knocks you out. Gaps open in each line every few seconds (with a warning ring), and during your own gap you can hop over lines. It has computer dots, two players on one keyboard, online play with friends, nine power-ups that can each be switched off in the menu, and full screen.
 
 - **Tuning:** speed, turn rate, line width, gaps and power-up timing are constants at the top of `game.js`. `POWERUPS` lists each power-up with its duration and how often it appears.
-- **Fixed simulation:** the game runs on a fixed 1000×680 arena with a fixed 120 Hz timestep. That's deliberate: the planned online mode lets one player's browser run the game and send positions to the others.
+- **Fixed simulation:** the game runs on a fixed 1000×680 arena with a fixed 120 Hz timestep, so it plays the same on every screen.
+- **Online play:** see [Trails online play](#trails-online-play) below.
 - **Saved settings:** stored in localStorage (`trails:setup`, `trails:muted`).
 - **Testing:** `__trails.give('boost')` and `__trails.state()` in the browser console help when testing.
+
+### Trails online play
+
+Online games go through a small relay in `relay/`: a Cloudflare Worker with one Durable Object per game room. GitHub Pages only serves files, so it can't pass messages between visitors; the relay does that and nothing else.
+
+- **How it works:** the player who creates a game is the host. Their browser runs the normal simulation and sends the state (positions, new line pieces, pickups, events) 25 times a second. The other players' browsers send only their steering (left, right or straight) when it changes, and draw what the host sends, moving the dots along their curve between messages.
+- **Rooms:** a game has a five-character code and an invite link, `https://srath.dk/games/trails/?room=CODE`. Up to six players (seats 0–5; seat 0 is the host, and a player's colour is their seat). Computer dots fill free seats. Players can join only in the lobby. If a player leaves, their dot crashes; if the host leaves, the game ends for everyone.
+- **The relay stores nothing:** no names, chat or game data. It accepts connections only from `https://srath.dk` and `https://www.srath.dk` (`ALLOWED_ORIGINS` in `relay/wrangler.toml`), limits message sizes and rates, and closes a room when its last player leaves.
+- **Switching it on:** online play only shows in the menu when `content/games.json` has `"relay": "wss://trails-relay.<subdomain>.workers.dev"` on the Trails entry. Without it, the game is offline only. With it, the privacy page gets a paragraph about Cloudflare.
+- **Cost:** the Workers Free plan includes SQLite-backed Durable Objects: 100,000 requests and 13,000 GB-s per day, reset at 00:00 UTC. A WebSocket message from a browser counts as 1/20 of a request, so a game uses roughly 8,000 requests an hour, about 12 hours of online play a day. Above the limit, new online games fail until midnight UTC; offline play is unaffected. The free plan has no payment method, so it can't charge anything.
+
+**Setting up Cloudflare (once):**
+
+1. In the [Cloudflare dashboard](https://dash.cloudflare.com/), open **Workers & Pages** and choose a `workers.dev` subdomain if asked. DNS stays at Simply.com; nothing in Cloudflare touches the domain.
+2. **My Profile → API Tokens → Create Token**, template **Edit Cloudflare Workers**, scoped to your account. Copy the token.
+3. In GitHub, **Settings → Secrets and variables → Actions → New repository secret**: add `CLOUDFLARE_API_TOKEN` (the token) and `CLOUDFLARE_ACCOUNT_ID` (shown on the Workers & Pages overview page).
+4. Run **Actions → Deploy the Trails relay to Cloudflare → Run workflow**. The run summary shows the relay's address.
+5. Put that address in `content/games.json` as `"relay"` (with `wss://` instead of `https://`) and push.
+
+After that, `.github/workflows/relay.yml` deploys the relay again whenever `relay/` changes on `main`. Until the secrets exist, it skips without failing.
+
+**Testing locally:** the relay needs Node.js 22 or newer for the current `wrangler` (on Node 20, use `npx wrangler@4.80.0`).
+
+```bash
+cd relay
+npm install
+npm run dev
+```
+
+With the relay on `127.0.0.1:8787` and the site on `127.0.0.1:4321` (`npm run dev` in the root), the game uses the local relay automatically. Create a game in one tab and open the invite link in another. The host tab must stay in front, because browsers slow down background tabs.
 
 **Gridword** (`public/games/gridword/`) is a daily five-letter word game:
 

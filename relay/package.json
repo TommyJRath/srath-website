@@ -1,0 +1,14 @@
+{
+  "name": "trails-relay",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Cloudflare Worker that relays online Trails games for srath.dk.",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev --port 8787 --var ALLOWED_ORIGINS:http://127.0.0.1:4321,http://localhost:4321",
+    "deploy": "wrangler deploy"
+  },
+  "devDependencies": {
+    "wrangler": "^4.80.0"
+  }
+}

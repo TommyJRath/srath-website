@@ -1,0 +1,19 @@
+# Cloudflare Worker that relays online Trails games. Deployed by .github/workflows/relay.yml.
+name = "trails-relay"
+main = "src/index.js"
+compatibility_date = "2026-01-01"
+workers_dev = true
+preview_urls = false
+
+[vars]
+# Pages allowed to open games. Local development overrides this (see package.json "dev").
+ALLOWED_ORIGINS = "https://srath.dk,https://www.srath.dk"
+
+[[durable_objects.bindings]]
+name = "ROOMS"
+class_name = "TrailsRoom"
+
+# SQLite-backed Durable Objects are the kind included in the Workers Free plan.
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["TrailsRoom"]

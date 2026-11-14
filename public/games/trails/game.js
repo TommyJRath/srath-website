@@ -1,7 +1,9 @@
 // Trails: steer a glowing dot that leaves a line behind it. Hit a line and you are out; slip through the gaps.
-// Offline for now: play against computer dots, or two players on one keyboard. Optional power-ups.
-// The simulation runs on a fixed arena and a fixed timestep, so it plays the same on every screen
-// (and can later be run by one "host" browser for online play). Settings are kept in localStorage.
+// Play against computer dots, with two players on one keyboard, or online with friends. Optional power-ups.
+// The simulation runs on a fixed arena and a fixed timestep, so it plays the same on every screen.
+// Online, the browser that creates the game (the host) runs the simulation and sends the state to the
+// other players through a small relay (see /relay in the website repository); the others only send
+// their steering. Settings are kept in localStorage.
 (function () {
   'use strict';
 
@@ -47,6 +49,12 @@
   var MAX_EFFECT = 12;           // an effect never lasts longer than this
   var SHRINK_STEP = 0.1, SHRINK_MAX = 0.3, SHRINK_SPEED = 0.02; // fraction of the arena per side, per second
   var GHOST_GRACE = 0.25;        // after Ghost ends, lines stay harmless this long so you can get clear
+
+  // Online play. On this machine during development, a local relay (npm run dev in /relay) is used.
+  var RELAY = /^(127\.0\.0\.1|localhost)$/.test(location.hostname) ? 'ws://127.0.0.1:8787' : (root.dataset.relay || '');
+  var CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  var SEND_EVERY = 0.04;         // the host sends the game state 25 times a second
+  var MAX_SEATS = 6;
 
   // ---------------------------------------------------------------------------
   // Helpers
@@ -119,6 +127,9 @@
   var setup = load(SETUP_KEY, { mode: 'solo', bots: 3, powerups: true, disabled: [] });
   if (setup.powerups === undefined) setup.powerups = true;
   if (!Array.isArray(setup.disabled)) setup.disabled = [];
+  if (setup.onlineBots === undefined) setup.onlineBots = 0;
+  if (setup.mode === 'online' && !RELAY) setup.mode = 'solo';
+  var net = null;                 // the online connection, or null when playing offline
   var players = [];
   var grid, gridW = Math.ceil(W / CELL), gridH = Math.ceil(H / CELL);
   var stamps;                     // step number when each cell was drawn
@@ -135,9 +146,26 @@
   var touch = { left: false, right: false };
 
   function humans() { return players.filter(function (p) { return !p.bot; }); }
+  // Online, a human's player id is their seat (0 = host), so colours stay the same between games.
+  function myId() { return net ? net.seat : setup.mode === 'solo' ? 0 : -1; }
+  function who(p) { return p.id === myId() ? 'You' : p.name; }
+  function isHost() { return !!net && net.role === 'host'; }
+  function isGuest() { return !!net && net.role === 'guest'; }
 
   function makePlayers() {
     var list = [];
+    if (net) {
+      var seats = [0].concat(net.guests);
+      seats.forEach(function (s) { list.push({ id: s, seat: s, bot: false, name: COLORS[s].name, score: 0 }); });
+      var free = COLORS.map(function (c, i) { return i; }).filter(function (i) { return seats.indexOf(i) === -1; });
+      for (var n = 0; n < setup.onlineBots && free.length; n++) {
+        var id = free.shift();
+        list.push({ id: id, bot: true, name: COLORS[id].name, score: 0 });
+      }
+      list.sort(function (a, b) { return a.id - b.id; });
+      list.forEach(function (p) { p.color = COLORS[p.id].hex; });
+      return list;
+    }
     var humansCount = setup.mode === 'duo' ? 2 : 1;
     for (var i = 0; i < humansCount; i++) {
       list.push({ id: i, bot: false, name: humansCount === 1 ? 'You' : 'Player ' + (i + 1), score: 0 });
@@ -151,6 +179,9 @@
     players = makePlayers();
     target = Math.max(3, (players.length - 1) * 5);
     round = 0;
+    if (isHost()) {
+      netSend({ t: 'match', target: target, pl: players.map(function (p) { return [p.id, p.bot ? 1 : 0]; }) });
+    }
     startRound();
   }
 
@@ -174,6 +205,11 @@
     overlay.hidden = true;
     renderScores();
     stage.focus({ preventScroll: true });
+    if (isHost()) {
+      net.events = []; net.segs = [];
+      netSend({ t: 'round', n: round, target: target });
+      sendState();
+    }
   }
 
   // Spread the dots out, each pointing roughly towards the middle.
@@ -187,7 +223,7 @@
       } while (tries < 200 && players.slice(0, i).some(function (q) { return Math.hypot(q.x - x, q.y - y) < 170; }));
       p.x = x; p.y = y;
       p.angle = Math.atan2(H / 2 - y, W / 2 - x) + rand(-0.9, 0.9);
-      p.alive = true;
+      p.alive = !p.left;  // an online player who left stays out
       p.gap = 0;
       p.nextGap = rand(GAP_EVERY[0], GAP_EVERY[1]);
       p.turn = 0;
@@ -254,13 +290,16 @@
 
   function steer(p) {
     if (p.bot) return botSteer(p);
-    var left, right;
-    if (p.id === 0) {
-      left = keys.ArrowLeft || (setup.mode === 'solo' && keys.KeyA) || touch.left;
-      right = keys.ArrowRight || (setup.mode === 'solo' && keys.KeyD) || touch.right;
-    } else {
-      left = keys.KeyA; right = keys.KeyD;
-    }
+    if (net) return p.seat === 0 ? localDir() : (net.inputs[p.seat] || 0);
+    if (p.id === 0) return localDir();
+    return (keys.KeyD ? 1 : 0) - (keys.KeyA ? 1 : 0);
+  }
+
+  // Steering for the player at this keyboard: arrows (or A/D when nobody else shares it) and touch.
+  function localDir() {
+    var single = !!net || setup.mode === 'solo';
+    var left = keys.ArrowLeft || (single && keys.KeyA) || touch.left;
+    var right = keys.ArrowRight || (single && keys.KeyD) || touch.right;
     return (right ? 1 : 0) - (left ? 1 : 0);
   }
 
@@ -328,6 +367,7 @@
   function stepPlayer(p) {
     if (!p.alive) return;
     var dir = steer(p);
+    p.dir = dir;
     if (fx(p, 'sharp')) {
       if (dir !== 0 && p.latch === 0) p.angle += dir * Math.PI / 2;
       p.latch = dir;
@@ -352,7 +392,7 @@
 
     var before = p.nextGap;
     p.nextGap -= STEP;
-    if (!p.bot && before > GAP_WARN && p.nextGap <= GAP_WARN) tone(1200, 0.05, 'sine', 0.025); // soft tick: gap coming
+    if (!p.bot && (!net || p.id === myId()) && before > GAP_WARN && p.nextGap <= GAP_WARN) tone(1200, 0.05, 'sine', 0.025); // soft tick: gap coming
     if (p.nextGap <= 0) { p.gap = GAP_LENGTH; p.nextGap = rand(GAP_EVERY[0], GAP_EVERY[1]) + GAP_LENGTH; }
     var drawing = p.gap <= 0 && !fx(p, 'ghost');
     if (p.gap > 0) p.gap -= STEP;
@@ -361,6 +401,7 @@
       var width = widthOf(p);
       segments.push([p.x, p.y, nx, ny, p.id, width]);
       drawSegment(p.x, p.y, nx, ny, p.color, width);
+      if (isHost()) net.segs.push(r1(p.x), r1(p.y), r1(nx), r1(ny), p.id, width);
     }
     p.x = nx; p.y = ny;
     if (drawing) stamp(p);
@@ -371,15 +412,20 @@
 
   function crash(p) {
     p.alive = false;
+    emit(['x', p.id]);
+    crashEffect(p);
+    // Everyone still alive scores a point.
+    players.forEach(function (q) { if (q.alive) q.score++; });
+    renderScores();
+  }
+
+  function crashEffect(p) {
     for (var i = 0; i < 26; i++) {
       var a = Math.random() * Math.PI * 2, s = rand(40, 260);
       particles.push({ x: p.x, y: p.y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: rand(0.4, 0.9), color: p.color });
     }
     particles.push({ ring: true, x: p.x, y: p.y, r: 4, life: 0.6, color: p.color });
     tone(p.bot ? 180 : 140, 0.35, 'sawtooth', 0.06, 60);
-    // Everyone still alive scores a point.
-    players.forEach(function (q) { if (q.alive) q.score++; });
-    renderScores();
   }
 
   // ---------------------------------------------------------------------------
@@ -450,11 +496,21 @@
       players.forEach(function (q) { if (q !== p && q.alive) addTime(q, type); });
     } else if (type === 'clear') {
       grid.fill(0);
+      if (isHost()) net.segs = [];  // guests clear their lines when the event arrives
+    } else if (type === 'shrink') {
+      insetTarget = Math.min(SHRINK_MAX, insetTarget + SHRINK_STEP);
+    }
+    emit(['pu', type, p.id]);
+    pickupEffect(type, p);
+  }
+
+  // What everyone sees and hears when a power-up is taken (guests replay this from the host's events).
+  function pickupEffect(type, p) {
+    var pu = POWERUPS[type];
+    if (type === 'clear') {
       segments = [];
       tctx.clearRect(0, 0, trailCanvas.width, trailCanvas.height);
       flash = 1;
-    } else if (type === 'shrink') {
-      insetTarget = Math.min(SHRINK_MAX, insetTarget + SHRINK_STEP);
     }
     particles.push({ text: pu.label, x: p.x, y: p.y - 16, vx: 0, vy: -30, life: 1.1, color: KIND_COLORS[pu.kind] });
     if (!p.bot) live.textContent = pu.label + '.';
@@ -472,9 +528,11 @@
     particles = particles.filter(function (q) { return q.life > 0; });
     flash = Math.max(0, flash - dt * 2.5);
 
+    if (isGuest()) { guestUpdate(dt); return; }
+
     if (phase === 'ready') {
       readyTime -= dt;
-      if (readyTime <= 0) { phase = 'playing'; tone(660, 0.12, 'triangle', 0.07); }
+      if (readyTime <= 0) { phase = 'playing'; emit(['go']); tone(660, 0.12, 'triangle', 0.07); }
       return;
     }
     if (phase === 'roundover') {
@@ -509,24 +567,36 @@
     phase = 'roundover';
     roundOverTime = 1.8;
     accumulator = 0;
-    roundMessage = survivor ? survivor.name + (survivor.name === 'You' ? ' survive the round' : ' takes the round') : 'Nobody survives';
+    emit(['ro', survivor ? survivor.id : -1]);
+    roundEnded(survivor);
+  }
+
+  function roundEnded(survivor) {
+    roundMessage = survivor ? who(survivor) + (who(survivor) === 'You' ? ' survive the round' : ' takes the round') : 'Nobody survives';
     roundColor = survivor ? survivor.color : '#9aa3b5';
     live.textContent = roundMessage + '.';
-    if (survivor && !survivor.bot) tone(784, 0.25, 'triangle', 0.08);
+    if (survivor && !survivor.bot && (!net || survivor.id === myId())) tone(784, 0.25, 'triangle', 0.08);
   }
 
   function endMatch(winner) {
     phase = 'matchover';
-    var you = !winner.bot;
+    if (isHost()) {
+      sendState();
+      netSend({ t: 'over', w: winner.id, sc: players.map(function (p) { return p.score; }) });
+    }
+    var you = net ? winner.id === myId() : !winner.bot;
     tone(you ? 523 : 220, 0.5, 'triangle', 0.09, you ? 1046 : 110);
+    var buttons = isHost() ? [['Play again', startMatch], ['Back to lobby', showLobby]]
+      : isGuest() ? [['Leave game', leaveOnline]]
+      : [['Play again', startMatch], ['Change setup', showMenu]];
     showOverlay(
-      winner.name === 'You' ? 'You win!' : winner.name + ' wins',
+      who(winner) === 'You' ? 'You win!' : who(winner) + ' wins',
       '<ol class="tr-final">' + players.slice().sort(function (a, b) { return b.score - a.score; }).map(function (p) {
-        return '<li><span class="tr-dot" style="background:' + p.color + '"></span>' + p.name + '<strong>' + p.score + '</strong></li>';
-      }).join('') + '</ol>',
-      [['Play again', startMatch], ['Change setup', showMenu]]
+        return '<li><span class="tr-dot" style="background:' + p.color + '"></span>' + who(p) + (p.left ? ' (left)' : '') + '<strong>' + p.score + '</strong></li>';
+      }).join('') + '</ol>' + (isGuest() ? '<p>Waiting for the host to start the next game.</p>' : ''),
+      buttons
     );
-    live.textContent = winner.name + ' won the match.';
+    live.textContent = who(winner) + ' won the match.';
   }
 
   // ---------------------------------------------------------------------------
@@ -664,7 +734,7 @@
           ctx.fillStyle = p.color;
           ctx.font = '700 16px system-ui, sans-serif';
           ctx.textAlign = 'center';
-          ctx.fillText(p.name, p.x, p.y - 18);
+          ctx.fillText(who(p), p.x, p.y - 18);
         }
       }
     });
@@ -707,7 +777,7 @@
       var chip = el('span', 'tr-chip' + (p.alive === false && phase === 'playing' ? ' is-out' : ''));
       var dot = el('span', 'tr-dot');
       dot.style.background = p.color;
-      chip.append(dot, el('span', 'tr-name', p.name), el('strong', null, String(p.score)));
+      chip.append(dot, el('span', 'tr-name', who(p) + (p.left ? ' (left)' : '')), el('strong', null, String(p.score)));
       board.appendChild(chip);
     });
     if (players.length) board.appendChild(el('span', 'tr-goal', 'to ' + target));
@@ -793,6 +863,10 @@
 
   function showMenu() {
     phase = 'menu';
+    players = [];
+    renderScores();
+    pauseBtn.hidden = false;
+    var online = setup.mode === 'online';
     var maxBots = setup.mode === 'duo' ? 4 : 5;
     var minBots = setup.mode === 'duo' ? 0 : 1;
     setup.bots = Math.max(minBots, Math.min(maxBots, setup.bots));
@@ -801,12 +875,21 @@
       'Don\'t hit any line, including your own. Every few seconds your line breaks for a moment: a ring closing around your dot warns you. ' +
       'While your line is broken you can hop over other lines, and anyone can slip through your gap.</p>' +
       '<p>Last dot alive scores. Everyone still alive gets a point each time someone crashes.</p>',
-      [['Play', function () { save(SETUP_KEY, setup); startMatch(); }]]);
+      [[online ? 'Create online game' : 'Play', function () { save(SETUP_KEY, setup); if (online) createOnline(); else startMatch(); }]]);
     var body = overlay.querySelector('.tr-body');
-    body.append(choice('Players', [['solo', 'You vs computer'], ['duo', '2 players, 1 keyboard']], setup.mode, function (v) { setup.mode = v; showMenu(); }));
-    var botOptions = [];
-    for (var n = minBots; n <= maxBots; n++) botOptions.push([n, String(n)]);
-    body.append(choice('Computer dots', botOptions, setup.bots, function (v) { setup.bots = v; showMenu(); }));
+    var modes = [['solo', 'You vs computer'], ['duo', '2 players, 1 keyboard']];
+    if (RELAY) modes.push(['online', 'Online']);
+    body.append(choice('Players', modes, setup.mode, function (v) { setup.mode = v; showMenu(); }));
+    if (online) {
+      var info = el('p', 'tr-legend-note');
+      info.innerHTML = 'You get a link to send to up to five friends. Your browser runs the game, so keep this tab open while you play. ' +
+        'Players connect through a relay run by Cloudflare; see the <a class="text-link" href="/privacy/#website">privacy notice</a>.';
+      body.append(info);
+    } else {
+      var botOptions = [];
+      for (var n = minBots; n <= maxBots; n++) botOptions.push([n, String(n)]);
+      body.append(choice('Computer dots', botOptions, setup.bots, function (v) { setup.bots = v; showMenu(); }));
+    }
     body.append(choice('Power-ups', [[true, 'On'], [false, 'Off']], setup.powerups, function (v) { setup.powerups = v; showMenu(); }));
     if (setup.powerups) {
       var note = el('p', 'tr-legend-note');
@@ -824,17 +907,340 @@
     }
   }
 
+  // Online, only the host can pause, and it pauses the game for everyone.
   function pause() {
-    if (phase !== 'playing' && phase !== 'ready') return;
+    if (isGuest() || (phase !== 'playing' && phase !== 'ready')) return;
     pausedFrom = phase;
     phase = 'paused';
-    showOverlay('Paused', '', [['Continue', resume], ['Quit to menu', showMenu]]);
+    if (isHost()) {
+      netSend({ t: 'paused' });
+      showOverlay('Paused', '<p>The game is paused for everyone.</p>', [['Continue', resume], ['Back to lobby', showLobby]]);
+    } else {
+      showOverlay('Paused', '', [['Continue', resume], ['Quit to menu', showMenu]]);
+    }
   }
   function resume() {
-    if (phase !== 'paused') return;
+    if (isGuest() || phase !== 'paused') return;
     phase = pausedFrom;
     overlay.hidden = true;
     stage.focus({ preventScroll: true });
+  }
+
+  // ---------------------------------------------------------------------------
+  // Online play
+  //
+  // Messages (JSON). Host -> guests: lobby, match, round, s (state), paused, over, busy.
+  // Guest -> host: in (steering). The relay adds "from" (the guest's seat) and sends
+  // welcome, join, leave, host-left and refused.
+
+  function r1(v) { return Math.round(v * 10) / 10; }
+  function r2(v) { return Math.round(v * 100) / 100; }
+  function emit(ev) { if (isHost()) net.events.push(ev); }
+  function netSend(data) {
+    if (net && net.ws.readyState === 1) net.ws.send(JSON.stringify(data));
+  }
+  function newCode() {
+    var s = '', a = new Uint32Array(5);
+    crypto.getRandomValues(a);
+    for (var i = 0; i < 5; i++) s += CODE_CHARS[a[i] % CODE_CHARS.length];
+    return s;
+  }
+  function inviteLink() { return location.origin + location.pathname + '?room=' + net.code; }
+
+  function connect(role, code) {
+    if (net) closeNet();
+    var ws = new WebSocket(RELAY + '/room/' + code + '?role=' + role);
+    net = { role: role, code: code, ws: ws, seat: role === 'host' ? 0 : -1, guests: [], inputs: {}, events: [], segs: [], sendIn: 0, dir: 0, opened: false };
+    var mine = net;
+    ws.onmessage = function (e) {
+      if (net !== mine || e.data === 'pong') return;
+      var m;
+      try { m = JSON.parse(e.data); } catch (err) { return; }
+      if (role === 'host') onHostMessage(m); else onGuestMessage(m);
+    };
+    ws.onclose = function () {
+      if (net !== mine) return;
+      var wasOpen = mine.opened;
+      closeNet();
+      showProblem(wasOpen ? 'The connection to the game was lost.' : 'Couldn\'t reach the game server. Please try again in a little while.');
+    };
+    mine.ping = setInterval(function () { if (ws.readyState === 1) ws.send('ping'); }, 20000);
+  }
+
+  function closeNet() {
+    if (!net) return;
+    var old = net;
+    net = null;
+    clearInterval(old.ping);
+    try { old.ws.close(1000); } catch (e) { /* already closed */ }
+  }
+
+  function leaveOnline() {
+    closeNet();
+    if (/[?&]room=/.test(location.search)) history.replaceState(null, '', location.pathname);
+    showMenu();
+  }
+
+  function showProblem(text) {
+    phase = 'menu';
+    players = [];
+    renderScores();
+    pauseBtn.hidden = false;
+    if (/[?&]room=/.test(location.search)) history.replaceState(null, '', location.pathname);
+    showOverlay('Online game', '<p>' + text + '</p>', [['Back to menu', showMenu]]);
+  }
+
+  function refusedText(reason) {
+    if (reason === 'full') return 'This game is full: it already has six players.';
+    if (reason === 'no-game') return 'This game doesn\'t exist any more. The link may be old, or the host has closed the game.';
+    return 'Couldn\'t join this game.';
+  }
+
+  // Host --------------------------------------------------------------------
+
+  function createOnline() {
+    connect('host', newCode());
+    showOverlay('Online game', '<p>Opening a game…</p>', [['Cancel', leaveOnline]]);
+  }
+
+  function onHostMessage(m) {
+    if (m.t === 'welcome') { net.opened = true; showLobby(); return; }
+    if (m.t === 'refused') {
+      // The code is already in use (very unlikely): try another one.
+      if (m.reason === 'taken' && !net.retried) { closeNet(); connect('host', newCode()); net.retried = true; return; }
+      closeNet();
+      showProblem(refusedText(m.reason));
+      return;
+    }
+    var seat = m.from != null ? m.from : m.seat;
+    if (m.t === 'join') {
+      if (phase !== 'lobby') { netSend({ t: 'busy', to: seat, kick: true }); return; }
+      if (net.guests.indexOf(seat) === -1) net.guests.push(seat);
+      net.guests.sort();
+      tone(660, 0.1, 'triangle', 0.05);
+      showLobby();
+    } else if (m.t === 'leave') {
+      net.guests = net.guests.filter(function (s) { return s !== seat; });
+      delete net.inputs[seat];
+      var p = players.filter(function (q) { return q.seat === seat; })[0];
+      if (phase === 'lobby') { showLobby(); return; }
+      if (p) {
+        p.left = true;
+        if (p.alive && (phase === 'playing' || phase === 'ready' || phase === 'paused')) crash(p); else p.alive = false;
+        renderScores();
+        live.textContent = p.name + ' left the game.';
+      }
+    } else if (m.t === 'in') {
+      if (m.d === -1 || m.d === 0 || m.d === 1) net.inputs[seat] = m.d;
+    }
+  }
+
+  function showLobby() {
+    if (!isHost()) return;
+    phase = 'lobby';
+    players = [];
+    renderScores();
+    pauseBtn.hidden = false;
+    var maxBots = MAX_SEATS - 1 - net.guests.length;
+    setup.onlineBots = Math.max(0, Math.min(maxBots, setup.onlineBots));
+    netSend({ t: 'lobby', seats: [0].concat(net.guests), bots: setup.onlineBots });
+
+    var count = net.guests.length;
+    showOverlay('Online game',
+      '<p>Send this link to the people you want to play with. Up to five can join.</p>',
+      [['Start game', function () { save(SETUP_KEY, setup); startMatch(); }], ['Cancel', leaveOnline]]);
+    var body = overlay.querySelector('.tr-body');
+    var row = el('div', 'tr-invite');
+    var input = el('input', 'tr-invite-link');
+    input.readOnly = true;
+    input.value = inviteLink();
+    input.setAttribute('aria-label', 'Invite link');
+    input.addEventListener('focus', function () { input.select(); });
+    var copy = el('button', 'tr-btn', 'Copy link');
+    copy.type = 'button';
+    copy.addEventListener('click', function (e) {
+      e.stopPropagation();
+      var done = function () { copy.textContent = 'Copied'; setTimeout(function () { copy.textContent = 'Copy link'; }, 1500); };
+      if (navigator.clipboard) navigator.clipboard.writeText(input.value).then(done, function () { input.select(); });
+      else { input.select(); }
+    });
+    row.append(input, copy);
+    if (navigator.share) {
+      var share = el('button', 'tr-btn', 'Share');
+      share.type = 'button';
+      share.addEventListener('click', function (e) { e.stopPropagation(); navigator.share({ title: 'Play Trails with me', url: input.value }).catch(function () {}); });
+      row.append(share);
+    }
+    body.append(row, seatList([0].concat(net.guests)));
+    body.append(el('p', 'tr-lobby-status', count ? (count === 1 ? 'One player has joined.' : count + ' players have joined.') : 'Waiting for players to join…'));
+    var botOptions = [];
+    for (var n = 0; n <= maxBots; n++) botOptions.push([n, String(n)]);
+    body.append(choice('Computer dots', botOptions, setup.onlineBots, function (v) { setup.onlineBots = v; showLobby(); }));
+    var note = el('p', 'tr-legend-note');
+    note.textContent = setup.powerups ? 'Power-ups are on, with your choices from the menu.' : 'Power-ups are off.';
+    body.append(note);
+  }
+
+  function seatList(seats) {
+    var list = el('div', 'tr-scores tr-lobby');
+    seats.forEach(function (s) {
+      var chip = el('span', 'tr-chip');
+      var dot = el('span', 'tr-dot');
+      dot.style.background = COLORS[s].hex;
+      chip.append(dot, el('span', null, s === myId() ? COLORS[s].name + ' (you)' : COLORS[s].name + (s === 0 ? ' (host)' : '')));
+      list.append(chip);
+    });
+    return list;
+  }
+
+  function sendState() {
+    if (!isHost()) return;
+    netSend({
+      t: 's', ph: phase, rt: r2(readyTime), i: Math.round(inset * 1000) / 1000,
+      p: players.map(function (p) {
+        var f = {};
+        Object.keys(p.fx).forEach(function (k) { if (p.fx[k] > 0) f[k] = r1(p.fx[k]); });
+        return [r1(p.x), r1(p.y), Math.round(p.angle * 1000) / 1000, p.alive ? 1 : 0, p.gap > 0 ? r2(p.gap) : 0, r2(p.nextGap), p.dir || 0, f, p.score, p.left ? 1 : 0];
+      }),
+      k: pickups.map(function (k) { return [k.type, r1(k.x), r1(k.y), r1(k.age)]; }),
+      e: net.events, g: net.segs,
+    });
+    net.events = [];
+    net.segs = [];
+  }
+
+  // Guest -------------------------------------------------------------------
+
+  function joinOnline(code) {
+    connect('guest', code);
+    showOverlay('Online game', '<p>Joining game ' + code + '…</p>', [['Cancel', leaveOnline]]);
+  }
+
+  function onGuestMessage(m) {
+    if (m.t === 'welcome') {
+      net.opened = true;
+      net.seat = m.seat;
+      pauseBtn.hidden = true;
+      showOverlay('Online game', '<p>Joined. Waiting for the host…</p>', [['Leave game', leaveOnline]]);
+    } else if (m.t === 'refused') {
+      closeNet();
+      showProblem(refusedText(m.reason));
+    } else if (m.t === 'host-left') {
+      closeNet();
+      showProblem('The host has left, so the game is over.');
+    } else if (m.t === 'busy') {
+      closeNet();
+      showProblem('This game has already started. Ask the host to go back to the lobby, then open the link again.');
+    } else if (m.t === 'lobby') {
+      phase = 'lobby';
+      players = [];
+      renderScores();
+      showOverlay('Online game', '<p>You\'re in. Waiting for the host to start the game.</p>', [['Leave game', leaveOnline]]);
+      var body = overlay.querySelector('.tr-body');
+      body.append(seatList(m.seats));
+      if (m.bots) body.append(el('p', 'tr-lobby-status', m.bots === 1 ? 'Plus one computer dot.' : 'Plus ' + m.bots + ' computer dots.'));
+    } else if (m.t === 'match') {
+      target = m.target;
+      players = m.pl.map(function (d) {
+        return { id: d[0], seat: d[1] ? null : d[0], bot: !!d[1], name: COLORS[d[0]].name, color: COLORS[d[0]].hex, score: 0, fx: {}, alive: true, x: null };
+      });
+      overlay.hidden = true;
+      renderScores();
+    } else if (m.t === 'round') {
+      round = m.n;
+      target = m.target;
+      segments = [];
+      particles = [];
+      pickups = [];
+      inset = 0;
+      flash = 0;
+      tctx.setTransform(1, 0, 0, 1, 0, 0);
+      tctx.clearRect(0, 0, trailCanvas.width, trailCanvas.height);
+      players.forEach(function (p) { p.x = null; p.fx = {}; p.gap = 0; });
+      phase = 'ready';
+      readyTime = 1.6;
+      overlay.hidden = true;
+      stage.focus({ preventScroll: true });
+    } else if (m.t === 's') {
+      applyState(m);
+    } else if (m.t === 'paused') {
+      phase = 'paused';
+      showOverlay('Paused', '<p>The host has paused the game.</p>', [['Leave game', leaveOnline]]);
+    } else if (m.t === 'over') {
+      m.sc.forEach(function (s, i) { if (players[i]) players[i].score = s; });
+      var best = players.slice().sort(function (a, b) { return b.score - a.score; })[0];
+      var w = players.filter(function (p) { return p.id === m.w; })[0] || best;
+      endMatch(w);
+    }
+  }
+
+  function applyState(m) {
+    if (phase === 'lobby' || phase === 'matchover' || !players.length) return;
+    if (phase === 'paused' && m.ph !== 'paused') overlay.hidden = true;
+    var wasPlaying = phase === 'playing';
+    phase = m.ph;
+    readyTime = m.rt;
+    inset = m.i;
+    m.p.forEach(function (d, i) {
+      var p = players[i];
+      if (!p) return;
+      var before = p.nextGap;
+      p.x = p.sx = d[0]; p.y = p.sy = d[1]; p.angle = p.sa = d[2];
+      p.alive = !!d[3]; p.gap = d[4]; p.nextGap = d[5]; p.dir = d[6]; p.fx = d[7]; p.score = d[8]; p.left = !!d[9];
+      p.age = 0;
+      if (p.id === myId() && wasPlaying && before > GAP_WARN && p.nextGap <= GAP_WARN) tone(1200, 0.05, 'sine', 0.025);
+    });
+    pickups = m.k.map(function (k) { return { type: k[0], x: k[1], y: k[2], age: k[3] }; });
+    m.e.forEach(function (ev) {
+      var p = players.filter(function (q) { return q.id === ev[1]; })[0];
+      if (ev[0] === 'x' && p) crashEffect(p);
+      else if (ev[0] === 'pu') {
+        var taker = players.filter(function (q) { return q.id === ev[2]; })[0];
+        if (taker && POWERUPS[ev[1]]) pickupEffect(ev[1], taker);
+      }
+      else if (ev[0] === 'ro') roundEnded(p || null);
+      else if (ev[0] === 'go') tone(660, 0.12, 'triangle', 0.07);
+    });
+    for (var j = 0; j + 5 < m.g.length; j += 6) {
+      var g = m.g;
+      segments.push([g[j], g[j + 1], g[j + 2], g[j + 3], g[j + 4], g[j + 5]]);
+      drawSegment(g[j], g[j + 1], g[j + 2], g[j + 3], COLORS[g[j + 4]].hex, g[j + 5]);
+    }
+    if (board.dataset.alive !== aliveKey()) { board.dataset.alive = aliveKey(); renderScores(); }
+  }
+
+  // Between messages, move each dot along its current curve so movement looks smooth.
+  function guestUpdate(dt) {
+    if (phase === 'ready') readyTime = Math.max(0, readyTime - dt);
+    if (phase !== 'playing') return;
+    players.forEach(function (p) {
+      if (!p.alive || p.sx == null) return;
+      Object.keys(p.fx).forEach(function (k) { p.fx[k] -= dt; });
+      if (p.gap > 0) p.gap -= dt;
+      p.nextGap -= dt;
+      p.age = Math.min(p.age + dt, 0.12);
+      var t = p.age, sp = speedOf(p), w = fx(p, 'sharp') ? 0 : p.dir * turnOf(p);
+      if (w) {
+        var a = p.sa + w * t;
+        p.x = p.sx + sp * (Math.sin(a) - Math.sin(p.sa)) / w;
+        p.y = p.sy - sp * (Math.cos(a) - Math.cos(p.sa)) / w;
+        p.angle = a;
+      } else {
+        p.x = p.sx + Math.cos(p.sa) * sp * t;
+        p.y = p.sy + Math.sin(p.sa) * sp * t;
+      }
+    });
+  }
+
+  function netTick(dt) {
+    if (isHost()) {
+      if (phase !== 'ready' && phase !== 'playing' && phase !== 'roundover') return;
+      net.sendIn -= dt;
+      if (net.sendIn <= 0) { net.sendIn = SEND_EVERY; sendState(); }
+    } else if (isGuest()) {
+      var d = localDir();
+      if (d !== net.dir) { net.dir = d; netSend({ t: 'in', d: d }); }
+    }
   }
 
   // ---------------------------------------------------------------------------
@@ -843,7 +1249,7 @@
   var GAME_CODES = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'KeyA', 'KeyD', 'Space'];
   document.addEventListener('keydown', function (e) {
     if (e.target.closest && e.target.closest('input, textarea, a')) return;
-    var inMenu = phase === 'menu' || phase === 'matchover' || phase === 'paused';
+    var inMenu = phase === 'menu' || phase === 'matchover' || phase === 'paused' || phase === 'lobby';
     if (e.code === 'Escape' || e.code === 'KeyP') { if (phase === 'paused') resume(); else pause(); return; }
     if (e.code === 'KeyF' && !e.ctrlKey && !e.metaKey) { toggleFull(); return; }
     if (GAME_CODES.indexOf(e.code) !== -1 && !inMenu) e.preventDefault();
@@ -912,11 +1318,12 @@
     var dt = Math.min(0.05, (now - last) / 1000);
     last = now;
     update(dt);
-    if (phase === 'playing' && board.dataset.alive !== aliveKey()) { board.dataset.alive = aliveKey(); renderScores(); }
+    if (net) netTick(dt);
+    if ((phase === 'playing' || isGuest()) && board.dataset.alive !== aliveKey()) { board.dataset.alive = aliveKey(); renderScores(); }
     draw(now / 1000);
     requestAnimationFrame(frame);
   }
-  function aliveKey() { return players.map(function (p) { return p.alive ? 1 : 0; }).join(''); }
+  function aliveKey() { return phase + players.map(function (p) { return (p.alive ? 1 : 0) + ':' + p.score; }).join(','); }
 
   // Test hooks for development, used from the browser console:
   // __trails.give('boost') gives the first player a power-up; __trails.state() shows positions and effects.
@@ -924,7 +1331,7 @@
     give: function (type) { if (players[0] && players[0].alive) apply(type, players[0]); },
     raw: function () { return { players: players, grid: grid, gridW: gridW, cell: CELL }; },
     state: function () {
-      return { phase: phase, inset: inset, pickups: pickups.map(function (k) { return k.type; }), lines: segments.length, players: players.map(function (p) {
+      return { net: net && { role: net.role, code: net.code, seat: net.seat, guests: net.guests, inputs: net.inputs }, phase: phase, inset: inset, pickups: pickups.map(function (k) { return k.type; }), lines: segments.length, players: players.map(function (p) {
         return { name: p.name, alive: p.alive, x: Math.round(p.x), y: Math.round(p.y), speed: Math.round(speedOf(p)), fx: Object.keys(p.fx).filter(function (k) { return p.fx[k] > 0; }) };
       }) };
     },
@@ -933,6 +1340,7 @@
   if (window.ResizeObserver) new ResizeObserver(fit).observe(stage); else window.addEventListener('resize', fit);
   fit();
   showMute();
-  showMenu();
+  var invite = location.search.match(/[?&]room=([A-Za-z0-9]{5})(?:&|$)/);
+  if (invite && RELAY) joinOnline(invite[1].toUpperCase()); else showMenu();
   requestAnimationFrame(frame);
 })();

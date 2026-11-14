@@ -1,0 +1,62 @@
+name: Deploy the Trails relay to Cloudflare
+
+# Runs when the relay's code changes on main, or by hand from the Actions tab.
+# Needs two repository secrets: CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID (see README).
+on:
+  push:
+    branches: [main]
+    paths: ['relay/**', '.github/workflows/relay.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: relay
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      # Until the Cloudflare secrets are added, skip quietly instead of failing.
+      - name: Check for Cloudflare secrets
+        id: secrets
+        env:
+          TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          ACCOUNT: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          if [ -n "$TOKEN" ] && [ -n "$ACCOUNT" ]; then echo "ok=true" >> "$GITHUB_OUTPUT"
+          else echo "::notice::Skipping the relay deploy: add CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID as repository secrets."; fi
+
+      - uses: actions/checkout@v7
+        if: steps.secrets.outputs.ok == 'true'
+
+      - uses: actions/setup-node@v7
+        if: steps.secrets.outputs.ok == 'true'
+        with:
+          node-version: 24
+
+      - name: Deploy the Worker
+        id: deploy
+        if: steps.secrets.outputs.ok == 'true'
+        uses: cloudflare/wrangler-action@v4
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: relay
+          wranglerVersion: '4.162.0'
+
+      - name: Check that the relay answers
+        if: steps.secrets.outputs.ok == 'true'
+        env:
+          URL: ${{ steps.deploy.outputs.deployment-url }}
+        run: |
+          echo "Relay address: $URL"
+          echo "Relay address: \`$URL\` (use it as \"relay\" in content/games.json, with wss:// instead of https://)" >> "$GITHUB_STEP_SUMMARY"
+          for i in 1 2 3 4 5 6; do
+            if curl -fsS "$URL/" | grep -q "Trails relay"; then echo "The relay answers."; exit 0; fi
+            sleep 10
+          done
+          echo "::error::The relay did not answer at $URL"
+          exit 1

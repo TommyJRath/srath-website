@@ -76,6 +76,17 @@
   border: 2px solid; font: 700 .8rem var(--font); background: #0b0d12;
 }
 
+/* Online lobby */
+.tr-invite { display: flex; gap: 6px; justify-content: center; margin: 12px auto 4px; max-width: 520px; }
+.tr-invite-link {
+  flex: 1; min-width: 0; height: 36px; padding: 0 10px; border-radius: 9px; border: 1px solid var(--border-strong);
+  background: #07090d; color: var(--text); font: 500 .85rem var(--mono);
+}
+.tr-invite-link:focus { outline: none; border-color: var(--accent); }
+.tr-lobby { justify-content: center; margin-top: 12px; }
+.tr-lobby .tr-chip span:last-child { color: var(--text); }
+.tr-lobby-status { font-size: .85rem; }
+
 .tr-final { list-style: none; padding: 0; margin: 8px auto 0; min-width: 220px; text-align: left; }
 .tr-final li { display: flex; align-items: center; gap: 10px; padding: 6px 0; border-bottom: 1px solid var(--border); color: var(--text); }
 .tr-final li strong { margin-left: auto; font-variant-numeric: tabular-nums; }

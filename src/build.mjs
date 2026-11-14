@@ -209,7 +209,7 @@ function gamePage({ site }, game) {
   <div class="container">
     <a class="back-link" href="/games/">${icons.back}All games</a>
     <h1 class="sr-only">${esc(game.name)}</h1>
-    <div id="${game.slug}" class="game-root">
+    <div id="${game.slug}" class="game-root"${game.relay ? ` data-relay="${esc(game.relay)}"` : ''}>
       <noscript><p class="muted">${esc(game.name)} needs JavaScript to run.</p></noscript>
     </div>
   </div>
@@ -518,7 +518,8 @@ function privacyIndexPage({ site, apps, policies, games }) {
     <h2 id="website">This website</h2>
     <p>This website does not use cookies, analytics, advertising or other tracking scripts, and it does not load fonts or other resources from third parties.</p>
     ${games.length ? '<p>The browser games save your progress and statistics in your own browser (local storage) so you can continue where you left off. This data never leaves your device, and you can delete it by clearing the site data for srath.dk in your browser.</p>\n' : ''}    <p>The website is hosted on GitHub Pages, a service provided by GitHub, Inc. When you visit the site, GitHub processes technical information such as your IP address in order to deliver the pages and keep the service secure. See the <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement" rel="noopener noreferrer">GitHub General Privacy Statement</a> for details.</p>
-    <p>If you contact ${esc(site.name)} by email, your message and address are used only to respond to your enquiry. Contact: ${emailLink(site)}.</p>
+    ${games.some((g) => g.relay) ? `<p id="online-games">Some games can be played online with other people. Only when you create or join an online game, your browser connects to a small relay that runs on Cloudflare Workers, a service provided by Cloudflare, Inc. Cloudflare processes technical information such as your IP address in order to deliver the connection and keep the service secure. The relay only passes game messages (steering and positions) between the players in the same game. It does not store them, and there are no names, accounts or chat. Other players do not see your IP address. See the <a href="https://www.cloudflare.com/privacypolicy/" rel="noopener noreferrer">Cloudflare Privacy Policy</a> for details.</p>
+` : ''}    <p>If you contact ${esc(site.name)} by email, your message and address are used only to respond to your enquiry. Contact: ${emailLink(site)}.</p>
   </div>
 </section>`,
   };

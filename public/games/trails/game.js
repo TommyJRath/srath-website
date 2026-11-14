@@ -155,18 +155,31 @@
   var touch = { left: false, right: false };
 
   function humans() { return players.filter(function (p) { return !p.bot; }); }
-  // Online, a human's player id is their seat (0 = host), so colours stay the same between games.
-  function myId() { return net ? net.seat : setup.mode === 'solo' ? 0 : -1; }
-  function who(p) { return p.id === myId() ? 'You' : p.name; }
+  // A player's id is their colour (an index into COLORS). Online, each human also has a seat
+  // (0 = host) given by the relay, which is how steering and leaving are matched to players.
+  function isMe(p) { return net ? !p.bot && p.seat === net.seat : p.id === (setup.mode === 'solo' ? 0 : -1); }
+  function who(p) { return isMe(p) ? 'You' : p.name; }
+  function esc(t) { return String(t).replace(/[&<>"']/g, function (c) { return '&#' + c.charCodeAt(0) + ';'; }); }
+
+  // Online name and colour, remembered in this browser.
+  var profile = load('trails:profile', { name: '', color: -1 });
+  function cleanName(t) {
+    return String(t || '').replace(/[\u0000-\u001f\u007f-\u009f\u200b-\u200f\u202a-\u202e\u2066-\u2069]/g, '')
+      .replace(/\s+/g, ' ').trim().slice(0, 12);
+  }
   function isHost() { return !!net && net.role === 'host'; }
   function isGuest() { return !!net && net.role === 'guest'; }
 
   function makePlayers() {
     var list = [];
     if (net) {
-      var seats = [0].concat(net.guests);
-      seats.forEach(function (s) { list.push({ id: s, seat: s, bot: false, name: COLORS[s].name, score: 0 }); });
-      var free = COLORS.map(function (c, i) { return i; }).filter(function (i) { return seats.indexOf(i) === -1; });
+      var seats = [0].concat(net.guests).filter(function (s) { return net.members[s]; });
+      seats.forEach(function (s) {
+        var m = net.members[s];
+        list.push({ id: m.ci, seat: s, bot: false, name: memberName(m), score: 0 });
+      });
+      var used = list.map(function (p) { return p.id; });
+      var free = COLORS.map(function (c, i) { return i; }).filter(function (i) { return used.indexOf(i) === -1; });
       for (var n = 0; n < setup.onlineBots && free.length; n++) {
         var id = free.shift();
         list.push({ id: id, bot: true, name: COLORS[id].name, score: 0 });
@@ -189,7 +202,7 @@
     target = Math.max(3, (players.length - 1) * 5);
     round = 0;
     if (isHost()) {
-      netSend({ t: 'match', target: target, pl: players.map(function (p) { return [p.id, p.bot ? 1 : 0]; }) });
+      netSend({ t: 'match', target: target, pl: players.map(function (p) { return [p.id, p.bot ? 1 : 0, p.bot ? -1 : p.seat, p.bot ? '' : p.name]; }) });
     }
     startRound();
   }
@@ -402,7 +415,7 @@
 
     var before = p.nextGap;
     p.nextGap -= STEP;
-    if (!p.bot && (!net || p.id === myId()) && before > GAP_WARN && p.nextGap <= GAP_WARN) tone(1200, 0.05, 'sine', 0.025); // soft tick: gap coming
+    if (!p.bot && (!net || isMe(p)) && before > GAP_WARN && p.nextGap <= GAP_WARN) tone(1200, 0.05, 'sine', 0.025); // soft tick: gap coming
     if (p.nextGap <= 0) { p.gap = GAP_LENGTH; p.nextGap = rand(GAP_EVERY[0], GAP_EVERY[1]) + GAP_LENGTH; }
     var drawing = p.gap <= 0 && !fx(p, 'ghost');
     if (p.gap > 0) p.gap -= STEP;
@@ -585,7 +598,7 @@
     roundMessage = survivor ? who(survivor) + (who(survivor) === 'You' ? ' survive the round' : ' takes the round') : 'Nobody survives';
     roundColor = survivor ? survivor.color : '#9aa3b5';
     live.textContent = roundMessage + '.';
-    if (survivor && !survivor.bot && (!net || survivor.id === myId())) tone(784, 0.25, 'triangle', 0.08);
+    if (survivor && !survivor.bot && (!net || isMe(survivor))) tone(784, 0.25, 'triangle', 0.08);
   }
 
   function endMatch(winner) {
@@ -594,7 +607,7 @@
       sendState();
       netSend({ t: 'over', w: winner.id, sc: players.map(function (p) { return p.score; }) });
     }
-    var you = net ? winner.id === myId() : !winner.bot;
+    var you = net ? isMe(winner) : !winner.bot;
     tone(you ? 523 : 220, 0.5, 'triangle', 0.09, you ? 1046 : 110);
     var buttons = isHost() ? [['Play again', startMatch], ['Back to lobby', showLobby]]
       : isGuest() ? [['Leave game', leaveOnline]]
@@ -602,7 +615,7 @@
     showOverlay(
       who(winner) === 'You' ? 'You win!' : who(winner) + ' wins',
       '<ol class="tr-final">' + players.slice().sort(function (a, b) { return b.score - a.score; }).map(function (p) {
-        return '<li><span class="tr-dot" style="background:' + p.color + '"></span>' + who(p) + (p.left ? ' (left)' : '') + '<strong>' + p.score + '</strong></li>';
+        return '<li><span class="tr-dot" style="background:' + p.color + '"></span>' + esc(who(p)) + (p.left ? ' (left)' : '') + '<strong>' + p.score + '</strong></li>';
       }).join('') + '</ol>' + (isGuest() ? '<p>Waiting for the host to start the next game.</p>' : ''),
       buttons
     );
@@ -824,7 +837,7 @@
     });
     overlay.append(row);
     overlay.hidden = false;
-    setTimeout(function () { var first = overlay.querySelector('.btn'); if (first && !overlay.hidden) first.focus({ preventScroll: true }); }, 30);
+    setTimeout(function () { var first = overlay.querySelector('.btn'); if (first && !overlay.hidden && !overlay.contains(document.activeElement)) first.focus({ preventScroll: true }); }, 30);
   }
 
   function choice(label, options, current, onPick) {
@@ -960,7 +973,7 @@
   function connect(role, code) {
     if (net) closeNet();
     var ws = new WebSocket(RELAY + '/room/' + code + '?role=' + role);
-    net = { role: role, code: code, ws: ws, seat: role === 'host' ? 0 : -1, guests: [], inputs: {}, events: [], segs: [], sendIn: 0, dir: 0, opened: false };
+    net = { role: role, code: code, ws: ws, seat: role === 'host' ? 0 : -1, guests: [], members: {}, inputs: {}, events: [], segs: [], sendIn: 0, dir: 0, opened: false };
     var mine = net;
     ws.onmessage = function (e) {
       if (net !== mine || e.data === 'pong') return;
@@ -1014,7 +1027,7 @@
   }
 
   function onHostMessage(m) {
-    if (m.t === 'welcome') { net.opened = true; showLobby(); return; }
+    if (m.t === 'welcome') { net.opened = true; setMember(0, profile.name, profile.color); showLobby(); return; }
     if (m.t === 'refused') {
       // The code is already in use (very unlikely): try another one.
       if (m.reason === 'taken' && !net.retried) { closeNet(); connect('host', newCode()); net.retried = true; return; }
@@ -1027,11 +1040,13 @@
       if (phase !== 'lobby') { netSend({ t: 'busy', to: seat, kick: true }); return; }
       if (net.guests.indexOf(seat) === -1) net.guests.push(seat);
       net.guests.sort();
+      setMember(seat, '', -1);   // until their name and colour arrive
       tone(660, 0.1, 'triangle', 0.05);
       showLobby();
     } else if (m.t === 'leave') {
       net.guests = net.guests.filter(function (s) { return s !== seat; });
       delete net.inputs[seat];
+      delete net.members[seat];
       var p = players.filter(function (q) { return q.seat === seat; })[0];
       if (phase === 'lobby') { showLobby(); return; }
       if (p) {
@@ -1042,7 +1057,29 @@
       }
     } else if (m.t === 'in') {
       if (m.d === -1 || m.d === 0 || m.d === 1) net.inputs[seat] = m.d;
+    } else if (m.t === 'hello') {
+      if (phase !== 'lobby' || net.guests.indexOf(seat) === -1) return;
+      setMember(seat, m.name, m.c);
+      showLobby();
     }
+  }
+
+  // The host decides colours, so two players can never get the same one.
+  function setMember(seat, name, wanted) {
+    var taken = Object.keys(net.members).filter(function (s) { return +s !== seat; }).map(function (s) { return net.members[s].ci; });
+    var current = net.members[seat] ? net.members[seat].ci : -1;
+    var ci = -1;
+    [wanted, current].concat(COLORS.map(function (c, i) { return i; })).some(function (i) {
+      if (typeof i === 'number' && i >= 0 && i < COLORS.length && taken.indexOf(i) === -1) { ci = i; return true; }
+      return false;
+    });
+    net.members[seat] = { name: cleanName(name), ci: ci };
+  }
+  function memberName(m) { return m.name || COLORS[m.ci].name; }
+  function lobbyList() {
+    return [0].concat(net.guests).filter(function (s) { return net.members[s]; }).map(function (s) {
+      return [s, net.members[s].name, net.members[s].ci];
+    });
   }
 
   function showLobby() {
@@ -1053,9 +1090,10 @@
     pauseBtn.hidden = false;
     var maxBots = MAX_SEATS - 1 - net.guests.length;
     setup.onlineBots = Math.max(0, Math.min(maxBots, setup.onlineBots));
-    netSend({ t: 'lobby', seats: [0].concat(net.guests), bots: setup.onlineBots });
+    netSend({ t: 'lobby', pl: lobbyList(), bots: setup.onlineBots });
 
     var count = net.guests.length;
+    var typing = nameFocus();
     showOverlay('Online game',
       '<p class="tr-code">Game code <strong>' + net.code + '</strong></p>' +
       '<p>Send this link to the people you want to play with, or tell them the code. Up to five can join.</p>',
@@ -1082,7 +1120,8 @@
       share.addEventListener('click', function (e) { e.stopPropagation(); navigator.share({ title: 'Play Trails with me', url: input.value }).catch(function () {}); });
       row.append(share);
     }
-    body.append(row, seatList([0].concat(net.guests)));
+    body.append(row, seatList(lobbyList()));
+    body.append(profileEditor(lobbyList(), function () { setMember(0, profile.name, profile.color); showLobby(); }));
     body.append(el('p', 'tr-lobby-status', count ? (count === 1 ? 'One player has joined.' : count + ' players have joined.') : 'Waiting for players to join…'));
     var botOptions = [];
     for (var n = 0; n <= maxBots; n++) botOptions.push([n, String(n)]);
@@ -1090,6 +1129,74 @@
     var note = el('p', 'tr-legend-note');
     note.textContent = setup.powerups ? 'Power-ups are on, with your choices from the menu.' : 'Power-ups are off.';
     body.append(note);
+    typing();
+  }
+
+  // Rebuilding the lobby must not interrupt someone typing their name.
+  function nameFocus() {
+    var a = document.activeElement;
+    var focused = !!(a && a.classList && a.classList.contains('tr-name-input'));
+    var pos = focused ? a.selectionStart : 0;
+    return function () {
+      if (!focused) return;
+      var input = overlay.querySelector('.tr-name-input');
+      if (input) { input.focus({ preventScroll: true }); input.setSelectionRange(pos, pos); }
+    };
+  }
+
+  // Name field and colour swatches. list: [[seat, name, colour], ...] as decided by the host.
+  function profileEditor(list, onChange) {
+    var mine = list.filter(function (e) { return e[0] === net.seat; })[0];
+    var myColor = mine ? mine[2] : profile.color;
+    var taken = list.filter(function (e) { return e[0] !== net.seat; }).map(function (e) { return e[2]; });
+    var wrap = el('div', 'tr-profile');
+
+    var row = el('div', 'tr-choice');
+    var label = el('label', 'tr-choice-label', 'Your name');
+    var input = el('input', 'tr-name-input');
+    input.id = label.htmlFor = 'tr-name-input';
+    input.maxLength = 12;
+    input.value = profile.name;
+    input.placeholder = COLORS[myColor >= 0 ? myColor : 0].name;
+    input.autocomplete = 'off';
+    input.spellcheck = false;
+    var timer = null;
+    input.addEventListener('input', function () {
+      profile.name = input.value.slice(0, 12);   // cleaned when shown; kept as typed so a pause after a space is fine
+      save('trails:profile', profile);
+      clearTimeout(timer);
+      timer = setTimeout(onChange, 450);
+    });
+    input.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); input.blur(); } });
+    input.addEventListener('click', function (e) { e.stopPropagation(); });
+    row.append(label, input);
+
+    var colours = el('div', 'tr-choice');
+    colours.append(el('span', 'tr-choice-label', 'Your colour'));
+    var group = el('div', 'tr-swatches');
+    group.setAttribute('role', 'group');
+    group.setAttribute('aria-label', 'Your colour');
+    COLORS.forEach(function (c, i) {
+      var b = el('button', 'tr-swatch');
+      b.type = 'button';
+      b.style.setProperty('--c', c.hex);
+      var isTaken = taken.indexOf(i) !== -1;
+      b.disabled = isTaken;
+      b.setAttribute('aria-pressed', String(i === myColor));
+      b.setAttribute('aria-label', c.name + (isTaken ? ' (taken)' : ''));
+      b.title = c.name + (isTaken ? ' (taken)' : '');
+      b.addEventListener('click', function (e) {
+        e.stopPropagation();
+        profile.color = i;
+        save('trails:profile', profile);
+        clearTimeout(timer);
+        onChange();
+      });
+      group.append(b);
+    });
+    colours.append(group);
+    wrap.append(row, colours);
+    return wrap;
   }
 
   // "Have a code?": type the five characters a friend reads out, instead of opening their link.
@@ -1130,13 +1237,14 @@
     return wrap;
   }
 
-  function seatList(seats) {
+  function seatList(entries) {
     var list = el('div', 'tr-scores tr-lobby');
-    seats.forEach(function (s) {
+    entries.forEach(function (e) {
       var chip = el('span', 'tr-chip');
       var dot = el('span', 'tr-dot');
-      dot.style.background = COLORS[s].hex;
-      chip.append(dot, el('span', null, s === myId() ? COLORS[s].name + ' (you)' : COLORS[s].name + (s === 0 ? ' (host)' : '')));
+      dot.style.background = COLORS[e[2]].hex;
+      var name = cleanName(e[1]) || COLORS[e[2]].name;
+      chip.append(dot, el('span', null, name + (e[0] === net.seat ? ' (you)' : e[0] === 0 ? ' (host)' : '')));
       list.append(chip);
     });
     return list;
@@ -1170,6 +1278,7 @@
       net.opened = true;
       net.seat = m.seat;
       pauseBtn.hidden = true;
+      sendHello();
       showOverlay('Online game', '<p>Joined. Waiting for the host…</p>', [['Leave game', leaveOnline]]);
     } else if (m.t === 'refused') {
       closeNet();
@@ -1184,14 +1293,17 @@
       phase = 'lobby';
       players = [];
       renderScores();
+      var typing = nameFocus();
       showOverlay('Online game', '<p>You\'re in. Waiting for the host to start the game.</p>', [['Leave game', leaveOnline]]);
       var body = overlay.querySelector('.tr-body');
-      body.append(seatList(m.seats));
+      body.append(seatList(m.pl));
       if (m.bots) body.append(el('p', 'tr-lobby-status', m.bots === 1 ? 'Plus one computer dot.' : 'Plus ' + m.bots + ' computer dots.'));
+      body.append(profileEditor(m.pl, sendHello));
+      typing();
     } else if (m.t === 'match') {
       target = m.target;
       players = m.pl.map(function (d) {
-        return { id: d[0], seat: d[1] ? null : d[0], bot: !!d[1], name: COLORS[d[0]].name, color: COLORS[d[0]].hex, score: 0, fx: {}, alive: true, x: null };
+        return { id: d[0], seat: d[1] ? null : d[2], bot: !!d[1], name: cleanName(d[3]) || COLORS[d[0]].name, color: COLORS[d[0]].hex, score: 0, fx: {}, alive: true, x: null };
       });
       overlay.hidden = true;
       renderScores();
@@ -1224,6 +1336,8 @@
     }
   }
 
+  function sendHello() { netSend({ t: 'hello', name: profile.name, c: profile.color }); }
+
   function applyState(m) {
     if (phase === 'lobby' || phase === 'matchover' || !players.length) return;
     if (phase === 'paused' && m.ph !== 'paused') overlay.hidden = true;
@@ -1238,7 +1352,7 @@
       p.x = p.sx = d[0]; p.y = p.sy = d[1]; p.angle = p.sa = d[2];
       p.alive = !!d[3]; p.gap = d[4]; p.nextGap = d[5]; p.dir = d[6]; p.fx = d[7]; p.score = d[8]; p.left = !!d[9];
       p.age = 0;
-      if (p.id === myId() && wasPlaying && before > GAP_WARN && p.nextGap <= GAP_WARN) tone(1200, 0.05, 'sine', 0.025);
+      if (isMe(p) && wasPlaying && before > GAP_WARN && p.nextGap <= GAP_WARN) tone(1200, 0.05, 'sine', 0.025);
     });
     pickups = m.k.map(function (k) { return { type: k[0], x: k[1], y: k[2], age: k[3] }; });
     m.e.forEach(function (ev) {

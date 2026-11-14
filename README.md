@@ -144,7 +144,7 @@ On the home page, all games share a single "Browser games" card that links to `/
 - **Tuning:** speed, turn rate, line width, gaps and power-up timing are constants at the top of `game.js`. `POWERUPS` lists each power-up with its duration and how often it appears.
 - **Fixed simulation:** the game runs on a fixed 1000×680 arena with a fixed 120 Hz timestep, so it plays the same on every screen.
 - **Online play:** see [Trails online play](#trails-online-play) below.
-- **Saved settings:** stored in localStorage (`trails:setup`, `trails:muted`).
+- **Saved settings:** stored in localStorage (`trails:setup`, `trails:muted`, and `trails:profile` for the online name and colour).
 - **Testing:** `__trails.give('boost')` and `__trails.state()` in the browser console help when testing.
 
 ### Trails online play
@@ -152,8 +152,9 @@ On the home page, all games share a single "Browser games" card that links to `/
 Online games go through a small relay in `relay/`: a Cloudflare Worker with one Durable Object per game room. GitHub Pages only serves files, so it can't pass messages between visitors; the relay does that and nothing else.
 
 - **How it works:** the player who creates a game is the host. Their browser runs the normal simulation and sends the state (positions, new line pieces, pickups, events) 25 times a second. The other players' browsers send only their steering (left, right or straight) when it changes, and draw what the host sends, moving the dots along their curve between messages.
-- **Rooms:** a game has a five-character code and an invite link, `https://srath.dk/games/trails/?room=CODE`. Up to six players (seats 0–5; seat 0 is the host, and a player's colour is their seat). Computer dots fill free seats. Players can join only in the lobby. If a player leaves, their dot crashes; if the host leaves, the game ends for everyone.
-- **The relay stores nothing:** no names, chat or game data. It accepts connections only from `https://srath.dk` and `https://www.srath.dk` (`ALLOWED_ORIGINS` in `relay/wrangler.toml`), limits message sizes and rates, and closes a room when its last player leaves.
+- **Rooms:** a game has a five-character code and an invite link, `https://srath.dk/games/trails/?room=CODE`. Up to six players (seats 0–5; seat 0 is the host). Computer dots fill free seats. Players can join only in the lobby. If a player leaves, their dot crashes; if the host leaves, the game ends for everyone.
+- **Names and colours:** in the lobby each player types a name (up to 12 characters, saved in their browser as `trails:profile`) and picks a colour. The host's browser decides colours, so two players never get the same one; taken colours are greyed out. A player's id in the game is their colour; their seat is used for steering.
+- **The relay stores nothing:** no names, chat or game data. Names only pass through it to the other players in the same game. It accepts connections only from `https://srath.dk` and `https://www.srath.dk` (`ALLOWED_ORIGINS` in `relay/wrangler.toml`), limits message sizes and rates, and closes a room when its last player leaves.
 - **Switching it on:** online play only shows in the menu when `content/games.json` has `"relay": "wss://trails-relay.<subdomain>.workers.dev"` on the Trails entry. Without it, the game is offline only. With it, the privacy page gets a paragraph about Cloudflare.
 - **Cost:** the Workers Free plan includes SQLite-backed Durable Objects: 100,000 requests and 13,000 GB-s per day, reset at 00:00 UTC. A WebSocket message from a browser counts as 1/20 of a request, so a game uses roughly 8,000 requests an hour, about 12 hours of online play a day. Above the limit, new online games fail until midnight UTC; offline play is unaffected. The free plan has no payment method, so it can't charge anything.
 

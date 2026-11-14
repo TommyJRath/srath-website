@@ -115,3 +115,18 @@
   .tr-choice-label { min-width: 0; text-align: center; width: 100%; }
   .tr-btn { height: 32px; padding: 0 10px; }
 }
+
+/* Phones held sideways: the screen is too short for the site header and the arena together.
+   The header scrolls away instead of sticking, and the scores and arena fill exactly one screen. */
+@media (orientation: landscape) and (max-height: 520px) {
+  body:has(.tr) .site-header { position: static; }
+  .game-shell:has(.tr) { padding-top: 0; }
+  .game-shell:has(.tr) .back-link { display: none; }
+  .tr:not(.is-full) { padding-top: 4px; }
+  .tr { gap: 4px; }
+  .tr-hud { min-height: 32px; }
+  .tr-chip { padding: 3px 9px; font-size: .8rem; }
+  .tr-btn { height: 30px; padding: 0 10px; font-size: .8rem; }
+  .tr-stage { height: calc(100dvh - 50px); min-height: 200px; }
+  .tr-help { display: none; }
+}

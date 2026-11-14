@@ -69,6 +69,15 @@
   function save(key, v) { try { localStorage.setItem(key, JSON.stringify(v)); } catch (e) { /* private mode */ } }
   function rand(a, b) { return a + Math.random() * (b - a); }
 
+  // On a phone held sideways the game fills exactly one screen; scroll it into view so the
+  // site header is out of the way (see the landscape rule in game.css).
+  var shortLandscape = window.matchMedia('(orientation: landscape) and (max-height: 520px)');
+  function bringIntoView() {
+    if (!shortLandscape.matches || root.classList.contains('is-full')) return;
+    var top = root.getBoundingClientRect().top + window.scrollY - 4;
+    if (Math.abs(window.scrollY - top) > 2) window.scrollTo({ top: top, behavior: 'smooth' });
+  }
+
   // Tiny synthesized sounds, only after the visitor has interacted with the page.
   var audio = null, muted = load('trails:muted', false);
   function tone(freq, dur, type, vol, slide) {
@@ -205,6 +214,7 @@
     overlay.hidden = true;
     renderScores();
     stage.focus({ preventScroll: true });
+    bringIntoView();
     if (isHost()) {
       net.events = []; net.segs = [];
       netSend({ t: 'round', n: round, target: target });
@@ -1200,6 +1210,7 @@
       readyTime = 1.6;
       overlay.hidden = true;
       stage.focus({ preventScroll: true });
+      bringIntoView();
     } else if (m.t === 's') {
       applyState(m);
     } else if (m.t === 'paused') {
@@ -1377,6 +1388,9 @@
   };
 
   if (window.ResizeObserver) new ResizeObserver(fit).observe(stage); else window.addEventListener('resize', fit);
+  // Turning the phone sideways mid-game brings the game back into view.
+  var onTurn = function () { if (phase !== 'menu' && phase !== 'lobby') setTimeout(bringIntoView, 300); };
+  if (shortLandscape.addEventListener) shortLandscape.addEventListener('change', onTurn);
   fit();
   showMute();
   var invite = location.search.match(/[?&]room=([A-Za-z0-9]{5})(?:&|$)/);

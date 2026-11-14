@@ -1,7 +1,8 @@
 // Knockout: push the other pucks off a shrinking platform. The last puck standing takes the round.
-// Play against computer pucks, or two players on one keyboard. Like Trails, the simulation runs on a
-// fixed arena with a fixed timestep, so it plays the same on every screen and can later be run by one
-// "host" browser for online play. Settings are kept in localStorage.
+// Play against computer pucks, with two players on one keyboard, or online with friends. Like Trails,
+// the simulation runs on a fixed arena with a fixed timestep. Online, the browser that creates the game
+// (the host) runs it and sends the state through the SRATH relay (see /relay in the website repository);
+// the others only send their steering. Settings are kept in localStorage.
 (function () {
   'use strict';
 
@@ -54,6 +55,13 @@
   };
   var KIND_COLORS = { self: '#2dd4bf', others: '#fb7185', blast: '#fbbf24' };
   var PICK_R = 14, PICK_EVERY = [3, 6], PICK_MAX = 2, PICK_LIFE = 11;
+
+  // Online play. On this machine during development, a local relay (npm run dev in /relay) is used.
+  var RELAY = /^(127\.0\.0\.1|localhost)$/.test(location.hostname) ? 'ws://127.0.0.1:8787' : (root.dataset.relay || '');
+  var CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  var SEND_EVERY = 0.04;          // the host sends the game state 25 times a second
+  var INPUT_EVERY = 1 / 30;       // a guest sends steering at most this often
+  var MAX_SEATS = 6;
 
   var COLORS = [
     { name: 'Teal', hex: '#2dd4bf' }, { name: 'Indigo', hex: '#818cf8' }, { name: 'Amber', hex: '#fbbf24' },
@@ -130,6 +138,15 @@
   var setup = load(SETUP_KEY, { mode: 'solo', bots: 3 });
   if (setup.arenas === undefined) setup.arenas = true;
   if (setup.powerups === undefined) setup.powerups = true;
+  if (setup.onlineBots === undefined) setup.onlineBots = 0;
+  if (setup.mode === 'online' && !RELAY) setup.mode = 'solo';
+  var net = null;                  // the online connection, or null when playing offline
+  // Online name and colour, remembered in this browser (starting from the Trails ones, if any).
+  var profile = load('knockout:profile', null) || load('trails:profile', { name: '', color: -1 });
+  function cleanName(t) {
+    return String(t || '').replace(/[\u0000-\u001f\u007f-\u009f\u200b-\u200f\u202a-\u202e\u2066-\u2069]/g, '')
+      .replace(/\s+/g, ' ').trim().slice(0, 12);
+  }
   var players = [];
   var arena = 'classic', lastArena = 'classic', windAngle = 0;
   var pickups = [], nextPickup = 0;
@@ -142,7 +159,10 @@
   var keys = {};
   var touch = { x: 0, y: 0, dash: false, joy: null };
 
-  function isMe(p) { return setup.mode === 'solo' && p.id === 0; }
+  // A player's id is their colour (an index into COLORS). Online, each human also has a seat (0 = host).
+  function isMe(p) { return net ? !p.bot && p.seat === net.seat : setup.mode === 'solo' && p.id === 0; }
+  function isHost() { return !!net && net.role === 'host'; }
+  function isGuest() { return !!net && net.role === 'guest'; }
   function who(p) { return isMe(p) ? 'You' : p.name; }
   function humans() { return players.filter(function (p) { return !p.bot; }); }
   function minRadius() { return arena === 'donut' ? HOLE + 75 : R_MIN; }
@@ -185,6 +205,21 @@
 
   function makePlayers() {
     var list = [];
+    if (net) {
+      [0].concat(net.guests).filter(function (s) { return net.members[s]; }).forEach(function (s) {
+        var m = net.members[s];
+        list.push({ id: m.ci, seat: s, bot: false, name: memberName(m), score: 0, kos: 0 });
+      });
+      var used = list.map(function (q) { return q.id; });
+      var free = COLORS.map(function (c, i) { return i; }).filter(function (i) { return used.indexOf(i) === -1; });
+      for (var nb = 0; nb < setup.onlineBots && free.length; nb++) {
+        var id = free.shift();
+        list.push({ id: id, bot: true, name: COLORS[id].name, score: 0, kos: 0 });
+      }
+      list.sort(function (a, b) { return a.id - b.id; });
+      list.forEach(function (q) { q.color = COLORS[q.id].hex; q.sloppy = q.bot ? rand(0.6, 1.2) : 0; });
+      return list;
+    }
     var count = setup.mode === 'duo' ? 2 : 1;
     for (var i = 0; i < count; i++) {
       list.push({ id: i, bot: false, name: count === 1 ? 'You' : 'Player ' + (i + 1), score: 0, kos: 0 });
@@ -198,6 +233,7 @@
     players = makePlayers();
     target = players.length <= 2 ? 5 : 4;
     round = 0;
+    if (isHost()) netSend({ t: 'match', target: target, pl: players.map(function (q) { return [q.id, q.bot ? 1 : 0, q.bot ? -1 : q.seat, q.bot ? '' : q.name]; }) });
     startRound();
   }
 
@@ -227,7 +263,7 @@
       p.vx = p.vy = 0;
       p.face = a + Math.PI;
       p.falling = null;
-      p.out = false;
+      p.out = !!p.left;   // an online player who left stays out
       p.cool = 0;
       p.heavy = 0;
       p.dashHeld = false;
@@ -243,6 +279,11 @@
     renderScores();
     stage.focus({ preventScroll: true });
     bringIntoView();
+    if (isHost()) {
+      net.events = [];
+      netSend({ t: 'round', n: round, target: target, arena: arena, w: r2(windAngle) });
+      sendState();
+    }
   }
 
   // ---------------------------------------------------------------------------
@@ -250,8 +291,22 @@
 
   function control(p) {
     if (p.bot) return botControl(p);
+    if (net) {
+      if (p.seat === net.seat) return localControl(true);
+      var inp = net.inputs[p.seat];
+      if (!inp) return { x: 0, y: 0, dash: false };
+      var dash = inp.dashes > 0;
+      if (dash) inp.dashes--;   // each press a guest makes is applied exactly once
+      return { x: inp.x, y: inp.y, dash: dash };
+    }
+    return localControl(setup.mode === 'solo', p.id);
+  }
+
+  // Keys and touch at this device. single: one player uses every key; otherwise player 0 has the
+  // arrows and Enter, player 1 has WASD and Space.
+  function localControl(single, id) {
     var x = 0, y = 0, dash = false;
-    var solo = setup.mode === 'solo';
+    var solo = single, p = { id: id };
     if (solo || p.id === 0) {
       x += (keys.ArrowRight ? 1 : 0) - (keys.ArrowLeft ? 1 : 0);
       y += (keys.ArrowDown ? 1 : 0) - (keys.ArrowUp ? 1 : 0);
@@ -349,10 +404,8 @@
       p.vx += dx * DASH; p.vy += dy * DASH;
       p.cool = fx(p, 'turbo') ? 0.3 : DASH_COOLDOWN;
       p.heavy = DASH_HEAVY;
-      for (var i = 0; i < 10; i++) {
-        particles.push({ x: p.x - dx * PUCK, y: p.y - dy * PUCK, vx: -dx * rand(60, 200) + rand(-50, 50), vy: -dy * rand(60, 200) + rand(-50, 50), life: rand(0.2, 0.45), color: p.color });
-      }
-      tone(220, 0.16, 'sawtooth', 0.035, 700);
+      emit(['d', p.id, r2(dx), r2(dy)]);
+      dashEffect(p, dx, dy);
     }
     p.dashHeld = !!c.dash;
 
@@ -375,8 +428,49 @@
     if (vn < 0) { p.vx -= vn * nx; p.vy -= vn * ny; }
     p.vx += nx * BUMPER_KICK; p.vy += ny * BUMPER_KICK;
     p.lastHit = null;
-    particles.push({ ring: true, x: b.x, y: b.y, r: BUMPER, life: 0.35, color: '#fbbf24' });
+    emit(['b', r1(b.x), r1(b.y)]);
+    bumpEffect(b.x, b.y);
+  }
+
+  // What everyone sees and hears; guests replay these from the host's events.
+  function dashEffect(p, dx, dy) {
+    for (var i = 0; i < 10; i++) {
+      particles.push({ x: p.x - dx * PUCK, y: p.y - dy * PUCK, vx: -dx * rand(60, 200) + rand(-50, 50), vy: -dy * rand(60, 200) + rand(-50, 50), life: rand(0.2, 0.45), color: p.color });
+    }
+    tone(220, 0.16, 'sawtooth', 0.035, 700);
+  }
+  function bumpEffect(x, y) {
+    particles.push({ ring: true, x: x, y: y, r: BUMPER, life: 0.35, color: '#fbbf24' });
     tone(660, 0.1, 'triangle', 0.05, 990);
+  }
+  function hitEffect(mx, my, hit, a, b) {
+    var n = 4 + Math.round(hit * 14);
+    for (var i = 0; i < n; i++) {
+      var ang = Math.random() * Math.PI * 2, sp = rand(80, 320) * (0.4 + hit);
+      particles.push({ x: mx, y: my, vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp, life: rand(0.15, 0.4), color: i % 2 ? a.color : b.color });
+    }
+    shake = Math.max(shake, hit * 9);
+    tone(140 + hit * 260, 0.09 + hit * 0.08, 'square', 0.03 + hit * 0.05, 70);
+  }
+  function fallEffect(p, by) {
+    if (by && by !== p) {
+      particles.push({ text: who(by) + ' ✕ ' + who(p), x: p.x, y: p.y - 26, vx: 0, vy: -26, life: 1.4, color: by.color });
+      live.textContent = who(by) + ' knocked out ' + who(p) + '.';
+    } else {
+      live.textContent = who(p) + (isMe(p) ? ' fall off.' : ' falls off.');
+    }
+    particles.push({ ring: true, x: p.x, y: p.y, r: PUCK, life: 0.6, color: p.color });
+    tone(p.bot ? 420 : 360, 0.5, 'triangle', 0.07, 60);
+  }
+  function pickupEffect(type, p) {
+    var pu = POWERUPS[type];
+    if (type === 'shock') {
+      particles.push({ ring: true, x: p.x, y: p.y, r: rad(p), grow: 520, life: 0.5, color: KIND_COLORS.blast });
+      shake = Math.max(shake, 8);
+    }
+    particles.push({ text: pu.label, x: p.x, y: p.y - 30, vx: 0, vy: -30, life: 1.1, color: KIND_COLORS[pu.kind] });
+    if (isMe(p) || (!net && !p.bot)) live.textContent = pu.label + '.';
+    tone(pu.kind === 'self' ? 880 : pu.kind === 'others' ? 330 : 200, 0.2, pu.kind === 'blast' ? 'sawtooth' : 'triangle', 0.07, pu.kind === 'self' ? 1320 : pu.kind === 'blast' ? 60 : null);
   }
 
   // ---------------------------------------------------------------------------
@@ -432,26 +526,18 @@
         q.vx += dx / d * push; q.vy += dy / d * push;
         q.lastHit = { by: p, t: roundTime };
       });
-      particles.push({ ring: true, x: p.x, y: p.y, r: rad(p), grow: 520, life: 0.5, color: KIND_COLORS.blast });
-      shake = Math.max(shake, 8);
     }
-    particles.push({ text: pu.label, x: p.x, y: p.y - 30, vx: 0, vy: -30, life: 1.1, color: KIND_COLORS[pu.kind] });
-    if (!p.bot) live.textContent = pu.label + '.';
-    tone(pu.kind === 'self' ? 880 : pu.kind === 'others' ? 330 : 200, 0.2, pu.kind === 'blast' ? 'sawtooth' : 'triangle', 0.07, pu.kind === 'self' ? 1320 : pu.kind === 'blast' ? 60 : null);
+    emit(['pu', type, p.id]);
+    pickupEffect(type, p);
   }
 
   function fall(p) {
     p.falling = 0;
     var by = p.lastHit && roundTime - p.lastHit.t < CREDIT_TIME ? p.lastHit.by : null;
-    if (by && by !== p) {
-      by.kos++;
-      particles.push({ text: who(by) + ' ✕ ' + who(p), x: p.x, y: p.y - 26, vx: 0, vy: -26, life: 1.4, color: by.color });
-      live.textContent = who(by) + ' knocked out ' + who(p) + '.';
-    } else {
-      live.textContent = who(p) + (isMe(p) ? ' fall off.' : ' falls off.');
-    }
-    particles.push({ ring: true, x: p.x, y: p.y, r: PUCK, life: 0.6, color: p.color });
-    tone(p.bot ? 420 : 360, 0.5, 'triangle', 0.07, 60);
+    if (by === p) by = null;
+    if (by) by.kos++;
+    emit(['f', p.id, by ? by.id : -1]);
+    fallEffect(p, by);
     renderScores();
   }
 
@@ -470,13 +556,8 @@
       b.lastHit = { by: a, t: roundTime };
       var hit = Math.min(1, -rel / 600);
       var mx = a.x + nx * rad(a), my = a.y + ny * rad(a);
-      var n = 4 + Math.round(hit * 14);
-      for (var i = 0; i < n; i++) {
-        var ang = Math.random() * Math.PI * 2, sp = rand(80, 320) * (0.4 + hit);
-        particles.push({ x: mx, y: my, vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp, life: rand(0.15, 0.4), color: i % 2 ? a.color : b.color });
-      }
-      shake = Math.max(shake, hit * 9);
-      tone(140 + hit * 260, 0.09 + hit * 0.08, 'square', 0.03 + hit * 0.05, 70);
+      emit(['h', r1(mx), r1(my), r2(hit), a.id, b.id]);
+      hitEffect(mx, my, hit, a, b);
     }
     // Push them apart so they never overlap.
     var overlap = min - d;
@@ -493,11 +574,13 @@
     particles = particles.filter(function (q) { return q.life > 0; });
     shake = Math.max(0, shake - dt * 30);
 
+    if (isGuest()) { guestUpdate(dt); return; }
+
     if (phase === 'ready') {
       var before = Math.ceil(readyTime / 0.7);
       readyTime -= dt;
       if (Math.ceil(readyTime / 0.7) !== before && readyTime > 0) tone(520, 0.08, 'triangle', 0.05);
-      if (readyTime <= 0) { phase = 'playing'; tone(880, 0.14, 'triangle', 0.07); }
+      if (readyTime <= 0) { phase = 'playing'; emit(['go']); tone(880, 0.14, 'triangle', 0.07); }
       return;
     }
     if (phase === 'roundover') {
@@ -536,24 +619,36 @@
     roundOverTime = 2;
     accumulator = 0;
     if (winner) winner.score++;
+    emit(['ro', winner ? winner.id : -1]);
+    roundEnded(winner);
+  }
+
+  function roundEnded(winner) {
     roundMessage = winner ? who(winner) + (isMe(winner) ? ' win the round' : ' wins the round') : 'Nobody is left';
     roundColor = winner ? winner.color : '#9aa3b5';
     live.textContent = roundMessage + '.';
-    if (winner && !winner.bot) tone(784, 0.25, 'triangle', 0.08, 1046);
+    if (winner && !winner.bot && (!net || isMe(winner))) tone(784, 0.25, 'triangle', 0.08, 1046);
     renderScores();
   }
 
   function endMatch(winner) {
     phase = 'matchover';
-    var you = !winner.bot;
+    if (isHost()) {
+      sendState();
+      netSend({ t: 'over', w: winner.id, sc: players.map(function (q) { return [q.score, q.kos]; }) });
+    }
+    var you = net ? isMe(winner) : !winner.bot;
+    var buttons = isHost() ? [['Play again', startMatch], ['Back to lobby', showLobby]]
+      : isGuest() ? [['Leave game', leaveOnline]]
+      : [['Play again', startMatch], ['Change setup', showMenu]];
     tone(you ? 523 : 220, 0.5, 'triangle', 0.09, you ? 1046 : 110);
     showOverlay(
       who(winner) === 'You' ? 'You win!' : who(winner) + ' wins',
       '<ol class="ko-final">' + players.slice().sort(function (a, b) { return b.score - a.score || b.kos - a.kos; }).map(function (p) {
         return '<li><span class="ko-dot" style="background:' + p.color + '"></span>' + esc(who(p)) +
-          '<span class="ko-kos">' + p.kos + (p.kos === 1 ? ' knockout' : ' knockouts') + '</span><strong>' + p.score + '</strong></li>';
-      }).join('') + '</ol>',
-      [['Play again', startMatch], ['Change setup', showMenu]]
+          (p.left ? ' (left)' : '') + '<span class="ko-kos">' + p.kos + (p.kos === 1 ? ' knockout' : ' knockouts') + '</span><strong>' + p.score + '</strong></li>';
+      }).join('') + '</ol>' + (isGuest() ? '<p>Waiting for the host to start the next game.</p>' : ''),
+      buttons
     );
     live.textContent = who(winner) + ' won the match.';
   }
@@ -577,7 +672,7 @@
     ctx.stroke();
 
     // The platform. Where it used to reach is shown faintly once it starts to shrink.
-    var R = phase === 'menu' ? R0 : radius();
+    var R = phase === 'menu' || phase === 'lobby' ? R0 : radius();
     var shrinking = (phase === 'playing' || phase === 'roundover') && roundTime >= SHRINK_AFTER && R > R_MIN;
     if (R < R0 - 1) {
       ctx.strokeStyle = 'rgba(251, 113, 133, 0.18)';
@@ -794,7 +889,7 @@
       var chip = el('span', 'ko-chip' + (phase === 'playing' && !standing(p) ? ' is-out' : ''));
       var dot = el('span', 'ko-dot');
       dot.style.background = p.color;
-      chip.append(dot, el('span', 'ko-name', who(p)), el('strong', null, String(p.score)));
+      chip.append(dot, el('span', 'ko-name', who(p) + (p.left ? ' (left)' : '')), el('strong', null, String(p.score)));
       board.appendChild(chip);
     });
     if (players.length) board.appendChild(el('span', 'ko-goal', 'to ' + target));
@@ -837,7 +932,7 @@
     });
     overlay.append(row);
     overlay.hidden = false;
-    setTimeout(function () { var first = overlay.querySelector('.btn'); if (first && !overlay.hidden) first.focus({ preventScroll: true }); }, 30);
+    setTimeout(function () { var first = overlay.querySelector('.btn'); if (first && !overlay.hidden && !overlay.contains(document.activeElement)) first.focus({ preventScroll: true }); }, 30);
   }
 
   function choice(label, options, current, onPick) {
@@ -863,6 +958,8 @@
     pickups = [];
     players = [];
     renderScores();
+    pauseBtn.hidden = false;
+    var online = setup.mode === 'online';
     var maxBots = setup.mode === 'duo' ? 4 : 5;
     var minBots = setup.mode === 'duo' ? 0 : 1;
     setup.bots = Math.max(minBots, Math.min(maxBots, setup.bots));
@@ -870,12 +967,21 @@
       '<p>Push the other pucks off the platform and stay on it yourself. Every bump sends pucks flying, ' +
       'and a dash makes you heavier for a moment, so it wins any collision. After a few seconds the platform starts to shrink.</p>' +
       '<p>Last puck standing wins the round.</p>',
-      [['Play', function () { save(SETUP_KEY, setup); startMatch(); }]]);
+      [[online ? 'Create online game' : 'Play', function () { save(SETUP_KEY, setup); if (online) createOnline(); else startMatch(); }]]);
     var body = overlay.querySelector('.ko-body');
-    body.append(choice('Players', [['solo', 'You vs computer'], ['duo', '2 players, 1 keyboard']], setup.mode, function (v) { setup.mode = v; showMenu(); }));
-    var botOptions = [];
-    for (var n = minBots; n <= maxBots; n++) botOptions.push([n, String(n)]);
-    body.append(choice('Computer pucks', botOptions, setup.bots, function (v) { setup.bots = v; showMenu(); }));
+    var modes = [['solo', 'You vs computer'], ['duo', '2 players, 1 keyboard']];
+    if (RELAY) modes.push(['online', 'Online']);
+    body.append(choice('Players', modes, setup.mode, function (v) { setup.mode = v; showMenu(); }));
+    if (online) {
+      var info = el('p', 'ko-note');
+      info.innerHTML = 'You get a link and a code to send to up to five friends. Your browser runs the game, so keep this tab open while you play. ' +
+        'Players connect through a relay run by Cloudflare; see the <a class="text-link" href="/privacy/#online-games">privacy notice</a>.';
+      body.append(info, joinByCode());
+    } else {
+      var botOptions = [];
+      for (var n = minBots; n <= maxBots; n++) botOptions.push([n, String(n)]);
+      body.append(choice('Computer pucks', botOptions, setup.bots, function (v) { setup.bots = v; showMenu(); }));
+    }
     body.append(choice('Arenas', [[true, 'Mixed'], [false, 'Classic only']], setup.arenas, function (v) { setup.arenas = v; showMenu(); }));
     body.append(choice('Power-ups', [[true, 'On'], [false, 'Off']], setup.powerups, function (v) { setup.powerups = v; showMenu(); }));
     if (setup.powerups) {
@@ -901,17 +1007,493 @@
     }
   }
 
+  // Online, only the host can pause, and it pauses the game for everyone.
   function pause() {
-    if (phase !== 'playing' && phase !== 'ready') return;
+    if (isGuest() || (phase !== 'playing' && phase !== 'ready')) return;
     pausedFrom = phase;
     phase = 'paused';
-    showOverlay('Paused', '', [['Continue', resume], ['Quit to menu', showMenu]]);
+    if (isHost()) {
+      netSend({ t: 'paused' });
+      showOverlay('Paused', '<p>The game is paused for everyone.</p>', [['Continue', resume], ['Back to lobby', showLobby]]);
+    } else {
+      showOverlay('Paused', '', [['Continue', resume], ['Quit to menu', showMenu]]);
+    }
   }
   function resume() {
-    if (phase !== 'paused') return;
+    if (isGuest() || phase !== 'paused') return;
     phase = pausedFrom;
     overlay.hidden = true;
     stage.focus({ preventScroll: true });
+  }
+
+  // ---------------------------------------------------------------------------
+  // Online play
+  //
+  // Messages (JSON). Host -> guests: lobby, match, round, s (state), paused, over, busy.
+  // Guest -> host: hello (name and colour), in (steering). The relay adds "from" (the guest's seat)
+  // and sends welcome, join, leave, host-left and refused.
+
+  function r1(v) { return Math.round(v * 10) / 10; }
+  function r2(v) { return Math.round(v * 100) / 100; }
+  function emit(ev) { if (isHost()) net.events.push(ev); }
+  function netSend(data) { if (net && net.ws.readyState === 1) net.ws.send(JSON.stringify(data)); }
+  function newCode() {
+    var out = '', a = new Uint32Array(5);
+    crypto.getRandomValues(a);
+    for (var i = 0; i < 5; i++) out += CODE_CHARS[a[i] % CODE_CHARS.length];
+    return out;
+  }
+  function inviteLink() { return location.origin + location.pathname + '?room=' + net.code; }
+  function byId(id) { return players.filter(function (q) { return q.id === id; })[0]; }
+
+  function connect(role, code) {
+    if (net) closeNet();
+    var ws = new WebSocket(RELAY + '/room/knockout/' + code + '?role=' + role);
+    net = { role: role, code: code, ws: ws, seat: role === 'host' ? 0 : -1, guests: [], members: {}, inputs: {}, events: [], sendIn: 0, inputIn: 0, sent: '', opened: false };
+    var mine = net;
+    ws.onmessage = function (e) {
+      if (net !== mine || e.data === 'pong') return;
+      var m;
+      try { m = JSON.parse(e.data); } catch (err) { return; }
+      if (role === 'host') onHostMessage(m); else onGuestMessage(m);
+    };
+    ws.onclose = function () {
+      if (net !== mine) return;
+      var wasOpen = mine.opened;
+      closeNet();
+      showProblem(wasOpen ? 'The connection to the game was lost.' : 'Couldn\'t reach the game server. Please try again in a little while.');
+    };
+    mine.ping = setInterval(function () { if (ws.readyState === 1) ws.send('ping'); }, 20000);
+  }
+
+  function closeNet() {
+    if (!net) return;
+    var old = net;
+    net = null;
+    clearInterval(old.ping);
+    try { old.ws.close(1000); } catch (e) { /* already closed */ }
+  }
+
+  function leaveOnline() {
+    closeNet();
+    if (/[?&]room=/.test(location.search)) history.replaceState(null, '', location.pathname);
+    showMenu();
+  }
+
+  function showProblem(text) {
+    phase = 'menu';
+    players = [];
+    renderScores();
+    pauseBtn.hidden = false;
+    if (/[?&]room=/.test(location.search)) history.replaceState(null, '', location.pathname);
+    showOverlay('Online game', '<p>' + text + '</p>', [['Back to menu', showMenu]]);
+  }
+
+  function refusedText(reason) {
+    if (reason === 'full') return 'This game is full: it already has six players.';
+    if (reason === 'no-game') return 'This game doesn\'t exist any more. The link may be old, or the host has closed the game.';
+    return 'Couldn\'t join this game.';
+  }
+
+  // Host --------------------------------------------------------------------
+
+  function createOnline() {
+    connect('host', newCode());
+    showOverlay('Online game', '<p>Opening a game…</p>', [['Cancel', leaveOnline]]);
+  }
+
+  function onHostMessage(m) {
+    if (m.t === 'welcome') { net.opened = true; setMember(0, profile.name, profile.color); showLobby(); return; }
+    if (m.t === 'refused') {
+      // The code is already in use (very unlikely): try another one.
+      if (m.reason === 'taken' && !net.retried) { closeNet(); connect('host', newCode()); net.retried = true; return; }
+      closeNet();
+      showProblem(refusedText(m.reason));
+      return;
+    }
+    var seat = m.from != null ? m.from : m.seat;
+    if (m.t === 'join') {
+      if (phase !== 'lobby') { netSend({ t: 'busy', to: seat, kick: true }); return; }
+      if (net.guests.indexOf(seat) === -1) net.guests.push(seat);
+      net.guests.sort();
+      setMember(seat, '', -1);   // until their name and colour arrive
+      tone(660, 0.1, 'triangle', 0.05);
+      showLobby();
+    } else if (m.t === 'leave') {
+      net.guests = net.guests.filter(function (x) { return x !== seat; });
+      delete net.inputs[seat];
+      delete net.members[seat];
+      if (phase === 'lobby') { showLobby(); return; }
+      var q = players.filter(function (pl) { return pl.seat === seat && !pl.bot; })[0];
+      if (q) {
+        q.left = true;
+        if (standing(q)) { q.lastHit = null; fall(q); }
+        renderScores();
+        live.textContent = q.name + ' left the game.';
+      }
+    } else if (m.t === 'in') {
+      var x = +m.x || 0, y = +m.y || 0, len = Math.hypot(x, y);
+      if (len > 1) { x /= len; y /= len; }
+      // m.n counts the guest's dash presses, so a quick tap is never lost between two steps.
+      var prev = net.inputs[seat] || { n: 0, dashes: 0 };
+      var presses = (m.n - prev.n + 1000) % 1000;
+      net.inputs[seat] = { x: x, y: y, n: m.n, dashes: Math.min(2, prev.dashes + (presses > 0 && presses < 10 ? 1 : 0)) };
+    } else if (m.t === 'hello') {
+      if (phase !== 'lobby' || net.guests.indexOf(seat) === -1) return;
+      setMember(seat, m.name, m.c);
+      showLobby();
+    }
+  }
+
+  // The host decides colours, so two players can never get the same one.
+  function setMember(seat, name, wanted) {
+    var taken = Object.keys(net.members).filter(function (x) { return +x !== seat; }).map(function (x) { return net.members[x].ci; });
+    var current = net.members[seat] ? net.members[seat].ci : -1;
+    var ci = -1;
+    [wanted, current].concat(COLORS.map(function (c, i) { return i; })).some(function (i) {
+      if (typeof i === 'number' && i >= 0 && i < COLORS.length && taken.indexOf(i) === -1) { ci = i; return true; }
+      return false;
+    });
+    net.members[seat] = { name: cleanName(name), ci: ci };
+  }
+  function memberName(m) { return m.name || COLORS[m.ci].name; }
+  function lobbyList() {
+    return [0].concat(net.guests).filter(function (x) { return net.members[x]; }).map(function (x) {
+      return [x, net.members[x].name, net.members[x].ci];
+    });
+  }
+
+  function showLobby() {
+    if (!isHost()) return;
+    phase = 'lobby';
+    players = [];
+    pickups = [];
+    arena = 'classic';
+    renderScores();
+    pauseBtn.hidden = false;
+    var maxBots = MAX_SEATS - 1 - net.guests.length;
+    setup.onlineBots = Math.max(0, Math.min(maxBots, setup.onlineBots));
+    netSend({ t: 'lobby', pl: lobbyList(), bots: setup.onlineBots });
+
+    var count = net.guests.length;
+    var typing = nameFocus();
+    showOverlay('Online game',
+      '<p class="ko-code">Game code <strong>' + net.code + '</strong></p>' +
+      '<p>Send this link to the people you want to play with, or tell them the code. Up to five can join.</p>',
+      [['Start game', function () { save(SETUP_KEY, setup); startMatch(); }], ['Cancel', leaveOnline]]);
+    var body = overlay.querySelector('.ko-body');
+    var row = el('div', 'ko-invite');
+    var input = el('input', 'ko-invite-link');
+    input.readOnly = true;
+    input.value = inviteLink();
+    input.setAttribute('aria-label', 'Invite link');
+    input.addEventListener('focus', function () { input.select(); });
+    var copy = el('button', 'ko-btn', 'Copy link');
+    copy.type = 'button';
+    copy.addEventListener('click', function (e) {
+      e.stopPropagation();
+      var done = function () { copy.textContent = 'Copied'; setTimeout(function () { copy.textContent = 'Copy link'; }, 1500); };
+      if (navigator.clipboard) navigator.clipboard.writeText(input.value).then(done, function () { input.select(); });
+      else input.select();
+    });
+    row.append(input, copy);
+    if (navigator.share) {
+      var share = el('button', 'ko-btn', 'Share');
+      share.type = 'button';
+      share.addEventListener('click', function (e) { e.stopPropagation(); navigator.share({ title: 'Play Knockout with me', url: input.value }).catch(function () {}); });
+      row.append(share);
+    }
+    body.append(row, seatList(lobbyList()));
+    body.append(profileEditor(lobbyList(), function () { setMember(0, profile.name, profile.color); showLobby(); }));
+    body.append(el('p', 'ko-lobby-status', count ? (count === 1 ? 'One player has joined.' : count + ' players have joined.') : 'Waiting for players to join…'));
+    var botOptions = [];
+    for (var n = 0; n <= maxBots; n++) botOptions.push([n, String(n)]);
+    body.append(choice('Computer pucks', botOptions, setup.onlineBots, function (v) { setup.onlineBots = v; showLobby(); }));
+    var note = el('p', 'ko-note');
+    note.textContent = (setup.arenas ? 'Mixed arenas' : 'Classic arena only') + ', power-ups ' + (setup.powerups ? 'on' : 'off') + ' (change these in the menu).';
+    body.append(note);
+    typing();
+  }
+
+  function sendState() {
+    if (!isHost()) return;
+    netSend({
+      t: 's', ph: phase, rt: r2(readyTime), tm: r2(roundTime), w: r2(windAngle),
+      p: players.map(function (q) {
+        var f = {};
+        Object.keys(q.fx).forEach(function (k) { if (q.fx[k] > 0) f[k] = r1(q.fx[k]); });
+        return [r1(q.x), r1(q.y), r1(q.vx), r1(q.vy), r2(q.face), q.falling == null ? -1 : r2(q.falling), q.out ? 1 : 0,
+          r2(q.cool), r2(q.heavy), f, q.score, q.kos, q.left ? 1 : 0];
+      }),
+      k: pickups.map(function (k) { return [k.type, r1(k.x), r1(k.y), r1(k.age)]; }),
+      e: net.events,
+    });
+    net.events = [];
+  }
+
+  // Shared lobby pieces ---------------------------------------------------------
+
+  // "Have a code?": type the five characters a friend reads out, instead of opening their link.
+  function joinByCode() {
+    var form = el('form', 'ko-join');
+    var label = el('label', 'ko-choice-label', 'Have a code?');
+    var input = el('input', 'ko-join-code');
+    input.id = label.htmlFor = 'ko-join-code';
+    input.maxLength = 5;
+    input.placeholder = 'ABCDE';
+    input.autocomplete = 'off';
+    input.spellcheck = false;
+    input.setAttribute('autocapitalize', 'characters');
+    var btn = el('button', 'ko-btn', 'Join');
+    btn.type = 'submit';
+    var msg = el('p', 'ko-join-msg');
+    msg.setAttribute('aria-live', 'polite');
+    input.addEventListener('input', function () { input.value = input.value.toUpperCase().replace(/[^A-Z0-9]/g, ''); msg.textContent = ''; });
+    form.addEventListener('click', function (e) { e.stopPropagation(); });
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var code = input.value.toUpperCase();
+      var valid = code.length === 5 && code.split('').every(function (c) { return CODE_CHARS.indexOf(c) !== -1; });
+      if (!valid) {
+        msg.textContent = /[01OI]/.test(code) ? 'Codes never contain 0, O, 1 or I. Check the code and try again.' : 'A code has five letters and numbers.';
+        input.focus();
+        return;
+      }
+      history.replaceState(null, '', location.pathname + '?room=' + code);
+      joinOnline(code);
+    });
+    form.append(label, input, btn);
+    var wrap = el('div');
+    wrap.append(form, msg);
+    return wrap;
+  }
+
+  // Rebuilding the lobby must not interrupt someone typing their name.
+  function nameFocus() {
+    var a = document.activeElement;
+    var focused = !!(a && a.classList && a.classList.contains('ko-name-input'));
+    var pos = focused ? a.selectionStart : 0;
+    return function () {
+      if (!focused) return;
+      var input = overlay.querySelector('.ko-name-input');
+      if (input) { input.focus({ preventScroll: true }); input.setSelectionRange(pos, pos); }
+    };
+  }
+
+  // Name field and colour swatches. list: [[seat, name, colour], ...] as decided by the host.
+  function profileEditor(list, onChange) {
+    var mine = list.filter(function (e) { return e[0] === net.seat; })[0];
+    var myColor = mine ? mine[2] : profile.color;
+    var taken = list.filter(function (e) { return e[0] !== net.seat; }).map(function (e) { return e[2]; });
+    var wrap = el('div', 'ko-profile');
+    var row = el('div', 'ko-choice');
+    var label = el('label', 'ko-choice-label', 'Your name');
+    var input = el('input', 'ko-name-input');
+    input.id = label.htmlFor = 'ko-name-input';
+    input.maxLength = 12;
+    input.value = profile.name;
+    input.placeholder = COLORS[myColor >= 0 ? myColor : 0].name;
+    input.autocomplete = 'off';
+    input.spellcheck = false;
+    var timer = null;
+    input.addEventListener('input', function () {
+      profile.name = input.value.slice(0, 12);   // cleaned when shown; kept as typed so a pause after a space is fine
+      save('knockout:profile', profile);
+      clearTimeout(timer);
+      timer = setTimeout(onChange, 450);
+    });
+    input.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); input.blur(); } });
+    input.addEventListener('click', function (e) { e.stopPropagation(); });
+    row.append(label, input);
+    var colours = el('div', 'ko-choice');
+    colours.append(el('span', 'ko-choice-label', 'Your colour'));
+    var group = el('div', 'ko-swatches');
+    group.setAttribute('role', 'group');
+    group.setAttribute('aria-label', 'Your colour');
+    COLORS.forEach(function (c, i) {
+      var b = el('button', 'ko-swatch');
+      b.type = 'button';
+      b.style.setProperty('--c', c.hex);
+      var isTaken = taken.indexOf(i) !== -1;
+      b.disabled = isTaken;
+      b.setAttribute('aria-pressed', String(i === myColor));
+      b.setAttribute('aria-label', c.name + (isTaken ? ' (taken)' : ''));
+      b.title = c.name + (isTaken ? ' (taken)' : '');
+      b.addEventListener('click', function (e) {
+        e.stopPropagation();
+        profile.color = i;
+        save('knockout:profile', profile);
+        clearTimeout(timer);
+        onChange();
+      });
+      group.append(b);
+    });
+    colours.append(group);
+    wrap.append(row, colours);
+    return wrap;
+  }
+
+  function seatList(entries) {
+    var list = el('div', 'ko-scores ko-lobby');
+    entries.forEach(function (e) {
+      var chip = el('span', 'ko-chip');
+      var dot = el('span', 'ko-dot');
+      dot.style.background = COLORS[e[2]].hex;
+      var name = cleanName(e[1]) || COLORS[e[2]].name;
+      chip.append(dot, el('span', null, name + (e[0] === net.seat ? ' (you)' : e[0] === 0 ? ' (host)' : '')));
+      list.append(chip);
+    });
+    return list;
+  }
+
+  // Guest -------------------------------------------------------------------
+
+  function joinOnline(code) {
+    connect('guest', code);
+    showOverlay('Online game', '<p>Joining game ' + code + '…</p>', [['Cancel', leaveOnline]]);
+  }
+
+  function sendHello() { netSend({ t: 'hello', name: profile.name, c: profile.color }); }
+
+  function onGuestMessage(m) {
+    if (m.t === 'welcome') {
+      net.opened = true;
+      net.seat = m.seat;
+      pauseBtn.hidden = true;
+      sendHello();
+      showOverlay('Online game', '<p>Joined. Waiting for the host…</p>', [['Leave game', leaveOnline]]);
+    } else if (m.t === 'refused') {
+      closeNet();
+      showProblem(refusedText(m.reason));
+    } else if (m.t === 'host-left') {
+      closeNet();
+      showProblem('The host has left, so the game is over.');
+    } else if (m.t === 'busy') {
+      closeNet();
+      showProblem('This game has already started. Ask the host to go back to the lobby, then open the link again.');
+    } else if (m.t === 'lobby') {
+      phase = 'lobby';
+      players = [];
+      pickups = [];
+      arena = 'classic';
+      renderScores();
+      var typing = nameFocus();
+      showOverlay('Online game', '<p>You\'re in. Waiting for the host to start the game.</p>', [['Leave game', leaveOnline]]);
+      var body = overlay.querySelector('.ko-body');
+      body.append(seatList(m.pl));
+      if (m.bots) body.append(el('p', 'ko-lobby-status', m.bots === 1 ? 'Plus one computer puck.' : 'Plus ' + m.bots + ' computer pucks.'));
+      body.append(profileEditor(m.pl, sendHello));
+      typing();
+    } else if (m.t === 'match') {
+      target = m.target;
+      players = m.pl.map(function (d) {
+        return { id: d[0], bot: !!d[1], seat: d[1] ? null : d[2], name: cleanName(d[3]) || COLORS[d[0]].name, color: COLORS[d[0]].hex,
+          score: 0, kos: 0, fx: {}, x: null, falling: null, out: false, cool: 0, heavy: 0, face: 0, vx: 0, vy: 0 };
+      });
+      overlay.hidden = true;
+      renderScores();
+    } else if (m.t === 'round') {
+      round = m.n;
+      target = m.target;
+      arena = ARENAS[m.arena] ? m.arena : 'classic';
+      windAngle = m.w;
+      roundTime = 0;
+      particles = [];
+      pickups = [];
+      shake = 0;
+      players.forEach(function (q) { q.x = null; q.fx = {}; q.falling = null; });
+      live.textContent = 'Round ' + round + ': ' + ARENAS[arena].label + '. ' + ARENAS[arena].desc + '.';
+      phase = 'ready';
+      readyTime = 2.1;
+      overlay.hidden = true;
+      stage.focus({ preventScroll: true });
+      bringIntoView();
+    } else if (m.t === 's') {
+      applyState(m);
+    } else if (m.t === 'paused') {
+      phase = 'paused';
+      showOverlay('Paused', '<p>The host has paused the game.</p>', [['Leave game', leaveOnline]]);
+    } else if (m.t === 'over') {
+      m.sc.forEach(function (sk, i) { if (players[i]) { players[i].score = sk[0]; players[i].kos = sk[1]; } });
+      endMatch(byId(m.w) || players[0]);
+    }
+  }
+
+  function applyState(m) {
+    if (phase === 'lobby' || phase === 'matchover' || !players.length) return;
+    if (phase === 'paused' && m.ph !== 'paused') overlay.hidden = true;
+    phase = m.ph;
+    readyTime = m.rt;
+    roundTime = m.tm;
+    windAngle = m.w;
+    m.p.forEach(function (d, i) {
+      var q = players[i];
+      if (!q) return;
+      q.x = q.sx = d[0]; q.y = q.sy = d[1]; q.vx = d[2]; q.vy = d[3]; q.face = d[4];
+      q.falling = d[5] < 0 ? null : d[5]; q.out = !!d[6]; q.cool = d[7]; q.heavy = d[8]; q.fx = d[9];
+      q.score = d[10]; q.kos = d[11]; q.left = !!d[12];
+      q.age = 0;
+    });
+    pickups = m.k.map(function (k) { return { type: k[0], x: k[1], y: k[2], age: k[3] }; });
+    m.e.forEach(function (ev) {
+      var a = byId(ev[1]);
+      if (ev[0] === 'd' && a) dashEffect(a, ev[2], ev[3]);
+      else if (ev[0] === 'h') { var h1 = byId(ev[4]), h2 = byId(ev[5]); if (h1 && h2) hitEffect(ev[1], ev[2], ev[3], h1, h2); }
+      else if (ev[0] === 'f' && a) fallEffect(a, ev[2] >= 0 ? byId(ev[2]) : null);
+      else if (ev[0] === 'b') bumpEffect(ev[1], ev[2]);
+      else if (ev[0] === 'pu') { var t = byId(ev[2]); if (t && POWERUPS[ev[1]]) pickupEffect(ev[1], t); }
+      else if (ev[0] === 'ro') roundEnded(a || null);
+      else if (ev[0] === 'go') tone(880, 0.14, 'triangle', 0.07);
+    });
+  }
+
+  // Between messages, keep each puck sliding along its current velocity so movement looks smooth.
+  function guestUpdate(dt) {
+    if (phase === 'ready') {
+      var before = Math.ceil(readyTime / 0.7);
+      readyTime = Math.max(0, readyTime - dt);
+      if (Math.ceil(readyTime / 0.7) !== before && readyTime > 0) tone(520, 0.08, 'triangle', 0.05);
+      return;
+    }
+    if (phase !== 'playing' && phase !== 'roundover') return;
+    if (phase === 'playing') {
+      roundTime += dt;
+      if (arena === 'wind') windAngle += dt * 0.35;
+    }
+    pickups.forEach(function (k) { k.age += dt; });
+    players.forEach(function (q) {
+      if (q.x == null || q.out) return;
+      q.age = Math.min((q.age || 0) + dt, 0.1);
+      q.x = q.sx + q.vx * q.age;
+      q.y = q.sy + q.vy * q.age;
+      if (q.falling != null) q.falling = Math.min(FALL_TIME, q.falling + dt);
+      q.cool = Math.max(0, q.cool - dt);
+      q.heavy = Math.max(0, q.heavy - dt);
+      Object.keys(q.fx).forEach(function (k) { q.fx[k] -= dt; });
+    });
+  }
+
+  function netTick(dt) {
+    if (isHost()) {
+      if (phase !== 'ready' && phase !== 'playing' && phase !== 'roundover') return;
+      net.sendIn -= dt;
+      if (net.sendIn <= 0) { net.sendIn = SEND_EVERY; sendState(); }
+    } else if (isGuest()) {
+      net.inputIn -= dt;
+      var c = localControl(true);
+      var len = Math.hypot(c.x, c.y);
+      var x = len > 1 ? c.x / len : c.x, y = len > 1 ? c.y / len : c.y;
+      if (c.dash && !net.dashWas) net.presses = ((net.presses || 0) + 1) % 1000;
+      net.dashWas = !!c.dash;
+      var msg = { t: 'in', x: r2(x), y: r2(y), n: net.presses || 0 };
+      var key = msg.x + ',' + msg.y + ',' + msg.n;
+      var dashChanged = net.sent && net.sent.split(',')[2] !== String(msg.n);
+      if (key !== net.sent && (net.inputIn <= 0 || dashChanged || !net.sent)) {
+        net.sent = key;
+        net.inputIn = INPUT_EVERY;
+        netSend(msg);
+      }
+    }
   }
 
   // ---------------------------------------------------------------------------
@@ -920,7 +1502,7 @@
   var GAME_CODES = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'KeyW', 'KeyA', 'KeyS', 'KeyD', 'Space', 'Enter', 'ShiftLeft', 'ShiftRight'];
   document.addEventListener('keydown', function (e) {
     if (e.target.closest && e.target.closest('input, textarea, a')) return;
-    var inMenu = phase === 'menu' || phase === 'matchover' || phase === 'paused';
+    var inMenu = phase === 'menu' || phase === 'matchover' || phase === 'paused' || phase === 'lobby';
     if (e.code === 'Escape' || e.code === 'KeyP') { if (phase === 'paused') resume(); else pause(); return; }
     if (e.code === 'KeyF' && !e.ctrlKey && !e.metaKey) { toggleFull(); return; }
     if (GAME_CODES.indexOf(e.code) !== -1 && !inMenu) e.preventDefault();
@@ -1007,7 +1589,8 @@
     var dt = Math.min(0.05, (now - last) / 1000);
     last = now;
     update(dt);
-    var key = phase + players.map(function (p) { return (standing(p) ? 1 : 0) + ':' + p.score; }).join(',');
+    if (net) netTick(dt);
+    var key = phase + players.map(function (p) { return (standing(p) ? 1 : 0) + ':' + p.score + (p.left ? 'L' : ''); }).join(',');
     if (board.dataset.key !== key) { board.dataset.key = key; renderScores(); }
     draw(now / 1000);
     requestAnimationFrame(frame);
@@ -1019,9 +1602,9 @@
     raw: function () { return { players: players, pickups: pickups }; },
     arena: function (name) { if (ARENAS[name]) { arena = name; lastArena = name; } return arena; },
     give: function (type) { if (players[0] && standing(players[0]) && POWERUPS[type]) apply(type, players[0]); },
-    tick: function (seconds) { for (var t = 0; t < seconds; t += 1 / 60) update(1 / 60); draw(performance.now() / 1000); renderScores(); return this.state(); },
+    tick: function (seconds) { for (var t = 0; t < seconds; t += 1 / 60) { update(1 / 60); if (net) netTick(1 / 60); } draw(performance.now() / 1000); renderScores(); return this.state(); },
     state: function () {
-      return { phase: phase, round: round, arena: arena, pickups: pickups.map(function (k) { return k.type; }), roundTime: Math.round(roundTime * 10) / 10, radius: Math.round(radius()), players: players.map(function (p) {
+      return { net: net && { role: net.role, code: net.code, seat: net.seat, guests: net.guests, inputs: net.inputs }, phase: phase, round: round, arena: arena, pickups: pickups.map(function (k) { return k.type; }), roundTime: Math.round(roundTime * 10) / 10, radius: Math.round(radius()), players: players.map(function (p) {
         return { name: p.name, standing: standing(p), score: p.score, kos: p.kos, x: Math.round(p.x), y: Math.round(p.y) };
       }) };
     },
@@ -1030,6 +1613,7 @@
   if (window.ResizeObserver) new ResizeObserver(fit).observe(stage); else window.addEventListener('resize', fit);
   fit();
   showMute();
-  showMenu();
+  var invite = location.search.match(/[?&]room=([A-Za-z0-9]{5})(?:&|$)/);
+  if (invite && RELAY) joinOnline(invite[1].toUpperCase()); else showMenu();
   requestAnimationFrame(frame);
 })();

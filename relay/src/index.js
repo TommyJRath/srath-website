@@ -1,6 +1,6 @@
 // Trails relay: passes messages between the players of one online Trails game.
 //
-// Each room is one Durable Object, named by its invite code. The player who creates the room is the
+// Each room is one Durable Object, named by its game and invite code. The player who creates the room is the
 // "host": their browser runs the game. The other players ("guests") only send their steering.
 //   - host  -> relay: broadcast to every guest, or to one guest when the message has "to": <seat>
 //   - guest -> relay: forwarded to the host with "from": <seat> added
@@ -10,6 +10,7 @@
 import { DurableObject } from 'cloudflare:workers';
 
 const CODE = /^[A-HJ-NP-Z2-9]{5}$/;   // invite codes: no 0/O or 1/I to mix up
+const GAMES = ['trails', 'knockout']; // games that can be played online
 const MAX_PLAYERS = 6;                // seats 0 (host) to 5
 const MAX_HOST_BYTES = 48 * 1024;     // a game-state message from the host
 const MAX_GUEST_BYTES = 256;          // a steering message from a guest
@@ -22,8 +23,11 @@ export default {
     const url = new URL(request.url);
     if (url.pathname === '/') return new Response('Trails relay for srath.dk\n', { headers: { 'content-type': 'text/plain' } });
 
-    const match = url.pathname.match(/^\/room\/([^/]+)$/);
-    if (!match || !CODE.test(match[1])) return new Response('Not found', { status: 404 });
+    // /room/<game>/<code>; the older /room/<code> is Trails.
+    const match = url.pathname.match(/^\/room\/(?:([a-z]+)\/)?([^/]+)$/);
+    if (!match || !CODE.test(match[2])) return new Response('Not found', { status: 404 });
+    const game = match[1] || 'trails';
+    if (!GAMES.includes(game)) return new Response('Not found', { status: 404 });
     if (request.headers.get('Upgrade') !== 'websocket') return new Response('Expected a WebSocket', { status: 426 });
 
     // Only pages on the site may open games (browsers always send Origin with WebSockets).
@@ -33,7 +37,9 @@ export default {
     const role = url.searchParams.get('role');
     if (role !== 'host' && role !== 'guest') return new Response('Bad role', { status: 400 });
 
-    const stub = env.ROOMS.get(env.ROOMS.idFromName(match[1]));
+    // Trails rooms keep their original names, so links made before games had their own rooms still work.
+    const name = game === 'trails' ? match[2] : game + ':' + match[2];
+    const stub = env.ROOMS.get(env.ROOMS.idFromName(name));
     return stub.fetch(request);
   },
 };

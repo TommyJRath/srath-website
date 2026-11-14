@@ -46,5 +46,20 @@
       "Pointer Events, the Fullscreen API and localStorage for touch steering, full screen and saved settings"
     ],
     "relay": "wss://trails-relay.tommyjon.workers.dev"
+  },
+  {
+    "slug": "knockout",
+    "name": "Knockout",
+    "tagline": "Push the other pucks off a shrinking platform. Last one standing takes the round.",
+    "description": "An arcade game for up to six pucks on a platform. Bump into the others to send them flying, and stay away from the edge yourself: whoever slides off is out. A dash gives you a burst of speed and makes you heavier for a moment, so it wins any collision, but it needs a second to recharge. After a few seconds the platform starts to shrink, so nobody can hide at the edge for long.\n\nEvery round is played on a different arena: Classic, Donut (with a hole in the middle), Square, Bumpers, Ice and Wind. Power-ups add more chaos: Heavy, Giant, Turbo and Ghost help you, Ice others makes everyone else slide, and Shockwave blasts everyone near you away.\n\nPlay against computer pucks, or with two players on one keyboard, in full screen if you like.",
+    "icon": "/games/knockout/icon.svg",
+    "tech": [
+      "Plain JavaScript and the HTML Canvas 2D API, no game engine or physics library",
+      "Fixed timestep: the game runs at 120 updates per second on a fixed arena, so it plays the same on every screen",
+      "Hand-written physics: momentum, friction and elastic collisions between circles, with mass that changes while dashing or with power-ups",
+      "Computer players: they push opponents towards the nearest edge of whatever arena is in play, steer back from danger by where their speed would carry them, and go for power-ups",
+      "Web Audio API: sound effects are synthesised in the browser, with no audio files",
+      "Pointer Events, the Fullscreen API and localStorage for the touch joystick, full screen and saved settings"
+    ]
   }
 ]

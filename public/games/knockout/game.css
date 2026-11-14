@@ -1,0 +1,110 @@
+/* Knockout. Uses the site's tokens from /assets/styles.css. */
+
+.ko { max-width: 1040px; margin: 0 auto; display: flex; flex-direction: column; gap: 10px; }
+
+.ko-hud { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; min-height: 38px; }
+.ko-scores { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.ko-chip {
+  display: inline-flex; align-items: center; gap: 7px; padding: 5px 11px; border-radius: 999px;
+  background: var(--surface); border: 1px solid var(--border); font-size: .88rem; transition: opacity .3s;
+}
+.ko-chip strong { font-variant-numeric: tabular-nums; }
+.ko-chip.is-out { opacity: .45; }
+.ko-goal { color: var(--muted); font-size: .82rem; margin-left: 4px; }
+.ko-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; box-shadow: 0 0 8px currentColor; vertical-align: middle; }
+.ko-name { color: var(--muted); }
+.ko-tools { display: flex; gap: 6px; }
+.ko-btn {
+  height: 36px; padding: 0 12px; border-radius: 9px; border: 1px solid var(--border);
+  background: var(--surface); color: var(--text); font: 600 .85rem var(--font); cursor: pointer; transition: border-color .2s;
+}
+.ko-btn:hover { border-color: var(--accent); }
+
+.ko-stage {
+  position: relative; display: grid; place-items: center;
+  height: clamp(320px, calc(100dvh - 230px), 720px);
+  touch-action: none; user-select: none; -webkit-user-select: none; outline: none;
+}
+.ko-stage canvas {
+  display: block; border-radius: 12px; border: 1px solid var(--border-strong);
+  background: radial-gradient(800px 400px at 50% 0%, rgba(45, 212, 191, .05), transparent 70%), #07090d;
+  box-shadow: 0 30px 80px -45px rgba(45, 212, 191, .4);
+}
+
+.ko-overlay {
+  position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 8px; padding: 20px; text-align: center; overflow-y: auto;
+  background: rgba(7, 9, 13, .78); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+  border-radius: 12px; animation: enter .3s var(--ease) both;
+}
+.ko-overlay[hidden] { display: none; }
+/* Centre the menu, but let a tall menu scroll from its top instead of being cut off. */
+.ko-overlay { justify-content: flex-start; }
+.ko-overlay > :first-child { margin-top: auto; }
+.ko-overlay > :last-child { margin-bottom: auto; }
+.ko-title { font-size: clamp(1.6rem, 1.2rem + 1.6vw, 2.3rem); margin: 0; }
+.ko-body { max-width: 520px; color: var(--muted); }
+.ko-body p { margin: 8px 0; }
+.ko-body kbd, .ko-help kbd { font: 600 .8em var(--mono); padding: 1px 6px; border: 1px solid var(--border-strong); border-radius: 5px; color: var(--text); }
+.ko-actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 10px; }
+
+.ko-choice { display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+.ko-choice-label { font-size: .85rem; color: var(--muted); min-width: 110px; text-align: right; }
+.ko-seg { display: inline-flex; padding: 3px; border-radius: 10px; background: var(--surface); border: 1px solid var(--border); }
+.ko-seg-btn {
+  min-width: 38px; padding: 7px 12px; border: 0; border-radius: 7px; background: none; color: var(--muted);
+  font: 600 .85rem var(--font); cursor: pointer;
+}
+.ko-seg-btn:hover { color: var(--text); }
+.ko-seg-btn[aria-pressed="true"] { background: var(--surface-2); color: var(--text); box-shadow: inset 0 0 0 1px rgba(45, 212, 191, .35); }
+
+
+.ko-final { list-style: none; padding: 0; margin: 8px auto 0; min-width: 220px; text-align: left; }
+.ko-final li { display: flex; align-items: center; gap: 10px; padding: 6px 0; border-bottom: 1px solid var(--border); color: var(--text); }
+.ko-final li strong { margin-left: auto; font-variant-numeric: tabular-nums; }
+
+/* Full screen: the game fills the screen and the arena takes all the space that is left. */
+.ko.is-full { max-width: none; width: 100%; height: 100%; padding: 12px 16px; background: var(--bg); box-sizing: border-box; }
+.ko.is-full .ko-stage { flex: 1; height: auto; min-height: 0; }
+.ko:fullscreen::backdrop { background: var(--bg); }
+.ko.is-window { position: fixed; inset: 0; z-index: 100; height: 100dvh; }
+
+.ko-help { color: var(--muted); font-size: .85rem; text-align: center; margin: 0; }
+.ko-help .ko-dot { margin-right: 6px; }
+
+@media (max-width: 600px) {
+  .game-shell:has(.ko) .back-link { display: none; }
+  .ko-stage { height: calc(100dvh - 210px); min-height: 260px; }
+  .ko-choice-label { min-width: 0; text-align: center; width: 100%; }
+  .ko-btn { height: 32px; padding: 0 10px; }
+}
+
+/* Phones held sideways: the screen is too short for the site header and the arena together.
+   The header scrolls away instead of sticking, and the scores and arena fill exactly one screen. */
+@media (orientation: landscape) and (max-height: 520px) {
+  body:has(.ko) .site-header { position: static; }
+  .game-shell:has(.ko) { padding-top: 0; }
+  .game-shell:has(.ko) .back-link { display: none; }
+  .ko:not(.is-full) { padding-top: 4px; }
+  .ko { gap: 4px; }
+  .ko-hud { min-height: 32px; }
+  .ko-chip { padding: 3px 9px; font-size: .8rem; }
+  .ko-btn { height: 30px; padding: 0 10px; font-size: .8rem; }
+  .ko-stage { height: calc(100dvh - 50px); min-height: 200px; }
+  .ko-help { display: none; }
+}
+
+.ko-final .ko-kos { color: var(--muted); font-size: .8rem; margin-left: auto; }
+.ko-final .ko-kos + strong { margin-left: 14px; }
+.ko-help kbd + kbd { margin-left: 2px; }
+
+.ko-legend {
+  list-style: none; padding: 0; margin: 12px auto 0; max-width: 520px; text-align: left;
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 6px 18px; font-size: .82rem; color: var(--muted);
+}
+.ko-legend li { display: flex; align-items: center; gap: 8px; }
+.ko-legend strong { color: var(--text); font-weight: 600; }
+.ko-legend-icon {
+  display: inline-grid; place-items: center; flex: none; width: 22px; height: 22px; border-radius: 50%;
+  border: 2px solid; font: 700 .75rem var(--font); background: #0b0d12;
+}

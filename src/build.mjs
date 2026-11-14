@@ -127,10 +127,8 @@ function loadContent() {
       if (!g[field]) errors.push(`games.json[${i}]: missing required field "${field}".`);
     }
     if (g.slug && !SLUG.test(g.slug)) errors.push(`games.json[${i}]: slug must be lowercase letters, digits and hyphens.`);
-    for (const file of ['game.js', 'game.css']) {
-      if (g.slug && !fs.existsSync(path.join(PUBLIC, 'games', g.slug, file))) {
-        errors.push(`games.json[${i}]: missing public/games/${g.slug}/${file}`);
-      }
+    if (g.slug && !fs.existsSync(path.join(PUBLIC, 'games', g.slug, 'game.js'))) {
+      errors.push(`games.json[${i}]: missing public/games/${g.slug}/game.js`);
     }
     if (g.icon && g.icon.startsWith('/') && !fs.existsSync(path.join(PUBLIC, g.icon))) {
       errors.push(`games.json[${i}]: image not found: public${g.icon}`);
@@ -171,12 +169,14 @@ function gamesIndexPage({ site, games }) {
 
 function gamePage({ site }, game) {
   const base = `/games/${game.slug}`;
-  const words = fs.existsSync(path.join(PUBLIC, 'games', game.slug, 'words.js'));
+  const has = (file) => fs.existsSync(path.join(PUBLIC, 'games', game.slug, file));
+  const styles = has('game.css') ? [`${base}/game.css`] : [];
+  const scripts = [...(has('words.js') ? [`${base}/words.js`] : []), `${base}/game.js`];
   return {
     path: `${base}/`,
     title: game.name,
     description: game.tagline,
-    head: `<link rel="stylesheet" href="${versioned(`${base}/game.css`)}">`,
+    head: styles.map((href) => `<link rel="stylesheet" href="${versioned(href)}">`).join('\n'),
     jsonLd: {
       '@context': 'https://schema.org',
       '@type': 'VideoGame',
@@ -192,7 +192,7 @@ function gamePage({ site }, game) {
   <div class="container">
     <a class="back-link" href="/games/">${icons.back}All games</a>
     <h1 class="sr-only">${esc(game.name)}</h1>
-    <div id="${game.slug}" class="gw">
+    <div id="${game.slug}" class="game-root">
       <noscript><p class="muted">${esc(game.name)} needs JavaScript to run.</p></noscript>
     </div>
   </div>
@@ -203,8 +203,44 @@ function gamePage({ site }, game) {
     ${paragraphs(game.description)}
   </div>
 </section>
-${words ? `<script src="${versioned(`${base}/words.js`)}" defer></script>
-` : ''}<script src="${versioned(`${base}/game.js`)}" defer></script>`,
+${scripts.map((src) => `<script src="${versioned(src)}" defer></script>`).join('\n')}`,
+  };
+}
+
+/**
+ * The secret page a game links to when it is won ("vault": true in games.json), e.g. /games/breach/vault/.
+ * It lists SRATH's real projects from the content files, so it never needs updating by hand.
+ * Hidden from search engines and the sitemap, and not linked from anywhere else.
+ */
+function vaultPage({ site, apps, projects, games }, game) {
+  const cards = [
+    ...projects,
+    ...apps.map((app) => ({ name: app.name, type: 'Android app', status: app.status || (app.playStoreUrl ? 'On Google Play' : 'Coming soon'), description: app.tagline, icon: app.icon, url: `/apps/${app.slug}/`, linkLabel: 'App details' })),
+    ...games.filter((g) => g.slug !== game.slug).map(gameCard),
+  ];
+  return {
+    path: `/games/${game.slug}/vault/`,
+    title: 'Vault',
+    description: `You found the access key in ${game.name}.`,
+    noindex: true,
+    body: `${pageHeader({
+      eyebrow: `${esc(game.name)} · Vault`,
+      title: 'Access granted',
+      lead: `You found the access key and broke into the vault. Behind the door: everything ${esc(site.name)} has built so far.`,
+    })}
+<section class="section section-tight">
+  <div class="container">
+    ${projectGrid(cards)}
+  </div>
+</section>
+<section class="section section-tight">
+  <div class="container narrow prose">
+    <h2>Who built this</h2>
+    ${renderMarkdown(site.about || '').html}
+    <p>Every project here, including ${esc(game.name)}, is designed and built by ${esc(site.legal.owner || site.name)}. ${site.email ? `Say hello at ${emailLink(site)}.` : ''}</p>
+    <p><a class="text-link" href="/games/${game.slug}/">${icons.back} Back to the terminal</a></p>
+  </div>
+</section>`,
   };
 }
 
@@ -224,7 +260,16 @@ function partnerCard(p) {
 function homePage({ site, apps, projects, partners, games }) {
   const cards = [
     ...projects,
-    ...games.map(gameCard),
+    // All games share one card on the home page, so they do not crowd out the apps and the webshop.
+    ...(games.length ? [{
+      name: 'Browser games',
+      type: 'Games',
+      status: games.length === 1 ? 'Play now' : `${games.length} games`,
+      description: games.map((g) => g.name).join(' · '),
+      icon: games[0].icon,
+      url: '/games/',
+      linkLabel: 'Play',
+    }] : []),
     ...apps.map((app) => ({
       name: app.name,
       type: 'Android app',
@@ -663,6 +708,7 @@ export function build({ quiet = false } = {}) {
     privacyIndexPage(content),
     ...content.apps.map((app) => privacyPage(content, app, content.policies.get(app.slug))),
     ...(content.games.length ? [gamesIndexPage(content), ...content.games.map((g) => gamePage(content, g))] : []),
+    ...content.games.filter((g) => g.vault).map((g) => vaultPage(content, g)),
     partnersPage(content),
     contactPage(content),
     notFoundPage(),

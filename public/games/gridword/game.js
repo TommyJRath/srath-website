@@ -85,6 +85,7 @@
   // DOM
 
   root.textContent = '';
+  root.classList.add('gw');
   var top = el('div', 'gw-top');
   var title = el('p', 'gw-title');
   var tabs = el('div', 'gw-tabs');

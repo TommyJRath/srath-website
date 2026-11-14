@@ -1,0 +1,73 @@
+/* BREACH:// terminal. Uses the site's tokens from /assets/styles.css. */
+
+.br { max-width: 900px; margin: 0 auto; }
+.br-frame {
+  display: flex; flex-direction: column;
+  height: clamp(420px, calc(100dvh - 200px), 720px);
+  border: 1px solid var(--border-strong); border-radius: var(--radius); overflow: hidden;
+  background:
+    linear-gradient(rgba(255, 255, 255, .025) 1px, transparent 1px) 0 0 / 100% 3px,
+    radial-gradient(700px 360px at 50% 0%, rgba(45, 212, 191, .07), transparent 70%),
+    #07090d;
+  box-shadow: 0 30px 80px -40px rgba(45, 212, 191, .35), inset 0 0 0 1px rgba(255, 255, 255, .02);
+  font-family: var(--mono);
+}
+
+.br-bar {
+  display: flex; align-items: center; gap: 14px; padding: 10px 14px;
+  border-bottom: 1px solid var(--border); background: rgba(20, 24, 33, .85);
+  font-size: .82rem; color: var(--muted);
+}
+.br-brand { color: var(--accent); font-weight: 700; letter-spacing: .08em; text-shadow: 0 0 12px rgba(45, 212, 191, .5); }
+.br-pips { display: flex; gap: 5px; flex: 1; }
+.br-pip { width: 22px; height: 6px; border-radius: 3px; background: rgba(255, 255, 255, .08); }
+.br-pip.is-done { background: var(--accent); box-shadow: 0 0 8px rgba(45, 212, 191, .6); }
+.br-pip.is-current { background: var(--accent-2); animation: br-blink 1.4s ease-in-out infinite; }
+.br-stars { color: #fbbf24; white-space: nowrap; }
+
+.br-screen { flex: 1; overflow-y: auto; padding: 14px 16px 18px; cursor: text; scrollbar-color: var(--border-strong) transparent; }
+.br-log { font-size: .9rem; line-height: 1.55; color: #cfd6e2; }
+.br-row { white-space: pre-wrap; overflow-wrap: anywhere; min-height: 1.55em; }
+.br-ls { display: flex; flex-wrap: wrap; gap: 4px 22px; }
+.br-echo { color: var(--text); margin-top: 6px; }
+.br-p { color: var(--accent); }
+.br-log code { font: inherit; color: #e7e9ee; background: rgba(129, 140, 248, .14); padding: 0 4px; border-radius: 4px; border: 0; }
+.br-log a { color: var(--accent); }
+
+.t-dim { color: #6b7385; }
+.t-err { color: #fb7185; }
+.t-warn { color: #fbbf24; }
+.t-ok { color: var(--accent); }
+.t-dir { color: #a5b4fc; }
+.t-head { color: #fff; font-weight: 700; }
+.t-star { color: #fbbf24; }
+.t-key { color: #5eead4; font-weight: 700; text-shadow: 0 0 10px rgba(45, 212, 191, .55); }
+.br-art { line-height: 1.15; }
+
+.br-line { display: flex; align-items: baseline; margin-top: 6px; font-size: .9rem; }
+.br-prompt { color: var(--accent); white-space: pre; }
+.br-input {
+  flex: 1; min-width: 0; padding: 0; border: 0; outline: 0; background: transparent;
+  color: var(--text); font: inherit; caret-color: var(--accent);
+}
+
+.br-keys { display: none; gap: 6px; padding: 8px; border-top: 1px solid var(--border); background: rgba(20, 24, 33, .9); }
+.br-key {
+  flex: 1; height: 38px; border-radius: 8px; border: 1px solid var(--border-strong);
+  background: var(--surface-2); color: var(--text); font: 600 .85rem var(--mono); cursor: pointer;
+}
+.br-key:active { transform: scale(.96); }
+
+@keyframes br-blink { 50% { opacity: .35; } }
+
+@media (pointer: coarse), (max-width: 600px) {
+  .br-keys { display: flex; }
+}
+@media (max-width: 600px) {
+  .game-shell:has(.br) .back-link { display: none; }
+  .br-frame { height: calc(100dvh - 170px); min-height: 380px; border-radius: 12px; }
+  .br-log, .br-line { font-size: .8rem; }
+  .br-screen { padding: 10px 10px 14px; }
+  .br-pip { width: 14px; }
+  .br-input { font-size: 16px; } /* stops iOS from zooming in on focus */
+}

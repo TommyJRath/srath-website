@@ -123,7 +123,24 @@ The home page lists everything in `content/projects.json` (for example the Baiga
 { "slug": "gridword", "name": "Gridword", "tagline": "One line for cards.", "description": "Longer text under the game.", "icon": "/games/gridword/icon.svg" }
 ```
 
-A game folder must contain `game.js` and `game.css`, and may contain `words.js` (loaded first). The page provides an empty `<div id="<slug>">` for the game to fill. Games must not load anything from other sites or use cookies or ads, so the website privacy notice stays true. Progress may be stored in `localStorage`; the privacy page mentions this automatically while any game exists.
+A game folder must contain `game.js`, and may contain `game.css` and `words.js` (loaded before `game.js`). The page provides an empty `<div id="<slug>">` for the game to fill. Games must not load anything from other sites or use cookies or ads, so the website privacy notice stays true. Progress may be stored in `localStorage`; the privacy page mentions this automatically while any game exists.
+
+On the home page, all games share a single "Browser games" card that links to `/games/`.
+
+**BREACH://** (`public/games/breach/`) is a terminal puzzle game in one file, `game.js`. It simulates a fictional version of SRATH's own systems (the machine `srath`, hosts `db.srath`, `mail.srath`, `releases.srath`): a filesystem, users, hosts and ports, a small SQL database and processes. The game states clearly that none of it is real. There are six missions, and each one reveals one fragment of the access key.
+
+- **Editing the puzzles:** the story, files and data are plain objects near the top of `game.js` (`LEVELS`, `ACHIEVEMENTS`, `HOSTS`, `FS`, `DB`). The fragments and the admin password are constants at the very top. If you change the Base64 or cipher text, re-encode it: the Vigenère key is the codename in the `projects` table.
+- **Real projects:** two places list SRATH's real projects and must be updated when a project is added or changes status: the release server easter egg (`connect releases.srath 21`, in `releases()`) and the `projects` table in `DB`. The project marked `classified` in that table is BREACH itself, and its codename is the cipher key.
+- **The vault:** winning links to `/games/breach/vault/`. The build generates that page (`"vault": true` in `games.json`) from the site's real projects, apps and other games. It's hidden from search engines, the sitemap and the menus.
+- **Saved progress:** progress, achievements and history are saved in the visitor's browser under `breach:v2`. Players can type `reset confirm` to start over.
+- **Testing:** in the browser console, `localStorage.removeItem('breach:v2')` and a reload give a fresh start.
+
+**Trails** (`public/games/trails/`) is an arcade game: dots leave lines, you steer only left and right, and touching a line knocks you out. Gaps open in each line every few seconds (with a warning ring), and during your own gap you can hop over lines. It has computer dots, two players on one keyboard, nine power-ups that can each be switched off in the menu, and full screen.
+
+- **Tuning:** speed, turn rate, line width, gaps and power-up timing are constants at the top of `game.js`. `POWERUPS` lists each power-up with its duration and how often it appears.
+- **Fixed simulation:** the game runs on a fixed 1000×680 arena with a fixed 120 Hz timestep. That's deliberate: the planned online mode lets one player's browser run the game and send positions to the others.
+- **Saved settings:** stored in localStorage (`trails:setup`, `trails:muted`).
+- **Testing:** `__trails.give('boost')` and `__trails.state()` in the browser console help when testing.
 
 **Gridword** (`public/games/gridword/`) is a daily five-letter word game:
 

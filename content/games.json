@@ -63,5 +63,21 @@
       "Pointer Events, the Fullscreen API and localStorage for the touch joystick, full screen and saved settings"
     ],
     "relay": "wss://trails-relay.tommyjon.workers.dev"
+  },
+  {
+    "slug": "ricochet",
+    "name": "Ricochet",
+    "tagline": "Tanks in a maze where every shot bounces, including back at you.",
+    "description": "A tank battle for up to six players in a maze seen from above. Every shot bounces off the walls, so you can hit someone round a corner, but a careless shot can come back and hit you. Each tank can only have five shots in play at once. The last tank standing wins the round.\n\nThe maze is built new for every round, and its layout changes too: winding corridors, open halls, tight corridors or pillars. Crates bring power-ups: Laser sight, Splitter, Shield and Phase help you, Jam stops everyone else firing for a moment, and Collapse knocks walls down.\n\nPlay against computer tanks, or with two players on one keyboard, in full screen if you like.",
+    "icon": "/games/ricochet/icon.svg",
+    "tech": [
+      "Plain JavaScript and the HTML Canvas 2D API, no game engine or physics library",
+      "Maze generation: a randomised depth-first search builds a new maze every round, then extra walls are removed so there are loops",
+      "Fixed timestep: the game runs at 120 updates per second on a fixed arena, so shots bounce the same way on every screen",
+      "Collision: walls are merged into rectangles and indexed by maze cell, so tanks and shots only test the walls near them",
+      "Computer players: they find routes through the maze with breadth-first search, trace bounce paths to find shots that hit, and dodge incoming shots",
+      "Web Audio API: sound effects are synthesised in the browser, with no audio files",
+      "Pointer Events, the Fullscreen API and localStorage for the touch joystick, full screen and saved settings"
+    ]
   }
 ]

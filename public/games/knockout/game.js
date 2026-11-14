@@ -663,12 +663,16 @@
     all[bots] = won ? cur + 1 : 0;
     save('knockout:streaks', all);
     var body = overlay.querySelector('.ko-body');
-    if (!body || (!won && cur < 1)) return;
+    if (!body) return;
     var vs = bots === 1 ? '1 computer puck' : bots + ' computer pucks';
     var stats = window.SrathStats && SrathStats.available ? SrathStats : null;
     var line = el('p', 'ko-global');
     body.append(line);
-    if (won) {
+    if (!won && cur < 1) {
+      // No streak yet: say how to start one, and what the longest one is.
+      line.textContent = 'No win streak against ' + vs + ' yet. Win a match to start one.';
+      if (stats) stats.top(board).then(function (t) { if (t.total) line.textContent += ' The longest streak so far is ' + t.top + '.'; }, function () {});
+    } else if (won) {
       cur++;
       line.textContent = 'Win streak against ' + vs + ': ' + cur + '.';
       if (stats) stats.rank(board, cur).then(function (r) { line.textContent = 'Win streak against ' + vs + ': ' + cur + '. Rank: ' + stats.describe(r, 'streak') + '.'; }, function () {});

@@ -89,6 +89,7 @@ export class Stats extends DurableObject {
         const q = Object.fromEntries(url.searchParams);
         if (url.pathname === '/stats/gridword') return json(this.gridword({ day: +q.day, guesses: q.guesses ? q.guesses.split(',') : [], time: +q.time, streak: +q.streak }, false));
         if (url.pathname === '/stats/rank') return json(this.single(q.board, +q.value, false));
+        if (url.pathname === '/stats/top') return json(this.top(q.board));
       }
       return json({ error: 'not found' }, 404);
     } catch (e) {
@@ -126,6 +127,14 @@ export class Stats extends DurableObject {
     const better = b.lower ? row.below : row.above;    // results that beat this one
     const worse = b.lower ? row.above : row.below;     // results this one beats
     return { value, rank: better + 1, total, beats: total > 1 ? Math.floor((worse / (total - 1)) * 100) : 0 };
+  }
+
+  // The best value on an all-time board, and how many results it has.
+  top(board) {
+    const b = BOARDS[board];
+    if (!b || b.day) throw new Error('unknown board');
+    const row = this.sql.exec((b.lower ? 'SELECT MIN(value)' : 'SELECT MAX(value)') + ' AS top, COALESCE(SUM(n), 0) AS total FROM counts WHERE board = ? AND day = -1', board).one();
+    return { top: row.top, total: row.total };
   }
 
   single(board, value, add) {

@@ -4,3 +4,4 @@ node_modules/
 Thumbs.db
 .wrangler/
 .dev.vars
+relay/src/answers.js

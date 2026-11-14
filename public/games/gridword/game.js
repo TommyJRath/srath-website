@@ -1,5 +1,7 @@
 // Gridword: guess the five-letter word in six tries.
-// Plain JavaScript, no dependencies. Progress and statistics are kept in this browser's localStorage only.
+// Plain JavaScript, no dependencies. Progress and statistics are kept in this browser's localStorage.
+// When a Daily game ends, its result is added to anonymous global counts (see /games/stats.js) to show
+// how everyone did today; the server checks the guesses against the day's word.
 (function () {
   'use strict';
 
@@ -184,7 +186,9 @@
     var answer = answers[day % answers.length];
     state = { mode: 'daily', day: day, answer: answer, guesses: store.daily.guesses.slice(), current: '', done: false };
     state.done = isFinished();
+    global = null;
     render();
+    if (state.done) loadGlobal();
     if (!store.seenHelp) { store.seenHelp = true; save(); helpDialog.showModal(); }
   }
 
@@ -255,6 +259,7 @@
 
   function press(key) {
     if (busy || state.done) return;
+    if (state.mode === 'daily' && !store.daily.started) { store.daily.started = Date.now(); save(); }
     if (key === 'enter') return submit();
     if (key === 'back') { state.current = state.current.slice(0, -1); return drawCurrent(); }
     if (/^[a-z]$/.test(key) && state.current.length < LENGTH) { state.current += key; drawCurrent(); }
@@ -290,7 +295,12 @@
 
   function finish(won, row) {
     state.done = true;
-    if (state.mode === 'daily') recordDaily(won);
+    if (state.mode === 'daily') {
+      recordDaily(won);
+      if (won && store.daily.started) store.daily.time = Math.round((Date.now() - store.daily.started) / 1000);
+      save();
+      loadGlobal();
+    }
     if (won) {
       row.row.classList.add('is-won');
       flash(['Genius', 'Brilliant', 'Splendid', 'Great', 'Nice', 'Phew'][state.guesses.length - 1], 1800);
@@ -334,7 +344,7 @@
       practice.addEventListener('click', startPractice);
       actions.append(share, practice);
       var next = el('p', 'gw-fine');
-      result.append(line, actions, next);
+      result.append(line, actions, globalBox(), next);
       tickCountdown(next);
     } else {
       var again = el('button', 'btn btn-primary', 'New word');
@@ -342,6 +352,71 @@
       actions.append(again);
       result.append(line, actions);
     }
+  }
+
+  // ---------------------------------------------------------------------------
+  // How everyone did today (anonymous global counts)
+
+  var global = null;   // the last answer from the server for today's game
+
+  function dailyResult() {
+    var won = state.guesses[state.guesses.length - 1] === state.answer;
+    return { day: state.day, guesses: state.guesses.slice(), time: won ? store.daily.time || 0 : 0, streak: store.stats.streak };
+  }
+
+  // The first time, the result is added; after that (a reload), the ranks are only looked up again.
+  function loadGlobal() {
+    if (!window.SrathStats || !SrathStats.available || state.mode !== 'daily' || !state.done) return;
+    var add = !store.daily.submitted;
+    SrathStats.gridword(dailyResult(), add).then(function (data) {
+      if (add) { store.daily.submitted = true; save(); }
+      global = data;
+      fillGlobal();
+    }, function () { global = { failed: true }; fillGlobal(); });
+  }
+
+  function globalBox() {
+    var box = el('div', 'gw-global');
+    box.setAttribute('aria-live', 'polite');
+    if (window.SrathStats && SrathStats.available) box.append(el('p', 'gw-fine', 'Checking how everyone did today…'));
+    setTimeout(fillGlobal, 0);
+    return box;
+  }
+
+  function fillGlobal() {
+    var box = result.querySelector('.gw-global');
+    if (!box || !global) return;
+    box.innerHTML = '';
+    if (global.failed) { box.append(el('p', 'gw-fine', 'Today\'s global results are not available right now.')); return; }
+    box.append(el('h3', 'gw-dist-title', 'Today, everyone'));
+    var won = global.guesses.value <= TRIES;
+    var lines = [];
+    lines.push([won ? 'Solved in ' + global.guesses.value : 'Not solved', SrathStats.describe(global.guesses, 'player')]);
+    if (global.time) lines.push(['Time ' + clockText(global.time.value), SrathStats.describe(global.time, 'solver')]);
+    lines.push(['Streak ' + global.streak.value, SrathStats.describe(global.streak, 'player')]);
+    var list = el('ul', 'gw-ranks');
+    lines.forEach(function (l) {
+      var li = el('li');
+      li.append(el('strong', null, l[0]), el('span', null, l[1]));
+      list.append(li);
+    });
+    box.append(list);
+    // How many guesses everyone needed.
+    var dist = global.dist, max = Math.max.apply(null, dist.concat(1));
+    var bars = el('div', 'gw-dist gw-dist-global');
+    dist.forEach(function (n, i) {
+      var row = el('div', 'gw-dist-row');
+      var bar = el('div', 'gw-bar' + (global.guesses.value === i + 1 ? ' is-current' : ''), String(n));
+      bar.style.width = Math.max(8, Math.round((n / max) * 100)) + '%';
+      row.append(el('span', null, i < TRIES ? String(i + 1) : '✕'), bar);
+      bars.append(row);
+    });
+    box.append(bars);
+  }
+
+  function clockText(seconds) {
+    var m = Math.floor(seconds / 60), sec = seconds % 60;
+    return m + ':' + String(sec).padStart(2, '0');
   }
 
   function tickCountdown(node) {
@@ -386,7 +461,8 @@
         var current = lastWon && state.guesses.length === i + 1 ? ' is-current' : '';
         return '<div class="gw-dist-row"><span>' + (i + 1) + '</span><div class="gw-bar' + current + '" style="width:' +
           Math.max(8, Math.round((n / max) * 100)) + '%">' + n + '</div></div>';
-      }).join('') + '</div><p class="gw-fine">Only Daily games count. Statistics are saved in this browser only.</p>';
+      }).join('') + '</div><p class="gw-fine">Only Daily games count. These statistics are saved in this browser; ' +
+      'how everyone did today is shown under your result.</p>';
     statsDialog.showModal();
   }
 

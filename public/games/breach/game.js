@@ -228,7 +228,7 @@
       level: 1, done: false, user: 'guest', cwd: '/home/guest',
       found: [false, false, false, false, false],
       achievements: {}, hintsUsed: 0, hintStep: [0, 0, 0, 0, 0, 0],
-      history: [], elapsed: 0, booted: false,
+      history: [], elapsed: 0, booted: false, commands: 0, submitted: false,
       scanned: {}, dbConnected: false, watchdog: true, sentinel: true, sentinelPid: 418,
     };
   }
@@ -238,6 +238,8 @@
     try {
       var saved = JSON.parse(localStorage.getItem(SAVE_KEY));
       if (saved && saved.found) {
+        // Saves from before commands were counted: use the history, which only keeps the last 200.
+        if (!('commands' in saved)) { saved.commands = (saved.history || []).length; saved.commandsUnsure = saved.commands >= 200; }
         var base = freshState();
         Object.keys(base).forEach(function (k) { if (!(k in saved)) saved[k] = base[k]; });
         return saved;
@@ -504,6 +506,7 @@
       print('mission    ' + (state.done ? 'complete' : state.level + '/6 - ' + LEVELS[state.level - 1].title));
       print('fragments  ' + FRAGMENTS.map(function (f, i) { return state.found[i] ? f : '????'; }).join('-'));
       print('time       ' + clock(state.elapsed));
+      print('commands   ' + state.commands);
       print('hints      ' + state.hintsUsed);
       print('stars      ' + Object.keys(state.achievements).length + '/' + Object.keys(ACHIEVEMENTS).length);
     },
@@ -943,7 +946,7 @@
     await sleep(300);
     print('');
     print('ROOT ACCESS GRANTED. You found the access key.', 't-ok');
-    print('Time ' + clock(state.elapsed) + '   ·   hints used ' + state.hintsUsed + '   ·   ' + Object.keys(state.achievements).length + ' achievements before this');
+    print('Time ' + clock(state.elapsed) + '   ·   ' + state.commands + ' commands   ·   hints used ' + state.hintsUsed + '   ·   ' + Object.keys(state.achievements).length + ' achievements before this');
     if (!state.hintsUsed) achieve('ghost');
     if (state.elapsed < 15 * 60) achieve('speed');
     print('');
@@ -953,6 +956,24 @@
     busy = false;
     save();
     renderPrompt();
+    globalRanks();
+  }
+
+  // Anonymous global ranks (see /games/stats.js): only counts are stored, nothing that identifies you.
+  function globalRanks() {
+    if (!window.SrathStats || !SrathStats.available || state.submitted) return;
+    state.submitted = true;
+    save();
+    var jobs = [SrathStats.submit('br-time', state.elapsed)];
+    if (!state.commandsUnsure) jobs.push(SrathStats.submit('br-commands', state.commands));
+    Promise.all(jobs.map(function (j) { return j.catch(function () { return null; }); })).then(function (r) {
+      if (!r[0] && !r[1]) return;
+      print('');
+      print('Global ranking, all players (anonymous):', 't-head');
+      if (r[0]) print('  time      ' + clock(state.elapsed) + '   ' + SrathStats.describe(r[0], 'player'), 't-ok');
+      if (r[1]) print('  commands  ' + state.commands + '   ' + SrathStats.describe(r[1], 'player'), 't-ok');
+      renderPrompt();
+    });
   }
 
   // ---------------------------------------------------------------------------
@@ -1078,6 +1099,7 @@
     }
 
     if (text.trim()) {
+      if (!state.done) state.commands++;
       state.history.push(text);
       if (state.history.length > 200) state.history.shift();
     }

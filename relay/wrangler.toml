@@ -5,6 +5,10 @@ compatibility_date = "2026-01-01"
 workers_dev = true
 preview_urls = false
 
+# Copies Gridword's answers into the Worker before every dev run and deploy.
+[build]
+command = "node gen-answers.mjs"
+
 [vars]
 # Pages allowed to open games. Local development overrides this (see package.json "dev").
 ALLOWED_ORIGINS = "https://srath.dk,https://www.srath.dk"
@@ -13,7 +17,16 @@ ALLOWED_ORIGINS = "https://srath.dk,https://www.srath.dk"
 name = "ROOMS"
 class_name = "TrailsRoom"
 
+[[durable_objects.bindings]]
+name = "STATS"
+class_name = "Stats"
+
 # SQLite-backed Durable Objects are the kind included in the Workers Free plan.
 [[migrations]]
 tag = "v1"
 new_sqlite_classes = ["TrailsRoom"]
+
+# Anonymous game stats (counts only).
+[[migrations]]
+tag = "v2"
+new_sqlite_classes = ["Stats"]

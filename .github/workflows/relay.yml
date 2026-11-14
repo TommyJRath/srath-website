@@ -5,7 +5,7 @@ name: Deploy the Trails relay to Cloudflare
 on:
   push:
     branches: [main]
-    paths: ['relay/**', '.github/workflows/relay.yml']
+    paths: ['relay/**', '.github/workflows/relay.yml', 'public/games/gridword/words.js']
   workflow_dispatch:
 
 permissions:

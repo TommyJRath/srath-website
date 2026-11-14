@@ -188,7 +188,8 @@ function gamePage({ site }, game) {
   const base = `/games/${game.slug}`;
   const has = (file) => fs.existsSync(path.join(PUBLIC, 'games', game.slug, file));
   const styles = has('game.css') ? [`${base}/game.css`] : [];
-  const scripts = [...(has('words.js') ? [`${base}/words.js`] : []), `${base}/game.js`];
+  // Games with a relay also get the shared helper for anonymous global ranks (public/games/stats.js).
+  const scripts = [...(game.relay ? ['/games/stats.js'] : []), ...(has('words.js') ? [`${base}/words.js`] : []), `${base}/game.js`];
   return {
     path: `${base}/`,
     title: game.name,
@@ -517,8 +518,9 @@ function privacyIndexPage({ site, apps, policies, games }) {
   <div class="container narrow prose">
     <h2 id="website">This website</h2>
     <p>This website does not use cookies, analytics, advertising or other tracking scripts, and it does not load fonts or other resources from third parties.</p>
-    ${games.length ? '<p>The browser games save your progress and statistics in your own browser (local storage) so you can continue where you left off. This data never leaves your device, and you can delete it by clearing the site data for srath.dk in your browser.</p>\n' : ''}    <p>The website is hosted on GitHub Pages, a service provided by GitHub, Inc. When you visit the site, GitHub processes technical information such as your IP address in order to deliver the pages and keep the service secure. See the <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement" rel="noopener noreferrer">GitHub General Privacy Statement</a> for details.</p>
+    ${games.length ? '<p>The browser games save your progress and statistics in your own browser (local storage) so you can continue where you left off. You can delete it by clearing the site data for srath.dk in your browser.</p>\n' : ''}    <p>The website is hosted on GitHub Pages, a service provided by GitHub, Inc. When you visit the site, GitHub processes technical information such as your IP address in order to deliver the pages and keep the service secure. See the <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement" rel="noopener noreferrer">GitHub General Privacy Statement</a> for details.</p>
     ${games.some((g) => g.relay) ? `<p id="online-games">Some games can be played online with other people. Only when you create or join an online game, your browser connects to a small relay that runs on Cloudflare Workers, a service provided by Cloudflare, Inc. Cloudflare processes technical information such as your IP address in order to deliver the connection and keep the service secure. The relay only passes game messages between the players in the same game: steering, positions, and the name and colour each player chooses in the lobby. It does not store them, and there are no accounts or chat. The name you type is also remembered in your own browser for next time. Other players do not see your IP address. See the <a href="https://www.cloudflare.com/privacypolicy/" rel="noopener noreferrer">Cloudflare Privacy Policy</a> for details.</p>
+    <p id="game-rankings">When you finish a game, its result is sent to the same Cloudflare service so the game can show how you rank against other players: for Gridword the number of guesses, your solving time and your streak; for BREACH:// your time and number of commands; for the arcade games the length of a win streak against the computer. Only anonymous counts are stored (for example, how many players solved today's Gridword in four guesses), never anything that identifies you: no names, no IP addresses and no device identifiers. Your IP address is processed by Cloudflare to deliver the request and is held briefly in memory to limit abuse. Gridword's daily counts are deleted two days later.</p>
 ` : ''}    <p>If you contact ${esc(site.name)} by email, your message and address are used only to respond to your enquiry. Contact: ${emailLink(site)}.</p>
   </div>
 </section>`,

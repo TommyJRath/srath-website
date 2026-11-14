@@ -620,6 +620,31 @@
       buttons
     );
     live.textContent = who(winner) + ' won the match.';
+    streakRank(winner);
+  }
+
+  // Win streaks against the computer (solo games only), ranked anonymously against everyone's
+  // for the same number of computer dots (see /games/stats.js). A streak is added when it ends.
+  function streakRank(winner) {
+    if (net || setup.mode !== 'solo') return;
+    var bots = setup.bots, all = load('trails:streaks', {}), cur = all[bots] || 0, board = 'trails-streak-' + bots;
+    var won = isMe(winner);
+    all[bots] = won ? cur + 1 : 0;
+    save('trails:streaks', all);
+    var body = overlay.querySelector('.tr-body');
+    if (!body || (!won && cur < 1)) return;
+    var vs = bots === 1 ? '1 computer dot' : bots + ' computer dots';
+    var stats = window.SrathStats && SrathStats.available ? SrathStats : null;
+    var line = el('p', 'tr-global');
+    body.append(line);
+    if (won) {
+      cur++;
+      line.textContent = 'Win streak against ' + vs + ': ' + cur + '.';
+      if (stats) stats.rank(board, cur).then(function (r) { line.textContent = 'Win streak against ' + vs + ': ' + cur + '. Rank: ' + stats.describe(r, 'streak') + '.'; }, function () {});
+    } else {
+      line.textContent = 'Your win streak of ' + cur + ' against ' + vs + ' ended.';
+      if (stats) stats.submit(board, cur).then(function (r) { line.textContent = 'Your win streak of ' + cur + ' against ' + vs + ' ended. Rank: ' + stats.describe(r, 'streak') + '.'; }, function () {});
+    }
   }
 
   // ---------------------------------------------------------------------------

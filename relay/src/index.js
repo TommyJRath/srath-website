@@ -1,4 +1,6 @@
-// Trails relay: passes messages between the players of one online Trails game.
+// SRATH game relay (named trails-relay after the first game that used it).
+// 1. Passes messages between the players of online games (Trails, Knockout, Ricochet).
+// 2. Keeps anonymous global stats for the games (see stats.js), under /stats/.
 //
 // Each room is one Durable Object, named by its game and invite code. The player who creates the room is the
 // "host": their browser runs the game. The other players ("guests") only send their steering.
@@ -8,6 +10,9 @@
 // when its last player leaves. Hibernating WebSockets mean an idle room costs nothing.
 
 import { DurableObject } from 'cloudflare:workers';
+import { handleStats, Stats } from './stats.js';
+
+export { Stats };
 
 const CODE = /^[A-HJ-NP-Z2-9]{5}$/;   // invite codes: no 0/O or 1/I to mix up
 const GAMES = ['trails', 'knockout', 'ricochet']; // games that can be played online
@@ -22,6 +27,7 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     if (url.pathname === '/') return new Response('Trails relay for srath.dk\n', { headers: { 'content-type': 'text/plain' } });
+    if (url.pathname.startsWith('/stats/')) return handleStats(request, env, url);
 
     // /room/<game>/<code>; the older /room/<code> is Trails.
     const match = url.pathname.match(/^\/room\/(?:([a-z]+)\/)?([^/]+)$/);

@@ -83,6 +83,15 @@
   background: #07090d; color: var(--text); font: 500 .85rem var(--mono);
 }
 .tr-invite-link:focus { outline: none; border-color: var(--accent); }
+.tr-code { margin: 4px 0 0 !important; font-size: .9rem; }
+.tr-code strong { font: 700 1.5rem var(--mono); letter-spacing: .18em; color: var(--text); margin-left: 8px; vertical-align: -2px; }
+.tr-join { display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
+.tr-join-code {
+  width: 7.5em; height: 36px; padding: 0 10px; border-radius: 9px; border: 1px solid var(--border-strong);
+  background: #07090d; color: var(--text); font: 700 1rem var(--mono); letter-spacing: .15em; text-transform: uppercase; text-align: center;
+}
+.tr-join-code:focus { outline: none; border-color: var(--accent); }
+.tr-join-msg { min-height: 1.2em; margin: 4px 0 0 !important; font-size: .85rem; color: #fb7185; }
 .tr-lobby { justify-content: center; margin-top: 12px; }
 .tr-lobby .tr-chip span:last-child { color: var(--text); }
 .tr-lobby-status { font-size: .85rem; }

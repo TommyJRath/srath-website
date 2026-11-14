@@ -884,7 +884,7 @@
       var info = el('p', 'tr-legend-note');
       info.innerHTML = 'You get a link to send to up to five friends. Your browser runs the game, so keep this tab open while you play. ' +
         'Players connect through a relay run by Cloudflare; see the <a class="text-link" href="/privacy/#online-games">privacy notice</a>.';
-      body.append(info);
+      body.append(info, joinByCode());
     } else {
       var botOptions = [];
       for (var n = minBots; n <= maxBots; n++) botOptions.push([n, String(n)]);
@@ -1047,7 +1047,8 @@
 
     var count = net.guests.length;
     showOverlay('Online game',
-      '<p>Send this link to the people you want to play with. Up to five can join.</p>',
+      '<p class="tr-code">Game code <strong>' + net.code + '</strong></p>' +
+      '<p>Send this link to the people you want to play with, or tell them the code. Up to five can join.</p>',
       [['Start game', function () { save(SETUP_KEY, setup); startMatch(); }], ['Cancel', leaveOnline]]);
     var body = overlay.querySelector('.tr-body');
     var row = el('div', 'tr-invite');
@@ -1079,6 +1080,44 @@
     var note = el('p', 'tr-legend-note');
     note.textContent = setup.powerups ? 'Power-ups are on, with your choices from the menu.' : 'Power-ups are off.';
     body.append(note);
+  }
+
+  // "Have a code?": type the five characters a friend reads out, instead of opening their link.
+  function joinByCode() {
+    var form = el('form', 'tr-join');
+    var label = el('label', 'tr-choice-label', 'Have a code?');
+    var input = el('input', 'tr-join-code');
+    input.id = label.htmlFor = 'tr-join-code';
+    input.maxLength = 5;
+    input.placeholder = 'ABCDE';
+    input.autocomplete = 'off';
+    input.spellcheck = false;
+    input.setAttribute('autocapitalize', 'characters');
+    var btn = el('button', 'tr-btn', 'Join');
+    btn.type = 'submit';
+    var msg = el('p', 'tr-join-msg');
+    msg.setAttribute('aria-live', 'polite');
+    input.addEventListener('input', function () {
+      input.value = input.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+      msg.textContent = '';
+    });
+    form.addEventListener('click', function (e) { e.stopPropagation(); });
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var code = input.value.toUpperCase();
+      var valid = code.length === 5 && code.split('').every(function (c) { return CODE_CHARS.indexOf(c) !== -1; });
+      if (!valid) {
+        msg.textContent = /[01OI]/.test(code) ? 'Codes never contain 0, O, 1 or I. Check the code and try again.' : 'A code has five letters and numbers.';
+        input.focus();
+        return;
+      }
+      history.replaceState(null, '', location.pathname + '?room=' + code);
+      joinOnline(code);
+    });
+    form.append(label, input, btn);
+    var wrap = el('div');
+    wrap.append(form, msg);
+    return wrap;
   }
 
   function seatList(seats) {

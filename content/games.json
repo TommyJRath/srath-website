@@ -34,7 +34,7 @@
     "slug": "trails",
     "name": "Trails",
     "tagline": "Steer a glowing dot that leaves a line behind it. Don't hit a line, and slip through the gaps.",
-    "description": "An arcade game for up to six dots. Each dot leaves a glowing line behind it, and you can only steer left and right, never sharply. Touch any line, including your own, and you are out. Every few seconds your line breaks for a moment: a ring closing around your dot warns you, and while the line is broken you can hop over other lines, while anyone can slip through your gap.\n\nPower-ups add chaos if you want it: Ghost, Boost, Brake, Sharp turns and Wrap help you; Slow others and Fat lines hit everyone else; Clear and Shrink change the arena. Switch each one on or off before you start.\n\nPlay against computer dots, or with two players on one keyboard, in full screen if you like. Online play with friends on other machines is planned.",
+    "description": "An arcade game for up to six dots. Each dot leaves a glowing line behind it, and you can only steer left and right, never sharply. Touch any line, including your own, and you are out. Every few seconds your line breaks for a moment: a ring closing around your dot warns you, and while the line is broken you can hop over other lines, while anyone can slip through your gap.\n\nPower-ups add chaos if you want it: Ghost, Boost, Brake, Sharp turns and Wrap help you; Slow others and Fat lines hit everyone else; Clear and Shrink change the arena. Switch each one on or off before you start.\n\nPlay against computer dots, with two players on one keyboard, or online: create a game and send the link to up to five friends. Full screen if you like.",
     "icon": "/games/trails/icon.svg",
     "tech": [
       "Plain JavaScript and the HTML Canvas 2D API, no game engine",
@@ -42,7 +42,9 @@
       "Collision grid: lines are stamped into a grid with 2-unit cells for fast, exact hit tests",
       "Computer players: they simulate the curved path of each possible move before choosing one",
       "Web Audio API: sound effects are synthesised in the browser, with no audio files",
+      "Online play: WebSockets to a small relay on Cloudflare Workers and Durable Objects. One player's browser runs the game and sends the state 25 times a second; the others send only their steering",
       "Pointer Events, the Fullscreen API and localStorage for touch steering, full screen and saved settings"
-    ]
+    ],
+    "relay": "wss://trails-relay.tommyjon.workers.dev"
   }
 ]

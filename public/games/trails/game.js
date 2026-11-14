@@ -883,7 +883,7 @@
     if (online) {
       var info = el('p', 'tr-legend-note');
       info.innerHTML = 'You get a link to send to up to five friends. Your browser runs the game, so keep this tab open while you play. ' +
-        'Players connect through a relay run by Cloudflare; see the <a class="text-link" href="/privacy/#website">privacy notice</a>.';
+        'Players connect through a relay run by Cloudflare; see the <a class="text-link" href="/privacy/#online-games">privacy notice</a>.';
       body.append(info);
     } else {
       var botOptions = [];

@@ -1,5 +1,5 @@
 ---
-lastUpdated: 2026-11-12
+lastUpdated: 2026-11-15
 placeholder: false
 ---
 
@@ -40,7 +40,7 @@ Without Plus, {{appName}} shows one banner ad above the tabs at the bottom of th
 - your approximate location, based on your IP address
 - information about your device and how ads are viewed and clicked
 
-In the EU/EEA, the UK and Switzerland, the app asks for your consent before personalised ads are shown. You can change your choice at any time under **Settings → Ad privacy choices** in the app. You can also reset or delete your advertising ID in your phone's settings. With Plus, no ads are shown and AdMob is not started.
+In the EU/EEA, the UK and Switzerland, the app asks for your consent before personalised ads are shown. You can change your choice at any time under **Settings → Ad privacy choices** in the app. You can also reset or delete your advertising ID in your phone's settings. With Plus, no ads are shown: the banner disappears as soon as you buy it, and from the next time you open the app, AdMob is not started at all.
 
 Read how Google uses data: <https://policies.google.com/technologies/partner-sites>
 

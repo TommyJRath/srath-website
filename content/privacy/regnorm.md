@@ -5,7 +5,7 @@ placeholder: false
 
 <!--
   Written from Regnorm's code on 12 November 2026 (C:\Apps\Regnorm). Reviewed and published
-  12 November 2026. Keep it in step with the app's Data safety answers in Play Console
+  12 November 2026; photos and garden sharing added 15 November 2026. Keep it in step with the app's Data safety answers in Play Console
   (Regnorm/PUBLISHING.md).
 -->
 
@@ -13,7 +13,21 @@ placeholder: false
 
 ## Your plants stay on your phone
 
-Everything you add, including your plants, where they grow, when you watered them, their heights and pot sizes, is stored only on your phone. We do not have servers for your data, we do not upload your plants, and we cannot see them. There is no account to create.
+Everything you add, including your plants, where they grow, when you watered them, their heights, pot sizes and photos, is stored only on your phone. There is no account to create. The one exception is if you choose to share your garden with other people (see below); otherwise your plants are never uploaded.
+
+## Photos of your plants
+
+With Plus, you can add a photo to a height measurement. You either take it with your phone's camera app or choose it in Android's photo picker, so {{appName}} never gets access to your camera or your other photos, only to the one photo you pick. The app makes a smaller copy, keeps it only on your phone, and never uploads it. Removing the measurement or the plant deletes the copy.
+
+## Sharing a garden
+
+You can share your garden with the people you live with, so you all see the same plants and who watered them. Sharing is optional and off until you start it or join with an invite code.
+
+- **What is shared.** While you share, the garden's plants (name, type, where they grow, waterings, heights, pot sizes and fertilising), your own plant types, the garden's location (the rounded position and place name) and the name you type for yourself are stored on {{appName}}'s server so that the members' phones can sync. Each watering shows the name of the member who did it. **Photos are never shared or uploaded**; they stay on the phone that took them.
+- **Where.** The server is Google Firebase (Cloud Firestore), in Google's data centres in the EU. Google processes the data on our behalf: <https://firebase.google.com/support/privacy>
+- **No account.** Each phone gets a random ID from Firebase's anonymous sign-in. No email, phone number or password is involved, and the ID is not linked to your Google account or the advertising ID. Only the members of a garden can read it.
+- **Invite codes.** An invite is a six-letter code that works for 7 days. Only someone with the code can join.
+- **Leaving and deleting.** A member can leave at any time under **Settings → Share your garden**; their name is removed from the member list. When the person who started the garden taps **Stop sharing**, the garden, its plants, its own plant types and its invite codes are deleted from the server for everyone. Each phone keeps its own copy of the plants.
 
 ## Your garden's location and the weather
 
@@ -30,7 +44,7 @@ The app comes with a list of plants and their care needs. While the app is open,
 
 ## Reminders and the widget
 
-The daily reminder and the home-screen widget are worked out on your phone from your plants and the last weather the app fetched. They do not go online.
+The daily reminder and the home-screen widget are worked out on your phone from your plants and the last weather the app fetched. They do not go online, also in a shared garden.
 
 ## Ads
 
@@ -50,17 +64,18 @@ Plus is a one-time purchase handled entirely by Google Play. We never see your p
 
 ## Android backup
 
-If Android backup is turned on, your phone may include your plants, your garden's saved location and your settings in your personal Google backup, so they come back on a new phone. These backups belong to your Google account, and we cannot access them.
+If Android backup is turned on, your phone may include your plants, their photos, your garden's saved location and your settings in your personal Google backup, so they come back on a new phone. These backups belong to your Google account, and we cannot access them.
 
 ## What we do not do
 
 - We do not sell your data.
 - We do not use analytics or tracking tools of our own.
 - We do not ask you to create an account.
+- We do not upload your plants unless you share your garden, and never your photos.
 
 ## Deleting your data
 
-You can remove a plant at any time from its own page. Uninstalling the app, or clearing its storage in your phone's settings, deletes all plants, the saved location and settings on the phone.
+You can remove a plant, a measurement or a photo at any time from the plant's own page. Uninstalling the app, or clearing its storage in your phone's settings, deletes all plants, photos, the saved location and settings on the phone. A shared garden is deleted from the server when its owner stops sharing; you can also ask us to delete it by writing to the address below.
 
 ## Children
 
@@ -69,6 +84,8 @@ You can remove a plant at any time from its own page. Uninstalling the app, or c
 ## Changes
 
 If this policy changes, the new version will be posted on this page with a new date before the change reaches the app.
+
+- 15 November 2026: added photos of your plants (Plus) and sharing a garden.
 
 ## Contact
 

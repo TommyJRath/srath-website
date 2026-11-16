@@ -36,7 +36,9 @@ To estimate when garden plants need water, {{appName}} uses the weather where yo
 - **Use my location.** If you tap this, the app asks Android for your approximate location (not your precise location), once. Android may use Google's location services to find it.
 - **Typing a town or postcode.** The text you type is looked up with Android's built-in place search, which on most phones is provided by Google. The same search finds a place name for your approximate location.
 - **What is kept.** The app keeps only a position rounded to about 1 km and the place name, on your phone.
-- **The weather.** The weather comes from the Danish Meteorological Institute's open data (DMI). To get it, the app sends the rounded position, and the 10 km weather square it lies in, to DMI's servers. Like any website, DMI's servers see your IP address. The app only asks while it is open, and at most every few hours. Read about DMI's open data: <https://www.dmi.dk/friedata>
+- **The weather in Denmark.** For a garden in Denmark, the weather comes from the Danish Meteorological Institute's open data (DMI). To get it, the app sends the rounded position, and the 10 km weather square it lies in, to DMI's servers. Read about DMI's open data: <https://www.dmi.dk/friedata>
+- **The weather elsewhere.** For a garden outside Denmark, the weather comes from the Norwegian Meteorological Institute's forecast (MET Norway). To get it, the app sends the rounded position to MET Norway's servers, with the app's name so they can see which app is asking. Read MET Norway's terms: <https://api.met.no/doc/TermsOfService>
+- Like any website, these servers see your IP address. The app only asks while it is open, and at most every few hours.
 
 ## The plant list
 
@@ -86,6 +88,7 @@ You can remove a plant, a measurement or a photo at any time from the plant's ow
 If this policy changes, the new version will be posted on this page with a new date before the change reaches the app.
 
 - 15 November 2026: added photos of your plants (Plus) and sharing a garden.
+- 16 November 2026: gardens outside Denmark get their weather from MET Norway.
 
 ## Contact
 

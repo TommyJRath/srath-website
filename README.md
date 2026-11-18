@@ -33,6 +33,7 @@ content/
   projects.json          Non-app projects on the home page (e.g. the webshop)
   partners.json          Suppliers and partners (/partners/)
   games.json             Browser games (/games/)
+  news.json              News items; the newest recent one is a banner on the home page
   apps.json              One entry per application
   privacy/
     _TEMPLATE.md         Starting point for a new policy (ignored by the build)
@@ -116,6 +117,18 @@ The home page lists everything in `content/projects.json` (for example the Baiga
 ```
 
 `name`, `type` and `description` are required. Use `icon` for a square icon, or `logo` for a wide logo (shown on a light tile, like Baiganyo's moustache). Without either, the card shows the first letter of the name. When the webshop opens, change `status` (for example to `"Open"`) and write a proper `description`.
+
+## News banner
+
+`content/news.json` holds short news items: `date` (YYYY-MM-DD), `text` (one line) and an optional `url` (a page on the site, starting with `/`, or `https://`). The home page shows only the newest item, as a slim banner above the hero, while it is at most 30 days old (`NEWS_DAYS` in `src/build.mjs`). `src/main.js` hides it after that too, even if the site hasn't been rebuilt. With no recent item, there is no banner.
+
+Add an item for real news only, such as an app going live on Google Play or a new game. Keep older items in the file; only the newest is shown.
+
+```json
+[
+  { "date": "2026-11-18", "text": "Kvit og frit is now on Google Play", "url": "/apps/kvit-og-frit/" }
+]
+```
 
 ## Browser games
 

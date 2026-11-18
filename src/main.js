@@ -13,6 +13,7 @@
   }, { rootMargin: '0px 0px -8% 0px', threshold: 0.08 });
 
   document.addEventListener('DOMContentLoaded', function () {
+    hideOldNews();
     document.querySelectorAll('.reveal').forEach(function (el, i) {
       el.style.transitionDelay = Math.min(i % 6, 5) * 60 + 'ms';
       observer.observe(el);
@@ -20,6 +21,14 @@
     heroSpotlight();
     heroLitCells();
   });
+
+  // The news banner is built with the site; hide it once the item is older than its limit (see build.mjs).
+  function hideOldNews() {
+    var bar = document.querySelector('.news-bar[data-date]');
+    if (!bar) return;
+    var age = (Date.now() - Date.parse(bar.getAttribute('data-date') + 'T00:00:00Z')) / 86400000;
+    if (age > Number(bar.getAttribute('data-days') || 30)) bar.hidden = true;
+  }
 
   // Clicking (or tapping) an empty spot in the hero lights that grid cell; clicking it again turns it off.
   function heroLitCells() {

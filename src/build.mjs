@@ -5,6 +5,7 @@
 //   content/projects.json    other projects on the home page (apps are added automatically)
 //   content/partners.json    suppliers and partners, shown on /partners/ and the home page
 //   content/games.json       browser games; each game's files live in public/games/<slug>/
+//   content/news.json        short news items; the newest recent one is a banner on the home page
 //   content/privacy/*.md     one privacy policy per application (file name = app slug)
 //   public/                  copied verbatim to the site root (app-ads.txt, CNAME, images, ...)
 //   src/styles.css, main.js  published under /assets/
@@ -47,6 +48,7 @@ function loadContent() {
   const projects = fs.existsSync(path.join(CONTENT, 'projects.json')) ? readJson('projects.json') : [];
   const partners = fs.existsSync(path.join(CONTENT, 'partners.json')) ? readJson('partners.json') : [];
   const games = fs.existsSync(path.join(CONTENT, 'games.json')) ? readJson('games.json') : [];
+  const news = fs.existsSync(path.join(CONTENT, 'news.json')) ? readJson('news.json') : [];
   const errors = [];
   const warnings = [];
 
@@ -139,7 +141,14 @@ function loadContent() {
     }
   }
 
-  return { site, apps, projects, partners, games, policies, errors, warnings };
+  if (!Array.isArray(news)) errors.push('news.json must contain an array.');
+  for (const [i, n] of (Array.isArray(news) ? news : []).entries()) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(n.date || '')) errors.push(`news.json[${i}]: "date" must be YYYY-MM-DD.`);
+    if (!n.text) errors.push(`news.json[${i}]: missing "text".`);
+    if (n.url && !/^(\/|https:\/\/)/.test(n.url)) errors.push(`news.json[${i}]: url must start with / or https://`);
+  }
+
+  return { site, apps, projects, partners, games, news: Array.isArray(news) ? news : [], policies, errors, warnings };
 }
 
 /**
@@ -276,7 +285,27 @@ function partnerCard(p) {
 // Pages
 // ---------------------------------------------------------------------------
 
-function homePage({ site, apps, projects, partners, games }) {
+// The newest news item, as a slim banner above the hero, while it is recent. main.js also hides it
+// once it is older than NEWS_DAYS, so it disappears even if the site isn't rebuilt for a while.
+const NEWS_DAYS = 30;
+function newsBanner(news) {
+  const latest = news.slice().sort((a, b) => b.date.localeCompare(a.date))[0];
+  if (!latest) return '';
+  const age = (Date.now() - Date.parse(`${latest.date}T00:00:00Z`)) / 86400000;
+  if (age > NEWS_DAYS) return '';
+  const inner = `<span class="news-label">New</span>
+      <time class="news-date" datetime="${esc(latest.date)}">${esc(formatDate(latest.date))}</time>
+      <span class="news-text">${esc(latest.text)}</span>${latest.url ? ` <span class="news-arrow">${icons.arrow}</span>` : ''}`;
+  const external = latest.url && latest.url.startsWith('https://') ? ' rel="noopener noreferrer"' : '';
+  return `<aside class="news-bar" aria-label="Latest news" data-date="${esc(latest.date)}" data-days="${NEWS_DAYS}">
+  <div class="container">
+    ${latest.url ? `<a class="news-item" href="${esc(latest.url)}"${external}>${inner}</a>` : `<p class="news-item">${inner}</p>`}
+  </div>
+</aside>
+`;
+}
+
+function homePage({ site, apps, projects, partners, games, news }) {
   const cards = [
     ...projects,
     // All games share one card on the home page, so they do not crowd out the apps and the webshop.
@@ -323,7 +352,7 @@ function homePage({ site, apps, projects, partners, games }) {
         founder: { '@type': 'Person', name: site.legal.owner, ...(site.linkedin && { sameAs: [site.linkedin] }) },
       }),
     },
-    body: `<section class="hero">
+    body: `${newsBanner(news)}<section class="hero">
   <div class="hero-bg" aria-hidden="true"></div>
   <div class="hero-spot" aria-hidden="true"></div>
   <div class="container hero-inner">

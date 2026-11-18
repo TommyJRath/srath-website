@@ -67,7 +67,7 @@
     "slug": "kvit-og-frit",
     "name": "Kvit og frit",
     "tagline": "A receipt and warranty keeper for Android: scan a receipt and get a reminder before the warranty or return window runs out.",
-    "description": "Kvit og frit keeps your receipts and warranties in one place, styled like a till slip. Scan a receipt and the app reads the shop, date, total and items on your phone, then reminds you before the warranty or the return window ends.\n\nBought a present? Send the receipt by text message or email, so they can exchange it themselves. At the shop counter, the receipt and its barcode are shown full screen, together with a short guide to your rights as a consumer in your country.\n\nEverything is stored on your phone. There is no account to create.\n\nKvit og frit is under development and not yet on Google Play. Features may change before it is released.",
+    "description": "Kvit og frit keeps your receipts and warranties in one place, styled like a till slip. Scan a receipt and the app reads the shop, date, total and items on your phone, then reminds you before the warranty or the return window ends.\n\nBought a present? Send the receipt by text message or email, so they can exchange it themselves. At the shop counter, the receipt and its barcode are shown full screen, together with a short guide to your rights as a consumer in your country.\n\nEverything is stored on your phone. There is no account to create.",
     "category": "Productivity",
     "packageName": "com.srath.kvitogfrit",
     "icon": "/images/apps/kvit-og-frit/icon.png",

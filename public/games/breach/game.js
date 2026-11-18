@@ -208,7 +208,7 @@
     },
     projects: {
       cols: ['id', 'codename', 'kind', 'status'],
-      rows: [[1, 'EVERAFTER', 'android app', 'live'], [2, 'KVITOGFRIT', 'android app', 'in development'], [3, 'REGNORM', 'android app', 'coming soon'], [4, 'BAIGANYO', 'webshop', 'opening soon'], [5, 'GRIDWORD', 'browser game', 'live'], [6, 'BREACH', 'browser game', 'classified']],
+      rows: [[1, 'EVERAFTER', 'android app', 'live'], [2, 'KVITOGFRIT', 'android app', 'live'], [3, 'REGNORM', 'android app', 'coming soon'], [4, 'BAIGANYO', 'webshop', 'opening soon'], [5, 'GRIDWORD', 'browser game', 'live'], [6, 'TRAILS', 'browser game', 'live'], [7, 'KNOCKOUT', 'browser game', 'live'], [8, 'RICOCHET', 'browser game', 'live'], [9, 'BREACH', 'browser game', 'classified']],
     },
     vault: {
       cols: ['id', 'owner', 'fragment', 'note'],
@@ -918,6 +918,9 @@
     print('  kvit-og-frit/    a receipt and warranty keeper        [[srath.dk/apps/kvit-og-frit|/apps/kvit-og-frit/]]');
     print('  regnorm/         plant care that follows the weather  [[srath.dk/apps/regnorm|/apps/regnorm/]]');
     print('  gridword/        a daily five-letter word game        [[srath.dk/games/gridword|/games/gridword/]]');
+    print('  trails/          steer a dot, dodge the lines         [[srath.dk/games/trails|/games/trails/]]');
+    print('  knockout/        push the others off the platform     [[srath.dk/games/knockout|/games/knockout/]]');
+    print('  ricochet/        tanks in a maze, shots that bounce   [[srath.dk/games/ricochet|/games/ricochet/]]');
     print('  baiganyo/        a webshop, opening soon              [[baiganyo.dk|https://baiganyo.dk]]');
     print('  breach/          [classified]', 't-dim');
     print('');

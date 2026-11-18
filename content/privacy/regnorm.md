@@ -1,11 +1,11 @@
 ---
-lastUpdated: 2026-11-15
+lastUpdated: 2026-11-16
 placeholder: false
 ---
 
 <!--
   Written from Regnorm's code on 12 November 2026 (C:\Apps\Regnorm). Reviewed and published
-  12 November 2026; photos and garden sharing added 15 November 2026. Keep it in step with the app's Data safety answers in Play Console
+  12 November 2026; photos and garden sharing added 15 November 2026; MET Norway weather outside Denmark added 16 November 2026. Keep it in step with the app's Data safety answers in Play Console
   (Regnorm/PUBLISHING.md).
 -->
 

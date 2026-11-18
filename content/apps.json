@@ -134,33 +134,62 @@
     "slug": "regnorm",
     "name": "Regnorm",
     "tagline": "A plant care app for Android that waters by the weather: it follows the rain, sun and frost where your garden is.",
-    "description": "Regnorm keeps track of your plants, outside and inside. For the garden it reads the weather from the Danish Meteorological Institute (DMI) and works out, plant by plant, when the soil is getting dry, so you don't water after a day of rain. Houseplants follow a watering schedule that slows down in winter.\n\nA worm in a speech bubble tells you what needs doing, and warns you before a frost night. You can also track how tall your plants grow, note pot sizes and get a nudge when one has outgrown its pot, and see what to sow, plant and harvest each month.\n\nEverything is stored on your phone. There is no account to create.\n\nRegnorm is under development and not yet on Google Play. Features may change before it is released.",
+    "description": "Regnorm keeps track of your plants, outside and inside. For the garden it reads the weather where your garden is and works out, plant by plant, when the soil is getting dry, so you don't water after a day of rain. In Denmark the weather comes from the Danish Meteorological Institute (DMI); elsewhere from MET Norway, with Regnorm estimating what that forecast doesn't measure. Houseplants follow a watering schedule that slows down in winter.\n\nA worm in a speech bubble tells you what needs doing. On frozen days a snowflake replaces the water drop, and the worm warns you before a frost night. Bring a plant indoors for the winter or for good, and Regnorm switches to resting care and nudges you when spring comes. You can also track how tall your plants grow, note pot sizes, and see what to sow, plant and harvest each month.\n\nYour plants stay on your phone, with no account to create. If you like, you can share a garden with your family using an invite code, so everyone sees what has been watered.\n\nRegnorm is in testing and not yet on Google Play. Features may change before it is released.",
     "category": "House & Home",
     "packageName": "com.srath.regnorm",
     "icon": "/images/apps/regnorm/icon.png",
     "playStoreUrl": "",
     "features": [
-      "Watering by the weather for garden plants, from DMI's open data",
+      "Watering by the weather for garden plants: DMI in Denmark, MET Norway elsewhere",
       "Watering schedules for houseplants, gentler in winter",
-      "Frost warnings for plants that can't take it",
+      "A snowflake on frozen days, and frost warnings for plants that can't take it",
+      "Move plants indoors for the season or for good, with frost and spring nudges",
+      "147 plants to pick from, from house plants to fruit trees and berries",
       "Plant heights and pot sizes, with repotting suggestions",
-      "A garden calendar for sowing, planting and harvest",
+      "A garden calendar for sowing, planting, feeding and harvest",
+      "Share a garden with family through an invite code, no account needed",
       "An optional morning reminder",
-      "Available in 19 languages",
-      "Data stays on your phone, no account needed"
+      "Available in 20 languages"
     ],
-    "screenshots": [],
+    "screenshots": [
+      {
+        "src": "/images/apps/regnorm/1-outside.webp",
+        "alt": "Garden plants and the weather where the garden is"
+      },
+      {
+        "src": "/images/apps/regnorm/2-inside.webp",
+        "alt": "Houseplants, with two needing water today"
+      },
+      {
+        "src": "/images/apps/regnorm/3-plant.webp",
+        "alt": "A plant's watering and growth"
+      },
+      {
+        "src": "/images/apps/regnorm/4-calendar.webp",
+        "alt": "The garden calendar for May"
+      },
+      {
+        "src": "/images/apps/regnorm/5-add-plant.webp",
+        "alt": "Picking a plant from the list"
+      },
+      {
+        "src": "/images/apps/regnorm/6-outside-dark.webp",
+        "alt": "Dark appearance at night"
+      }
+    ],
     "tech": [
       "Kotlin: the whole app, with Jetpack Compose and Material 3 for the interface",
       "DMI open data API: weather forecasts (HARMONIE model) and climate data from the Danish Meteorological Institute, CC BY 4.0",
-      "Location: the weather is fetched for where your garden is",
+      "MET Norway Locationforecast: weather outside Denmark, CC BY 4.0, with evaporation and sunshine estimated in the app",
+      "Location: the weather is fetched for where your garden is, using a rounded position",
+      "Firebase Firestore with anonymous sign-in: optional garden sharing, with no account",
       "AlarmManager and notifications: a daily watering reminder",
-      "Home-screen widget",
+      "Home-screen widget: today's watering, frost and tasks (Regnorm Plus)",
       "Built-in plant catalogue: a CSV file of plants and their care needs",
-      "On-device storage: plants and settings saved as JSON on the phone",
+      "On-device storage: plants, photos and settings saved on the phone",
       "Google AdMob: a small banner ad, with the User Messaging Platform for GDPR consent",
-      "Google Play Billing: the one-time \"Remove ads\" purchase",
-      "Localisation: English plus 18 translations, with a per-app language setting on Android 13+",
+      "Google Play Billing: the one-time Regnorm Plus purchase, which removes the ad and adds photos, your own plants, the widget and outfits for the worm",
+      "Localisation: English plus 19 translations, with a per-app language setting on Android 13+",
       "Android 8.0 (API 26) and newer, built with Gradle and shrunk with R8"
     ]
   }

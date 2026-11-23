@@ -13,7 +13,9 @@ Website for **SRATH**, a Danish sole proprietorship that develops and publishes 
 - [Project structure](#project-structure)
 - [Local development](#local-development)
 - [Site configuration](#site-configuration)
+- [Look and feel](#look-and-feel)
 - [Projects on the home page](#projects-on-the-home-page)
+- [Free tools](#free-tools)
 - [Browser games](#browser-games)
 - [Partners and suppliers](#partners-and-suppliers)
 - [Adding an application](#adding-an-application)
@@ -33,6 +35,8 @@ content/
   projects.json          Non-app projects on the home page (e.g. the webshop)
   partners.json          Suppliers and partners (/partners/)
   games.json             Browser games (/games/)
+  tools.json             Free tools (/tools/), Danish and English
+  tools/<slug>.html      The form of each tool
   news.json              News items; the newest recent one is a banner on the home page
   apps.json              One entry per application
   privacy/
@@ -43,6 +47,8 @@ public/                  Copied unchanged to the site root
   CNAME                  srath.dk
   robots.txt, favicon.*, apple-touch-icon.png, og-image.png
   images/apps/<slug>/    App icons and screenshots
+  tools/                 The tools' scripts, styles and icons
+  bench.js               The interactive workbench behind the home page hero
 src/
   build.mjs              Static site generator: pages, sitemap and checks
   templates.mjs          Layout and reusable components
@@ -100,9 +106,19 @@ Edit `content/site.json`:
 | `url` | `https://srath.dk`. Used for canonical URLs and the sitemap. |
 | `description` | Used for search engines and social previews. |
 
+## Look and feel
+
+The site's style is called "Workbench": warm charcoal background, one amber accent (`--accent`), headings in a serif that is already on the visitor's computer (`--serif`), and monospace only for small labels such as dates and project types. No gradients, glows or entrance animations, and no small capital "eyebrow" labels above headings. All colours are tokens at the top of `src/styles.css`.
+
+The games keep their own colours inside the play area, from one shared palette. Use plain names for colours players see: orange `#e8a33d`, blue `#7aa7d6`, green `#93b86e`, red `#d4573f`, purple `#b784b0`, white `#e3d6bb`. Power-ups: green helps you, red hits everyone else, blue changes the arena. Gridword: orange is the right spot, blue is in the word.
+
+### The workbench on the home page
+
+`public/bench.js` (loaded only on the home page) draws a small interactive tool behind the hero on a canvas: a parts bin, a soldering iron, a hammer and nails, a coffee mug or a magnifying glass. One is picked at random on each visit, and the "Swap tool" button cycles through them. The magnifying glass's tiny print comes from `benchData()` in `src/build.mjs` and uses only real facts from the content files. Text selection is turned off in the hero while it runs, so quick clicks reach the tools. Visitors with "reduce motion" get a plain hero.
+
 ## Projects on the home page
 
-The home page lists everything in `content/projects.json` (for example the Baiganyo webshop), followed automatically by every app in `apps.json`.
+The home page lists the apps on Google Play, the free tools, the apps that are coming, everything in `content/projects.json` (for example the Baiganyo webshop) and the games, as rows under "What I'm working on".
 
 ```json
 {
@@ -129,6 +145,16 @@ Add an item for real news only, such as an app going live on Google Play or a ne
   { "date": "2026-11-18", "text": "Kvit og frit is now on Google Play", "url": "/apps/kvit-og-frit/" }
 ]
 ```
+
+## Free tools
+
+Four free tools for freelancers and sole traders in Denmark live under `/tools/`: a VAT calculator, an hourly rate calculator, an invoice and quote generator, and a CVR lookup. Each page has a large Dansk / English switch at the top. The choice is remembered in the browser, and `?lang=en` opens a page in English.
+
+- `content/tools.json`: one entry per tool: `slug`, `name`, `tagline`, `description`, `icon`, `tech`, plus English versions in `name_en`, `tagline_en`, `description_en` and `tech_en`.
+- `content/tools/<slug>.html`: the tool's form. Danish text goes in the element, English in `data-en="..."` (or `data-en-html`, `data-en-placeholder`, `data-en-aria-label`, `data-en-title`).
+- `public/tools/<slug>/tool.js`: the tool's behaviour. Shared helpers in `public/tools/tools.js`: Danish and English number parsing, amounts in øre, `T.t(da, en)` for text and `T.onLang()` to redraw when the language changes. Shared styles in `public/tools/tools.css`.
+- The hourly rate calculator uses Danish tax rates for 2026 from skat.dk (constants at the top of its `tool.js`). **Update them every January.**
+- The CVR lookup calls CVR API (cvrapi.dk) from the visitor's own browser, only when they search. The privacy page describes this (`#cvr-lookup`).
 
 ## Browser games
 

@@ -54,7 +54,7 @@
     shock: { kind: 'blast', label: 'Shockwave', glyph: '✺', desc: 'blasts everyone near you away' },
     slick: { kind: 'others', label: 'Ice others', glyph: '❄', time: 5, desc: 'everyone else slides around' },
   };
-  var KIND_COLORS = { self: '#2dd4bf', others: '#fb7185', blast: '#fbbf24' };
+  var KIND_COLORS = { self: '#93b86e', others: '#d4573f', blast: '#7aa7d6' };
   var PICK_R = 14, PICK_EVERY = [3, 6], PICK_MAX = 2, PICK_LIFE = 11;
 
   // Online play. On this machine during development, a local relay (npm run dev in /relay) is used.
@@ -65,8 +65,8 @@
   var MAX_SEATS = 6;
 
   var COLORS = [
-    { name: 'Teal', hex: '#2dd4bf' }, { name: 'Indigo', hex: '#818cf8' }, { name: 'Amber', hex: '#fbbf24' },
-    { name: 'Pink', hex: '#f472b6' }, { name: 'Sky', hex: '#38bdf8' }, { name: 'Lime', hex: '#a3e635' },
+    { name: 'Orange', hex: '#e8a33d' }, { name: 'Blue', hex: '#7aa7d6' }, { name: 'Green', hex: '#93b86e' },
+    { name: 'Red', hex: '#d4573f' }, { name: 'Purple', hex: '#b784b0' }, { name: 'White', hex: '#e3d6bb' },
   ];
 
   // ---------------------------------------------------------------------------
@@ -441,7 +441,7 @@
     tone(220, 0.16, 'sawtooth', 0.035, 700);
   }
   function bumpEffect(x, y) {
-    particles.push({ ring: true, x: x, y: y, r: BUMPER, life: 0.35, color: '#fbbf24' });
+    particles.push({ ring: true, x: x, y: y, r: BUMPER, life: 0.35, color: '#e8a33d' });
     tone(660, 0.1, 'triangle', 0.05, 990);
   }
   function hitEffect(mx, my, hit, a, b) {
@@ -626,7 +626,7 @@
 
   function roundEnded(winner) {
     roundMessage = winner ? who(winner) + (isMe(winner) ? ' win the round' : ' wins the round') : 'Nobody is left';
-    roundColor = winner ? winner.color : '#9aa3b5';
+    roundColor = winner ? winner.color : '#a39b8b';
     live.textContent = roundMessage + '.';
     if (winner && !winner.bot && (!net || isMe(winner))) tone(784, 0.25, 'triangle', 0.08, 1046);
     renderScores();
@@ -676,7 +676,7 @@
     var R = phase === 'menu' || phase === 'lobby' ? R0 : radius();
     var shrinking = (phase === 'playing' || phase === 'roundover') && roundTime >= SHRINK_AFTER && R > R_MIN;
     if (R < R0 - 1) {
-      ctx.strokeStyle = 'rgba(251, 113, 133, 0.18)';
+      ctx.strokeStyle = 'rgba(212, 87, 63, 0.18)';
       ctx.setLineDash([6, 10]);
       ctx.lineWidth = 1.5;
       platformPath(R0); ctx.stroke();
@@ -684,8 +684,8 @@
     }
     var icy = arena === 'ice';
     var g = ctx.createRadialGradient(CX, CY, R * 0.1, CX, CY, R);
-    g.addColorStop(0, icy ? '#13283a' : '#121722');
-    g.addColorStop(1, icy ? '#0d1a26' : '#0c1018');
+    g.addColorStop(0, icy ? '#13283a' : '#221f1b');
+    g.addColorStop(1, icy ? '#0d1a26' : '#14120f');
     ctx.fillStyle = g;
     platformPath(R); ctx.fill('evenodd');
     ctx.save();
@@ -694,9 +694,9 @@
     ctx.lineWidth = 1;
     for (var rr = 60; rr < R * 1.3; rr += 60) { ctx.beginPath(); ctx.arc(CX, CY, rr, 0, Math.PI * 2); ctx.stroke(); }
     ctx.restore();
-    var base = icy ? '#7dd3fc' : '#2dd4bf';
-    var edge = shrinking ? 'rgba(251, 113, 133, ' + (0.65 + 0.3 * Math.sin(time * 8)) + ')' : base;
-    ctx.shadowColor = shrinking ? '#fb7185' : base;
+    var base = icy ? '#7dd3fc' : '#d9ccb0';
+    var edge = shrinking ? 'rgba(212, 87, 63, ' + (0.65 + 0.3 * Math.sin(time * 8)) + ')' : base;
+    ctx.shadowColor = shrinking ? '#d4573f' : base;
     ctx.shadowBlur = 18;
     ctx.strokeStyle = edge;
     ctx.globalAlpha = shrinking ? 1 : 0.8;
@@ -725,10 +725,10 @@
     }
 
     bumpers().forEach(function (b) {
-      ctx.shadowColor = '#fbbf24';
+      ctx.shadowColor = '#e8a33d';
       ctx.shadowBlur = 16;
       ctx.fillStyle = '#1a1407';
-      ctx.strokeStyle = '#fbbf24';
+      ctx.strokeStyle = '#e8a33d';
       ctx.lineWidth = 3;
       ctx.beginPath(); ctx.arc(b.x, b.y, BUMPER, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
       ctx.shadowBlur = 0;
@@ -768,16 +768,16 @@
     ctx.setTransform(scale * dpr, 0, 0, scale * dpr, 0, 0);
     ctx.textAlign = 'center';
     if (phase === 'ready') {
-      ctx.fillStyle = '#e7e9ee';
+      ctx.fillStyle = '#ece6d8';
       ctx.font = '800 54px system-ui, sans-serif';
       ctx.fillText(String(Math.max(1, Math.ceil(readyTime / 0.7))), CX, CY + 18);
       ctx.font = '600 16px system-ui, sans-serif';
-      ctx.fillStyle = '#9aa3b5';
+      ctx.fillStyle = '#a39b8b';
       ctx.fillText('Round ' + round + '  ·  first to ' + target, CX, CY + 52);
-      ctx.fillStyle = '#e7e9ee';
+      ctx.fillStyle = '#ece6d8';
       ctx.font = '800 24px system-ui, sans-serif';
       ctx.fillText(ARENAS[arena].label, CX, CY - 52);
-      ctx.fillStyle = '#9aa3b5';
+      ctx.fillStyle = '#a39b8b';
       ctx.font = '600 15px system-ui, sans-serif';
       ctx.fillText(ARENAS[arena].desc, CX, CY - 30);
     }
@@ -789,7 +789,7 @@
     [[SHRINK_AFTER, 'The platform is shrinking'], [SUDDEN_DEATH, 'Sudden death']].forEach(function (m) {
       if (phase !== 'playing' || roundTime < m[0] - 2 || roundTime > m[0] + 1) return;
       ctx.globalAlpha = Math.min(1, Math.max(0, 1 - Math.abs(roundTime - m[0] + 0.5)));
-      ctx.fillStyle = '#fb7185';
+      ctx.fillStyle = '#d4573f';
       ctx.font = '700 18px system-ui, sans-serif';
       ctx.fillText(m[1], CX, 44);
       ctx.globalAlpha = 1;
@@ -813,7 +813,7 @@
     var r = PICK_R * (1 + 0.07 * Math.sin(time * 5 + k.x));
     ctx.shadowColor = color;
     ctx.shadowBlur = 16;
-    ctx.fillStyle = '#0b0d12';
+    ctx.fillStyle = '#171512';
     ctx.strokeStyle = color;
     ctx.lineWidth = 2.5;
     ctx.beginPath(); ctx.arc(k.x, k.y, r, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
@@ -835,7 +835,7 @@
     ctx.fillStyle = p.color;
     ctx.beginPath(); ctx.arc(p.x, p.y, r, 0, Math.PI * 2); ctx.fill();
     ctx.shadowBlur = 0;
-    ctx.fillStyle = 'rgba(7, 9, 13, 0.55)';
+    ctx.fillStyle = 'rgba(18, 17, 15, 0.55)';
     ctx.beginPath(); ctx.arc(p.x, p.y, r * 0.55, 0, Math.PI * 2); ctx.fill();
     // Which way it's heading.
     ctx.fillStyle = '#fff';

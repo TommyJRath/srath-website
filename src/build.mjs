@@ -6,6 +6,8 @@
 //   content/partners.json    suppliers and partners, shown on /partners/ and the home page
 //   content/games.json       browser games; each game's files live in public/games/<slug>/
 //   content/news.json        short news items; the newest recent one is a banner on the home page
+//   content/tools.json       free browser tools (in Danish); markup in content/tools/<slug>.html,
+//                            scripts in public/tools/<slug>/tool.js
 //   content/privacy/*.md     one privacy policy per application (file name = app slug)
 //   public/                  copied verbatim to the site root (app-ads.txt, CNAME, images, ...)
 //   src/styles.css, main.js  published under /assets/
@@ -49,6 +51,7 @@ function loadContent() {
   const partners = fs.existsSync(path.join(CONTENT, 'partners.json')) ? readJson('partners.json') : [];
   const games = fs.existsSync(path.join(CONTENT, 'games.json')) ? readJson('games.json') : [];
   const news = fs.existsSync(path.join(CONTENT, 'news.json')) ? readJson('news.json') : [];
+  const tools = fs.existsSync(path.join(CONTENT, 'tools.json')) ? readJson('tools.json') : [];
   const errors = [];
   const warnings = [];
 
@@ -148,7 +151,24 @@ function loadContent() {
     if (n.url && !/^(\/|https:\/\/)/.test(n.url)) errors.push(`news.json[${i}]: url must start with / or https://`);
   }
 
-  return { site, apps, projects, partners, games, news: Array.isArray(news) ? news : [], policies, errors, warnings };
+  for (const [i, t] of tools.entries()) {
+    for (const field of ['slug', 'name', 'tagline', 'description', 'icon']) {
+      if (!t[field]) errors.push(`tools.json[${i}]: missing required field "${field}".`);
+    }
+    if (t.slug && !SLUG.test(t.slug)) errors.push(`tools.json[${i}]: slug must be lowercase letters, digits and hyphens.`);
+    if (t.tech && !Array.isArray(t.tech)) errors.push(`tools.json[${i}]: "tech" must be a list of strings.`);
+    if (t.slug && !fs.existsSync(path.join(CONTENT, 'tools', `${t.slug}.html`))) {
+      errors.push(`tools.json[${i}]: missing content/tools/${t.slug}.html`);
+    }
+    if (t.slug && !fs.existsSync(path.join(PUBLIC, 'tools', t.slug, 'tool.js'))) {
+      errors.push(`tools.json[${i}]: missing public/tools/${t.slug}/tool.js`);
+    }
+    if (t.icon && t.icon.startsWith('/') && !fs.existsSync(path.join(PUBLIC, t.icon))) {
+      errors.push(`tools.json[${i}]: image not found: public${t.icon}`);
+    }
+  }
+
+  return { site, apps, projects, partners, games, tools, news: Array.isArray(news) ? news : [], policies, errors, warnings };
 }
 
 /**
@@ -273,6 +293,138 @@ function vaultPage({ site, apps, projects, games }, game) {
 }
 
 /** Maps a partners.json entry to the card shape used by projectGrid. */
+/** Maps a tools.json entry to the card shape used by projectGrid, in Danish or English. */
+function toolCard(t, lang = 'da') {
+  const en = lang === 'en';
+  return {
+    name: en ? t.name_en || t.name : t.name,
+    type: en ? 'Free tool' : 'Gratis værktøj',
+    status: en ? 'Use now' : 'Brug nu',
+    description: en ? t.tagline_en || t.tagline : t.tagline,
+    icon: t.icon,
+    url: `/tools/${t.slug}/${en ? '?lang=en' : ''}`,
+    linkLabel: en ? 'Open' : 'Åbn',
+  };
+}
+
+const TOOLS_DISCLAIMER = {
+  da: 'Beregningerne er vejledende og erstatter ikke rådgivning fra en revisor eller Skattestyrelsen.',
+  en: 'The calculations are a guide and do not replace advice from an accountant or the Danish Tax Agency.',
+};
+
+/** Text in both languages: Danish is shown by default, /tools/tools.js swaps to English. */
+function bi(da, en, tag = 'span', attrs = '') {
+  return `<${tag}${attrs} data-en="${esc(en)}">${esc(da)}</${tag}>`;
+}
+/** Two versions of a block; /tools/tools.js shows the one for the chosen language. */
+function biBlock(da, en, tag = 'div', cls = '') {
+  return `<${tag}${cls ? ` class="${cls}"` : ''} data-lang="da" lang="da">${da}</${tag}>\n<${tag}${cls ? ` class="${cls}"` : ''} data-lang="en" lang="en" hidden>${en}</${tag}>`;
+}
+
+const FLAG_DK = '<svg class="lang-flag" viewBox="0 0 37 28" aria-hidden="true"><rect width="37" height="28" fill="#c8102e"/><rect x="12" width="4" height="28" fill="#fff"/><rect y="12" width="37" height="4" fill="#fff"/></svg>';
+const FLAG_GB = '<svg class="lang-flag" viewBox="0 0 60 30" aria-hidden="true"><clipPath id="gb-c"><path d="M0 0v30h60V0z"/></clipPath><clipPath id="gb-t"><path d="M30 15h30v15zv15H0zH0V0zV0h30z"/></clipPath><g clip-path="url(#gb-c)"><path d="M0 0v30h60V0z" fill="#012169"/><path d="M0 0l60 30m0-30L0 30" stroke="#fff" stroke-width="6"/><path d="M0 0l60 30m0-30L0 30" clip-path="url(#gb-t)" stroke="#c8102e" stroke-width="4"/><path d="M30 0v30M0 15h60" stroke="#fff" stroke-width="10"/><path d="M30 0v30M0 15h60" stroke="#c8102e" stroke-width="6"/></g></svg>';
+
+/** The big Dansk / English switch at the top of every tools page. */
+function langSwitch(site, titleDa, titleEn) {
+  return `<div class="lang-switch" role="group" aria-label="Sprog / Language" data-title-da="${esc(`${titleDa} · ${site.name}`)}" data-title-en="${esc(`${titleEn} · ${site.name}`)}">
+      <button type="button" data-set-lang="da" aria-pressed="true" lang="da">${FLAG_DK}<span>Dansk</span></button>
+      <button type="button" data-set-lang="en" aria-pressed="false" lang="en">${FLAG_GB}<span>English</span></button>
+    </div>`;
+}
+
+function toolsIndexPage({ site, tools }) {
+  const titleDa = 'Gratis værktøjer til freelancere og selvstændige';
+  const titleEn = 'Free tools for freelancers and the self-employed';
+  return {
+    path: '/tools/',
+    lang: 'da',
+    title: titleDa,
+    description: 'Gratis momsberegner, timeprisberegner, faktura- og tilbudsgenerator og CVR-opslag på dansk og engelsk. Ingen login, ingen cookies, og dine tal bliver i din browser.',
+    head: `<link rel="stylesheet" href="${versioned('/tools/tools.css')}">`,
+    body: `<section class="page-header">
+  <div class="container">
+    <div class="tool-topbar">
+      <a class="back-link" href="/">${icons.back}${bi('Forside', 'Home')}</a>
+      ${langSwitch(site, titleDa, titleEn)}
+    </div>
+    <h1>${bi(titleDa, titleEn)}</h1>
+    <p class="lead">${bi(
+      'Små værktøjer til dig med enkeltmandsvirksomhed eller freelancearbejde i Danmark. De kører i din browser: ingen login, ingen cookies, og dine tal bliver hos dig.',
+      'Small tools for sole traders and freelancers in Denmark. They run in your browser: no sign-up, no cookies, and your numbers stay with you.',
+    )}</p>
+  </div>
+</section>
+<section class="section section-tight">
+  <div class="container">
+    ${biBlock(projectGrid(tools.map((t) => toolCard(t, 'da'))), projectGrid(tools.map((t) => toolCard(t, 'en'))))}
+    <p class="muted small tools-disclaimer">${bi(TOOLS_DISCLAIMER.da, TOOLS_DISCLAIMER.en)}</p>
+  </div>
+</section>
+<script src="${versioned('/tools/tools.js')}" defer></script>`,
+  };
+}
+
+function toolPage({ site, tools }, tool) {
+  const base = `/tools/${tool.slug}`;
+  const markup = fs.readFileSync(path.join(CONTENT, 'tools', `${tool.slug}.html`), 'utf8');
+  const others = tools.filter((t) => t.slug !== tool.slug);
+  const nameEn = tool.name_en || tool.name;
+  const about = (lang) => {
+    const en = lang === 'en';
+    return `<h2>${en ? `About the ${esc(nameEn.charAt(0).toLowerCase() + nameEn.slice(1))}` : `Om ${esc(tool.name.toLowerCase())}`}</h2>
+    ${paragraphs(en ? tool.description_en || tool.description : tool.description)}
+    ${techStack(en ? tool.tech_en || tool.tech : tool.tech).replace('<h3>Tech stack</h3>', en ? '<h3>How it is built</h3>' : '<h3>Sådan er det bygget</h3>')}
+    <p class="muted small">${TOOLS_DISCLAIMER[lang]}</p>`;
+  };
+  return {
+    path: `${base}/`,
+    lang: 'da',
+    title: tool.name,
+    description: tool.tagline,
+    head: `<link rel="stylesheet" href="${versioned('/tools/tools.css')}">`,
+    jsonLd: {
+      '@context': 'https://schema.org',
+      '@type': 'WebApplication',
+      name: tool.name,
+      alternateName: nameEn,
+      description: tool.tagline,
+      url: `${site.url}${base}/`,
+      inLanguage: ['da', 'en'],
+      applicationCategory: 'BusinessApplication',
+      operatingSystem: 'Web browser',
+      isAccessibleForFree: true,
+      offers: { '@type': 'Offer', price: '0', priceCurrency: 'DKK' },
+      author: { '@type': 'Organization', name: site.name, url: site.url },
+    },
+    body: `<section class="tool-shell">
+  <div class="container">
+    <div class="tool-topbar">
+      <a class="back-link" href="/tools/">${icons.back}${bi('Alle værktøjer', 'All tools')}</a>
+      ${langSwitch(site, tool.name, nameEn)}
+    </div>
+    <h1 class="tool-title">${bi(tool.name, nameEn)}</h1>
+    <p class="lead tool-lead">${bi(tool.tagline, tool.tagline_en || tool.tagline)}</p>
+    <div id="tool" class="tool-root" data-tool="${esc(tool.slug)}">
+${markup.trim()}
+    </div>
+  </div>
+</section>
+<section class="section section-tight tool-about">
+  <div class="container narrow">
+    ${biBlock(about('da'), about('en'), 'div', 'prose')}
+  </div>
+</section>
+${others.length ? `<section class="section section-tight section-alt tool-more">
+  <div class="container">
+    <h2 class="h3">${bi('Flere gratis værktøjer', 'More free tools')}</h2>
+    ${biBlock(projectGrid(others.map((t) => toolCard(t, 'da'))), projectGrid(others.map((t) => toolCard(t, 'en'))))}
+  </div>
+</section>` : ''}
+<script src="${versioned('/tools/tools.js')}" defer></script>
+<script src="${versioned(`${base}/tool.js`)}" defer></script>`,
+  };
+}
+
 function partnerCard(p) {
   return {
     ...p,
@@ -305,29 +457,71 @@ function newsBanner(news) {
 `;
 }
 
-function homePage({ site, apps, projects, partners, games, news }) {
-  const cards = [
-    ...projects,
-    // All games share one card on the home page, so they do not crowd out the apps and the webshop.
-    ...(games.length ? [{
-      name: 'Browser games',
-      type: 'Games',
-      status: games.length === 1 ? 'Play now' : `${games.length} games`,
-      description: games.map((g) => g.name).join(' · '),
-      icon: games[0].icon,
-      url: '/games/',
-      linkLabel: 'Play',
-    }] : []),
-    ...apps.map((app) => ({
-      name: app.name,
-      type: 'Android app',
-      status: app.status || (app.playStoreUrl ? 'On Google Play' : 'Coming soon'),
-      description: app.tagline,
-      icon: app.icon,
-      url: `/apps/${app.slug}/`,
-      linkLabel: 'App details',
-      sample: app.sample,
+/** Data for the hero workbench (/bench.js): true facts for the magnifying glass's tiny print. */
+function benchData({ site, apps, tools, games }) {
+  const notes = [
+    ...apps.map((a) => `${a.name}: ${a.tagline}`),
+    ...tools.map((t) => `${t.name}: ${t.tagline}`),
+    ...games.map((g) => `${g.name}: ${g.tagline}`),
+    ...(site.legal.cvr ? [`CVR ${site.legal.cvr}`] : []),
+    'Danish VAT: add 25 % to a price, or take 20 % out of a total',
+    'Sole proprietorship, registered in Denmark',
+    'Built after work, in spare time',
+    'This website has no cookies and no tracking',
+    'BREACH://: type help to begin',
+  ];
+  return { notes };
+}
+
+/** One row in "What I'm working on". `quiet` greys out the status (not launched yet). */
+function workRow({ kind, name, desc, status, url, quiet = false }) {
+  const external = /^https?:\/\//.test(url || '');
+  const name_ = url
+    ? `<a class="work-name" href="${esc(url)}"${external ? ' rel="noopener noreferrer"' : ''}>${esc(name)}</a>`
+    : `<span class="work-name">${esc(name)}</span>`;
+  return `<li class="work-row">
+        <span class="work-kind">${esc(kind)}</span>
+        <div>${name_}<p class="work-desc">${esc(desc)}</p></div>
+        <span class="work-status${quiet ? ' is-quiet' : ''}">${esc(status)}${url ? (external ? ' ↗' : ' →') : ''}</span>
+      </li>`;
+}
+
+function homePage({ site, apps, projects, partners, games, tools, news }) {
+  const live = apps.filter((a) => a.playStoreUrl);
+  const coming = apps.filter((a) => !a.playStoreUrl);
+  const appRow = (app) => workRow({
+    kind: 'Android app',
+    name: app.name,
+    desc: app.tagline,
+    status: app.playStoreUrl ? 'On Google Play' : app.status || 'Coming soon',
+    url: `/apps/${app.slug}/`,
+    quiet: !app.playStoreUrl,
+  });
+  const rows = [
+    ...live.map(appRow),
+    ...(tools.length ? [workRow({
+      kind: 'Free tools',
+      name: 'Tools for freelancers in Denmark',
+      desc: `${tools.map((t) => t.name_en || t.name).join(', ')}. In Danish and English.`,
+      status: 'Use them',
+      url: '/tools/',
+    })] : []),
+    ...coming.map(appRow),
+    ...projects.map((p) => workRow({
+      kind: p.type,
+      name: p.name,
+      desc: p.description,
+      status: p.status || p.linkLabel || 'Visit',
+      url: p.url,
+      quiet: Boolean(p.status && /soon|coming/i.test(p.status)),
     })),
+    ...(games.length ? [workRow({
+      kind: 'Browser games',
+      name: games.length === 1 ? 'A browser game' : `${['', '', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine'][games.length] || games.length} small browser games`,
+      desc: games.map((g) => g.name).join(', '),
+      status: 'Play',
+      url: '/games/',
+    })] : []),
   ];
   const facts = [
     site.legal.owner && ['Owner', esc(site.legal.owner)],
@@ -352,39 +546,31 @@ function homePage({ site, apps, projects, partners, games, news }) {
         founder: { '@type': 'Person', name: site.legal.owner, ...(site.linkedin && { sameAs: [site.linkedin] }) },
       }),
     },
-    body: `${newsBanner(news)}<section class="hero">
-  <div class="hero-bg" aria-hidden="true"></div>
-  <div class="hero-spot" aria-hidden="true"></div>
+    body: `${newsBanner(news)}<section class="hero" data-bench="${esc(JSON.stringify(benchData({ site, apps, tools, games })))}">
   <div class="container hero-inner">
-    <p class="eyebrow enter">${esc(site.name)} · ${esc(site.legal.country)}</p>
-    <h1 class="hero-title enter">A small business for <span class="gradient-text">independent projects</span>.</h1>
-    <p class="lead enter">${esc(site.name)} is the Danish sole proprietorship of ${esc(site.legal.owner || site.name)}: the home of the upcoming webshop Baiganyo and of Android apps built in spare time.</p>
-    <div class="actions enter">
-      <a class="btn btn-primary" href="#projects">See projects ${icons.arrow}</a>
-      <a class="btn btn-ghost" href="/contact/">Get in touch</a>
+    <h1 class="hero-title">I build apps and tools after work. <span class="accent">Some of them ship.</span></h1>
+    <p class="label hero-byline">${esc(site.legal.owner || site.name)} · software developer · ${esc(site.legal.country)}</p>
+    <p class="lead">${esc(site.name)} is my sole proprietorship. It's where my Android apps live, along with free tools for freelancers in Denmark, a few browser games and Baiganyo, a webshop I'm opening.</p>
+    <div class="actions">
+      <a class="btn btn-primary" href="#projects">See what I've made</a>
+      ${site.email ? emailLink(site, { className: 'btn btn-ghost', label: 'Email me' }) : '<a class="btn btn-ghost" href="/contact/">Contact</a>'}
     </div>
   </div>
 </section>
 
 <section class="section" id="projects" aria-labelledby="projects-heading">
   <div class="container">
-    <div class="section-head">
-      <div>
-        <p class="eyebrow">Projects</p>
-        <h2 id="projects-heading">What ${esc(site.name)} is working on</h2>
-      </div>
-    </div>
-    ${projectGrid(cards)}
+    <h2 id="projects-heading">What I'm working on</h2>
+    <ul class="work-list">
+      ${rows.join('\n      ')}
+    </ul>
   </div>
 </section>
 ${partners.length ? `
 <section class="section section-tight" aria-labelledby="partners-heading">
   <div class="container">
     <div class="section-head">
-      <div>
-        <p class="eyebrow">Partners</p>
-        <h2 id="partners-heading">Suppliers and partners</h2>
-      </div>
+      <h2 id="partners-heading">Suppliers and partners</h2>
       <a class="text-link" href="/partners/">All partners ${icons.arrow}</a>
     </div>
     ${projectGrid(partners.slice(0, 6).map(partnerCard))}
@@ -394,11 +580,10 @@ ${partners.length ? `
 <section class="section section-alt" aria-labelledby="about-heading">
   <div class="container about">
     <div class="prose">
-      <p class="eyebrow">About</p>
-      <h2 id="about-heading">The person behind ${esc(site.name)}</h2>
+      <h2 id="about-heading">About me</h2>
       ${renderMarkdown(site.about || '').html}
     </div>
-    <aside class="card info-card reveal" aria-label="Business details">
+    <aside class="card info-card" aria-label="Business details">
       <h3 class="info-title">Business details</h3>
       <dl class="info-list">
         ${facts.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('\n        ')}
@@ -410,17 +595,18 @@ ${partners.length ? `
 
 <section class="section" aria-labelledby="contact-heading">
   <div class="container">
-    <div class="card cta reveal">
+    <div class="card cta">
       <div>
-        <h2 id="contact-heading">Get in touch</h2>
-        <p class="muted">Questions about the webshop, an app or anything else? Send an email.</p>
+        <h2 id="contact-heading">Write to me</h2>
+        <p class="muted">A question about an app, the tools or the webshop, or something else entirely? Send me an email.</p>
       </div>
       <div class="cta-actions">
         ${site.email ? emailLink(site, { className: 'btn btn-primary', label: `${icons.mail}${esc(site.email)}` }) : '<a class="btn btn-primary" href="/contact/">Contact</a>'}
       </div>
     </div>
   </div>
-</section>`,
+</section>
+<script src="${versioned('/bench.js')}" defer></script>`,
   };
 }
 
@@ -515,10 +701,10 @@ ${screenshots.length || app.video ? `<section class="section section-tight" aria
   };
 }
 
-function privacyIndexPage({ site, apps, policies, games }) {
+function privacyIndexPage({ site, apps, policies, games, tools }) {
   const rows = apps.map((app) => {
     const policy = policies.get(app.slug);
-    return `<li class="card policy-row reveal">
+    return `<li class="card policy-row">
       <img class="app-icon" src="${esc(app.icon)}" alt="" width="44" height="44" loading="lazy">
       <div class="policy-row-text">
         <a class="policy-row-link" href="/privacy/${app.slug}/">${esc(app.name)} — Privacy policy</a>
@@ -546,10 +732,12 @@ function privacyIndexPage({ site, apps, policies, games }) {
 <section class="section section-tight" aria-labelledby="website">
   <div class="container narrow prose">
     <h2 id="website">This website</h2>
-    <p>This website does not use cookies, analytics, advertising or other tracking scripts, and it does not load fonts or other resources from third parties.</p>
+    <p>This website does not use cookies, analytics, advertising or other tracking scripts, and it does not load fonts or other resources from third parties${tools.some((t) => t.slug === 'cvr-opslag') ? ' (the one exception is the CVR lookup, described below)' : ''}.</p>
     ${games.length ? '<p>The browser games save your progress and statistics in your own browser (local storage) so you can continue where you left off. You can delete it by clearing the site data for srath.dk in your browser.</p>\n' : ''}    <p>The website is hosted on GitHub Pages, a service provided by GitHub, Inc. When you visit the site, GitHub processes technical information such as your IP address in order to deliver the pages and keep the service secure. See the <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement" rel="noopener noreferrer">GitHub General Privacy Statement</a> for details.</p>
     ${games.some((g) => g.relay) ? `<p id="online-games">Some games can be played online with other people. Only when you create or join an online game, your browser connects to a small relay that runs on Cloudflare Workers, a service provided by Cloudflare, Inc. Cloudflare processes technical information such as your IP address in order to deliver the connection and keep the service secure. The relay only passes game messages between the players in the same game: steering, positions, and the name and colour each player chooses in the lobby. It does not store them, and there are no accounts or chat. The name you type is also remembered in your own browser for next time. Other players do not see your IP address. See the <a href="https://www.cloudflare.com/privacypolicy/" rel="noopener noreferrer">Cloudflare Privacy Policy</a> for details.</p>
     <p id="game-rankings">When you finish Gridword or BREACH://, your result is sent to the same Cloudflare service so the game can show how you rank against other players: for Gridword the number of guesses, your solving time and your streak; for BREACH:// your time and number of commands. Only anonymous counts are stored (for example, how many players solved today's Gridword in four guesses), never anything that identifies you: no names, no IP addresses and no device identifiers. Your IP address is processed by Cloudflare to deliver the request and is held briefly in memory to limit abuse. Gridword's daily counts are deleted two days later.</p>
+` : ''}${tools.length ? `    <p id="tools">The free tools under <a href="/tools/">/tools/</a> do their calculations in your own browser. Nothing you type is sent to ${esc(site.name)}. The invoice and quote generator can remember your own business details and the next invoice number in your browser (local storage), but only if you tick "Husk mine oplysninger" ("Remember my details"); untick it to delete them.</p>
+` : ''}${tools.some((t) => t.slug === 'cvr-opslag') ? `    <p id="cvr-lookup">Only when you search in the CVR lookup, your browser sends the search text directly to CVR API (cvrapi.dk), an independent service that provides data from the Danish Central Business Register. CVR API processes technical information such as your IP address in order to answer the request and to enforce its daily limit on free lookups. ${esc(site.name)} does not receive or store your searches.</p>
 ` : ''}    <p>If you contact ${esc(site.name)} by email, your message and address are used only to respond to your enquiry. Contact: ${emailLink(site)}.</p>
   </div>
 </section>`,
@@ -655,13 +843,13 @@ function contactPage({ site, apps }) {
     })}
 <section class="section section-tight">
   <div class="container contact-grid">
-    <div class="card contact-card reveal">
+    <div class="card contact-card">
       <span class="feature-icon">${icons.mail}</span>
       <h2>Email</h2>
       <p class="contact-email">${emailLink(site)}</p>
       <p class="muted small">If your message concerns a specific app, please include the app name and, for bug reports, your device model and Android version.</p>
     </div>
-    <div class="card contact-card reveal">
+    <div class="card contact-card">
       <span class="feature-icon">${icons.shield}</span>
       <h2>Privacy requests</h2>
       <p class="muted small">To exercise your rights under the GDPR for one of the apps, email the address above with the app name in the subject. Each app's privacy policy describes what applies to it.</p>
@@ -750,7 +938,7 @@ export function build({ quiet = false } = {}) {
   fs.cpSync(PUBLIC, DIST, { recursive: true });
 
   const assets = { css: publishAsset('styles.css'), js: publishAsset('main.js') };
-  const ctx = { site: content.site, assets, hasPartners: content.partners.length > 0, hasGames: content.games.length > 0 };
+  const ctx = { site: content.site, assets, hasPartners: content.partners.length > 0, hasGames: content.games.length > 0, hasTools: content.tools.length > 0 };
 
   const pages = [
     homePage(content),
@@ -760,6 +948,7 @@ export function build({ quiet = false } = {}) {
     ...content.apps.map((app) => privacyPage(content, app, content.policies.get(app.slug))),
     ...(content.games.length ? [gamesIndexPage(content), ...content.games.map((g) => gamePage(content, g))] : []),
     ...content.games.filter((g) => g.vault).map((g) => vaultPage(content, g)),
+    ...(content.tools.length ? [toolsIndexPage(content), ...content.tools.map((t) => toolPage(content, t))] : []),
     partnersPage(content),
     contactPage(content),
     notFoundPage(),

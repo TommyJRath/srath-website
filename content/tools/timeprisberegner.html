@@ -1,0 +1,79 @@
+<div class="tl-grid">
+  <div class="card">
+    <p class="tl-card-title" data-en="What you want out of it">Det vil du have ud af det</p>
+    <div class="tl-fields">
+      <label class="tl-field">
+        <span data-en="Take-home pay per month after tax">Udbetalt pr. måned efter skat</span>
+        <span class="tl-affix" data-suffix="kr."><input id="tp-net" class="tl-input tl-input-big" inputmode="decimal" autocomplete="off" value="30000"></span>
+      </label>
+      <label class="tl-field">
+        <span><span data-en="Business expenses per year">Udgifter til virksomheden pr. år</span> <span class="tl-hint" data-en="· without VAT: equipment, software, insurance, accountant, car …">· uden moms: udstyr, software, forsikring, revisor, bil …</span></span>
+        <span class="tl-affix" data-suffix="kr."><input id="tp-exp" class="tl-input" inputmode="decimal" autocomplete="off" value="40000"></span>
+      </label>
+    </div>
+
+    <p class="tl-card-title" data-en="Your time">Din tid</p>
+    <div class="tl-fields tl-fields-2">
+      <label class="tl-field">
+        <span data-en="Working hours per week">Arbejdstimer pr. uge</span>
+        <input id="tp-hours" class="tl-input" inputmode="decimal" autocomplete="off" value="37">
+      </label>
+      <label class="tl-field">
+        <span><span data-en="Holidays and public holidays">Ferie og helligdage</span> <span class="tl-hint" data-en="· weeks per year">· uger pr. år</span></span>
+        <input id="tp-weeks" class="tl-input" inputmode="decimal" autocomplete="off" value="7">
+      </label>
+      <label class="tl-field">
+        <span><span data-en="Sickness">Sygdom</span> <span class="tl-hint" data-en="· days per year">· dage pr. år</span></span>
+        <input id="tp-sick" class="tl-input" inputmode="decimal" autocomplete="off" value="5">
+      </label>
+      <label class="tl-field">
+        <span><span data-en="Billable share">Fakturerbar andel</span> <span class="tl-hint" data-en="· the rest is admin and sales">· resten er admin og salg</span></span>
+        <span class="tl-affix" data-suffix="%"><input id="tp-share" class="tl-input" inputmode="decimal" autocomplete="off" value="70"></span>
+      </label>
+    </div>
+
+    <p class="tl-card-title" data-en="Tax">Skat</p>
+    <div class="tl-fields tl-fields-2">
+      <label class="tl-field">
+        <span><span data-en="Municipal tax">Kommuneskat</span> <span class="tl-hint" data-en-html="· &lt;a href=&quot;https://svmn.dk/tal-og-metode/satser/oversigt-over-kommuneskatter&quot; rel=&quot;noopener noreferrer&quot;&gt;find your municipality’s rate&lt;/a&gt;">· <a href="https://svmn.dk/tal-og-metode/satser/oversigt-over-kommuneskatter" rel="noopener noreferrer">find din kommunes sats</a></span></span>
+        <span class="tl-affix" data-suffix="%"><input id="tp-kom" class="tl-input" inputmode="decimal" autocomplete="off" value="25"></span>
+      </label>
+      <label class="tl-field">
+        <span><span data-en="Church tax">Kirkeskat</span> <span class="tl-hint" data-en="· 0 if you are not a member">· 0 hvis du ikke er medlem</span></span>
+        <span class="tl-affix" data-suffix="%"><input id="tp-kirke" class="tl-input" inputmode="decimal" autocomplete="off" value="0"></span>
+      </label>
+    </div>
+  </div>
+
+  <div class="card tl-sticky" aria-live="polite">
+    <div class="tl-hero">
+      <p class="tl-hero-label" data-en="Your hourly rate should be at least">Din timepris skal være mindst</p>
+      <p class="tl-hero-value" id="tp-rate">–</p>
+      <p class="tl-hero-sub" id="tp-rate-inc">–</p>
+    </div>
+    <p class="tl-error" id="tp-error" hidden></p>
+    <div class="tl-bar" id="tp-bar" aria-hidden="true">
+      <span style="background:#e8a33d"></span><span style="background:#8a8272"></span><span style="background:#c0603a"></span>
+    </div>
+    <ul class="tl-legend">
+      <li><i style="background:#e8a33d"></i><span data-en="For you">Til dig</span></li>
+      <li><i style="background:#8a8272"></i><span data-en="Tax">Skat</span></li>
+      <li><i style="background:#c0603a"></i><span data-en="Expenses">Udgifter</span></li>
+    </ul>
+    <dl class="tl-result">
+      <div><dt data-en="Billable hours per year">Fakturerbare timer pr. år</dt><dd id="tp-billable">–</dd></div>
+      <div><dt><span data-en="Revenue per year">Omsætning pr. år</span> <span class="tl-hint" data-en="without VAT">uden moms</span></dt><dd id="tp-revenue">–</dd></div>
+      <div><dt data-en="− Expenses">− Udgifter</dt><dd id="tp-r-exp">–</dd></div>
+      <div><dt data-en="= Profit before tax">= Overskud før skat</dt><dd id="tp-profit">–</dd></div>
+      <div class="tl-sub"><dt data-en="Labour market contribution 8 %">Arbejdsmarkedsbidrag 8 %</dt><dd id="tp-am">–</dd></div>
+      <div class="tl-sub"><dt id="tp-bund-label"></dt><dd id="tp-bund">–</dd></div>
+      <div class="tl-sub"><dt id="tp-kom-label"></dt><dd id="tp-komskat">–</dd></div>
+      <div class="tl-sub" id="tp-row-kirke"><dt data-en="Church tax">Kirkeskat</dt><dd id="tp-kirkeskat">–</dd></div>
+      <div class="tl-sub" id="tp-row-mellem"><dt data-en="Middle tax (mellemskat)">Mellemskat</dt><dd id="tp-mellem">–</dd></div>
+      <div class="tl-sub" id="tp-row-top"><dt data-en="Top tax and top-top tax">Topskat og toptopskat</dt><dd id="tp-top">–</dd></div>
+      <div><dt><span data-en="− Total tax">− Skat i alt</span> <span class="tl-hint" id="tp-taxpct"></span></dt><dd id="tp-tax">–</dd></div>
+      <div class="tl-total"><dt data-en="= Take-home per year">= Udbetalt pr. år</dt><dd id="tp-netyear">–</dd></div>
+    </dl>
+    <p class="tl-note" id="tp-note"></p>
+  </div>
+</div>

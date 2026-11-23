@@ -1,0 +1,68 @@
+<div class="inv-layout">
+  <form class="inv-form card" id="inv-form" autocomplete="on">
+    <div class="tl-fields">
+      <div class="tl-seg" role="group" aria-label="Dokumenttype" data-en-aria-label="Document type">
+        <button type="button" data-doc="faktura" aria-pressed="true" data-en="Invoice">Faktura</button>
+        <button type="button" data-doc="tilbud" aria-pressed="false" data-en="Quote">Tilbud</button>
+      </div>
+    </div>
+
+    <p class="tl-card-title" style="margin-top:24px" data-en="You">Dig</p>
+    <div class="tl-fields tl-fields-2">
+      <label class="tl-field"><span data-en="Business name">Firmanavn</span><input class="tl-input" data-f="sName" autocomplete="organization" placeholder="Dit firma" data-en-placeholder="Your business"></label>
+      <label class="tl-field"><span data-en="CVR number">CVR-nummer</span><input class="tl-input" data-f="sCvr" inputmode="numeric" placeholder="12345678"></label>
+      <label class="tl-field"><span data-en="Address">Adresse</span><textarea class="tl-textarea" data-f="sAddr" rows="2" placeholder="Vejnavn 1&#10;1234 By" data-en-placeholder="Street 1&#10;1234 Town"></textarea></label>
+      <div class="tl-fields">
+        <label class="tl-field"><span data-en="Email">E-mail</span><input class="tl-input" data-f="sEmail" type="email" autocomplete="email"></label>
+        <label class="tl-field"><span data-en="Phone">Telefon</span><input class="tl-input" data-f="sPhone" type="tel" autocomplete="tel"></label>
+      </div>
+    </div>
+    <div class="tl-fields" style="margin-top:14px">
+      <label class="tl-field"><span><span data-en="Payment details">Betalingsoplysninger</span> <span class="tl-hint" data-en="· for example bank sort code and account number, or MobilePay">· fx reg.nr. og kontonummer eller MobilePay</span></span><textarea class="tl-textarea" data-f="sPay" rows="2" placeholder="Bank: Reg.nr. 1234 · Konto 1234567890" data-en-placeholder="Bank: Reg. no. 1234 · Account 1234567890"></textarea></label>
+      <label class="tl-check"><input type="checkbox" id="inv-remember"> <span data-en="Remember my details and the next number in this browser">Husk mine oplysninger og næste nummer i denne browser</span></label>
+    </div>
+
+    <p class="tl-card-title" style="margin-top:28px" data-en="The customer">Kunden</p>
+    <div class="tl-fields tl-fields-2">
+      <label class="tl-field"><span data-en="Name">Navn</span><input class="tl-input" data-f="bName" placeholder="Kundens navn" data-en-placeholder="Customer name"></label>
+      <label class="tl-field"><span><span data-en="CVR number">CVR-nummer</span> <span class="tl-hint" data-en="· if a business">· hvis erhverv</span></span><input class="tl-input" data-f="bCvr" inputmode="numeric"></label>
+      <label class="tl-field"><span data-en="Address">Adresse</span><textarea class="tl-textarea" data-f="bAddr" rows="2"></textarea></label>
+      <label class="tl-field"><span data-en="Attn. / reference">Att. / reference</span><input class="tl-input" data-f="bRef"></label>
+    </div>
+    <p class="tl-note" data-en-html="Only know the name or the CVR number? &lt;a href=&quot;/tools/cvr-opslag/?lang=en&quot;&gt;Look up the address in CVR&lt;/a&gt;.">Kender du kun navnet eller CVR-nummeret? <a href="/tools/cvr-opslag/">Slå adressen op i CVR</a>.</p>
+
+    <p class="tl-card-title" style="margin-top:28px" id="inv-meta-title"></p>
+    <div class="tl-fields tl-fields-3">
+      <label class="tl-field"><span id="inv-no-label"></span><input class="tl-input" data-f="no" inputmode="numeric" value="1"></label>
+      <label class="tl-field"><span data-en="Date">Dato</span><input class="tl-input" data-f="date" type="date"></label>
+      <label class="tl-field" id="inv-f-delivery"><span data-en="Delivery date">Leveringsdato</span><input class="tl-input" data-f="delivery" type="date"></label>
+      <label class="tl-field" id="inv-f-terms"><span><span data-en="Payment terms">Betalingsfrist</span> <span class="tl-hint" data-en="· days">· dage</span></span><input class="tl-input" data-f="terms" inputmode="numeric" value="14"></label>
+      <label class="tl-field" id="inv-f-valid" hidden><span><span data-en="Quote valid for">Tilbuddet gælder</span> <span class="tl-hint" data-en="· days">· dage</span></span><input class="tl-input" data-f="valid" inputmode="numeric" value="30"></label>
+    </div>
+
+    <p class="tl-card-title" style="margin-top:28px"><span data-en="Lines">Linjer</span> <span class="tl-hint" style="text-transform:none;letter-spacing:0" data-en="· prices without VAT">· priser uden moms</span></p>
+    <div class="tl-rows">
+      <div class="tl-row inv-line tl-row-head" aria-hidden="true"><span data-en="Description">Beskrivelse</span><span class="tl-num" data-en="Qty">Antal</span><span class="tl-num" data-en="Unit price">Pris pr. stk.</span><span></span></div>
+      <div id="inv-lines" class="tl-rows"></div>
+    </div>
+    <div class="tl-actions" style="margin-top:10px">
+      <button type="button" class="btn btn-ghost tl-btn-sm" id="inv-add" data-en="+ Add line">+ Tilføj linje</button>
+    </div>
+
+    <div class="tl-fields" style="margin-top:22px">
+      <label class="tl-check"><input type="checkbox" id="inv-vat" checked> <span data-en="VAT-registered: add 25 % VAT">Momsregistreret: læg 25 % moms til</span></label>
+      <label class="tl-field"><span><span data-en="Note">Bemærkning</span> <span class="tl-hint" data-en="· shown at the bottom">· vises nederst</span></span><textarea class="tl-textarea" data-f="note" rows="2" placeholder="Tak for samarbejdet." data-en-placeholder="Thank you for your business."></textarea></label>
+    </div>
+
+    <div class="tl-actions">
+      <button type="button" class="btn btn-primary" id="inv-print" data-en="Save as PDF">Gem som PDF</button>
+      <button type="button" class="btn btn-ghost" id="inv-new"></button>
+    </div>
+    <p class="tl-note" data-en-html="&quot;Save as PDF&quot; opens your browser’s print dialog. Choose &lt;strong&gt;Save as PDF&lt;/strong&gt; as the printer. &quot;New invoice&quot; clears the customer and the lines and moves on to the next number.">"Gem som PDF" åbner browserens udskriftsdialog. Vælg <strong>Gem som PDF</strong> som printer. "Ny faktura" tømmer kunden og linjerne og går videre til næste nummer.</p>
+  </form>
+
+  <div class="inv-preview-wrap">
+    <p class="tl-card-title inv-preview-title" data-en="Preview">Forhåndsvisning</p>
+    <div class="inv-paper" id="inv-paper"></div>
+  </div>
+</div>

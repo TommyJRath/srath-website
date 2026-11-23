@@ -1,0 +1,10 @@
+<div class="card" style="max-width:820px">
+  <form class="cvr-form" id="cvr-form" role="search">
+    <label class="sr-only" for="cvr-q" data-en="CVR number, P-number or company name">CVR-nummer, P-nummer eller firmanavn</label>
+    <input id="cvr-q" class="tl-input tl-input-big" placeholder="CVR-nummer eller firmanavn" data-en-placeholder="CVR number or company name" autocomplete="off" enterkeyhint="search" maxlength="120" required>
+    <button class="btn btn-primary" type="submit" id="cvr-go" data-en="Search">Søg</button>
+  </form>
+  <p class="tl-note" data-en-html="When you click Search, your browser sends the search directly to CVR API (cvrapi.dk). There are 50 free lookups a day per internet connection. &lt;a href=&quot;/privacy/#cvr-lookup&quot;&gt;About privacy&lt;/a&gt;.">Når du klikker på Søg, sender din browser søgningen direkte til CVR API (cvrapi.dk). Der er 50 gratis opslag om dagen pr. internetforbindelse. <a href="/privacy/#cvr-lookup">Om privatliv</a>.</p>
+  <p class="tl-error" id="cvr-error" role="alert" hidden></p>
+  <ul class="cvr-list" id="cvr-results" aria-live="polite"></ul>
+</div>

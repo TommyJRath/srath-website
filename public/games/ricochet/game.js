@@ -28,8 +28,8 @@
   try { localStorage.removeItem('ricochet:streaks'); } catch (e) { /* the win streaks that used to be ranked */ }
 
   var COLORS = [
-    { name: 'Teal', hex: '#2dd4bf' }, { name: 'Indigo', hex: '#818cf8' }, { name: 'Amber', hex: '#fbbf24' },
-    { name: 'Pink', hex: '#f472b6' }, { name: 'Sky', hex: '#38bdf8' }, { name: 'Lime', hex: '#a3e635' },
+    { name: 'Orange', hex: '#e8a33d' }, { name: 'Blue', hex: '#7aa7d6' }, { name: 'Green', hex: '#93b86e' },
+    { name: 'Red', hex: '#d4573f' }, { name: 'Purple', hex: '#b784b0' }, { name: 'White', hex: '#e3d6bb' },
   ];
 
   // Mazes: a new one is built every round. loops: share of extra walls removed, so there are several ways round.
@@ -49,7 +49,7 @@
     jam: { kind: 'others', label: 'Jam', glyph: '⊘', desc: 'nobody else can fire for a moment' },
     collapse: { kind: 'arena', label: 'Collapse', glyph: '✕', desc: 'knocks a few walls down' },
   };
-  var KIND_COLORS = { self: '#2dd4bf', others: '#fb7185', arena: '#fbbf24' };
+  var KIND_COLORS = { self: '#93b86e', others: '#d4573f', arena: '#7aa7d6' };
   var LASER_TIME = 10, SHIELD_TIME = 15, JAM_TIME = 3;
   var CRATE = 11, CRATE_EVERY = [4, 8], CRATE_MAX = 2, CRATE_LIFE = 14;
 
@@ -641,11 +641,11 @@
   function destroyEffect(p, by) {
     for (var i = 0; i < 34; i++) {
       var a = Math.random() * Math.PI * 2, sp = rand(40, 300);
-      particles.push({ x: p.x, y: p.y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: rand(0.3, 0.9), color: i % 3 ? p.color : '#fbbf24' });
+      particles.push({ x: p.x, y: p.y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: rand(0.3, 0.9), color: i % 3 ? p.color : '#e8a33d' });
     }
     particles.push({ ring: true, x: p.x, y: p.y, r: 6, life: 0.5, color: p.color });
     var text = !by ? who(p) + ' left' : by === p ? who(p) + (isMe(p) ? ' hit yourself' : ' hit itself') : who(by) + ' ✕ ' + who(p);
-    particles.push({ text: text, x: p.x, y: p.y - 24, vx: 0, vy: -24, life: 1.5, color: !by || by === p ? '#9aa3b5' : by.color });
+    particles.push({ text: text, x: p.x, y: p.y - 24, vx: 0, vy: -24, life: 1.5, color: !by || by === p ? '#a39b8b' : by.color });
     live.textContent = text + '.';
     shake = 8;
     tone(110, 0.45, 'sawtooth', 0.08, 40);
@@ -699,7 +699,7 @@
       maze[w[0]][w[1]][w[2]] = false;
       var x = w[0] === 'v' ? maze.ox + w[2] * maze.S : maze.ox + (w[2] + 0.5) * maze.S;
       var y = w[0] === 'v' ? maze.oy + (w[1] + 0.5) * maze.S : maze.oy + w[1] * maze.S;
-      for (var i = 0; i < 6; i++) particles.push({ x: x + rand(-maze.S / 3, maze.S / 3) * (w[0] === 'h'), y: y + rand(-maze.S / 3, maze.S / 3) * (w[0] === 'v'), vx: rand(-60, 60), vy: rand(-60, 60), life: rand(0.3, 0.7), color: '#64748b' });
+      for (var i = 0; i < 6; i++) particles.push({ x: x + rand(-maze.S / 3, maze.S / 3) * (w[0] === 'h'), y: y + rand(-maze.S / 3, maze.S / 3) * (w[0] === 'v'), vx: rand(-60, 60), vy: rand(-60, 60), life: rand(0.3, 0.7), color: '#8a8272' });
     });
     rebuildWalls(maze);
     emit(['c', encodeMaze()]);
@@ -789,7 +789,7 @@
 
   function roundEnded(winner) {
     roundMessage = winner ? who(winner) + (isMe(winner) ? ' win the round' : ' wins the round') : 'Nobody survives';
-    roundColor = winner ? winner.color : '#9aa3b5';
+    roundColor = winner ? winner.color : '#a39b8b';
     live.textContent = roundMessage + '.';
     if (winner && !winner.bot && (!net || isMe(winner))) tone(784, 0.25, 'triangle', 0.08, 1046);
     renderScores();
@@ -836,11 +836,11 @@
 
     if (!maze) maze = buildMaze('classic');
     // Floor and walls.
-    ctx.fillStyle = 'rgba(18, 23, 34, 0.75)';
+    ctx.fillStyle = 'rgba(30, 27, 23, 0.75)';
     ctx.fillRect(maze.ox, maze.oy, maze.cols * maze.S, maze.rows * maze.S);
-    ctx.shadowColor = '#2dd4bf';
+    ctx.shadowColor = 'rgba(217, 204, 176, 0.45)';
     ctx.shadowBlur = 10 + wallFlash * 20;
-    ctx.fillStyle = wallFlash ? 'rgba(' + Math.round(94 + 140 * wallFlash) + ', 234, 212, 0.9)' : '#5eead4';
+    ctx.fillStyle = wallFlash ? 'rgba(' + Math.round(217 + 38 * wallFlash) + ', ' + Math.round(204 + 51 * wallFlash) + ', ' + Math.round(176 + 79 * wallFlash) + ', 0.95)' : '#d9ccb0';
     ctx.globalAlpha = 0.85;
     maze.rects.forEach(function (q) { ctx.fillRect(q.x, q.y, q.w, q.h); });
     ctx.globalAlpha = 1;
@@ -871,7 +871,7 @@
     // Shots: a bright core with a short streak and the shooter's colour as glow.
     shots.forEach(function (s) {
       if (s.age > SHOT_LIFE - 1 && Math.floor(time * 10) % 2) return;
-      var owner = s.owner || { color: '#f8fafc' };
+      var owner = s.owner || { color: '#f4efe4' };
       ctx.strokeStyle = owner.color;
       ctx.globalAlpha = 0.5;
       ctx.lineWidth = 3;
@@ -879,7 +879,7 @@
       ctx.globalAlpha = s.phase > 0 ? 0.6 : 1;
       ctx.shadowColor = owner.color;
       ctx.shadowBlur = 10;
-      ctx.fillStyle = '#f8fafc';
+      ctx.fillStyle = '#f4efe4';
       ctx.beginPath(); ctx.arc(s.x, s.y, SHOT_R, 0, Math.PI * 2); ctx.fill();
       ctx.shadowBlur = 0;
       ctx.globalAlpha = 1;
@@ -910,23 +910,23 @@
     ctx.setTransform(scale * dpr, 0, 0, scale * dpr, 0, 0);
     ctx.textAlign = 'center';
     if (phase === 'ready') {
-      ctx.fillStyle = 'rgba(7, 9, 13, 0.6)';
+      ctx.fillStyle = 'rgba(18, 17, 15, 0.6)';
       ctx.fillRect(W / 2 - 170, H / 2 - 92, 340, 160);
-      ctx.fillStyle = '#e7e9ee';
+      ctx.fillStyle = '#ece6d8';
       ctx.font = '800 24px system-ui, sans-serif';
       ctx.fillText(MAZES[mazeKind].label, W / 2, H / 2 - 56);
-      ctx.fillStyle = '#9aa3b5';
+      ctx.fillStyle = '#a39b8b';
       ctx.font = '600 15px system-ui, sans-serif';
       ctx.fillText(MAZES[mazeKind].desc, W / 2, H / 2 - 34);
-      ctx.fillStyle = '#e7e9ee';
+      ctx.fillStyle = '#ece6d8';
       ctx.font = '800 50px system-ui, sans-serif';
       ctx.fillText(String(Math.max(1, Math.ceil(readyTime / 0.7))), W / 2, H / 2 + 22);
       ctx.font = '600 15px system-ui, sans-serif';
-      ctx.fillStyle = '#9aa3b5';
+      ctx.fillStyle = '#a39b8b';
       ctx.fillText('Round ' + round + '  ·  first to ' + target, W / 2, H / 2 + 52);
     }
     if (phase === 'roundover') {
-      ctx.fillStyle = 'rgba(7, 9, 13, 0.6)';
+      ctx.fillStyle = 'rgba(18, 17, 15, 0.6)';
       ctx.fillRect(W / 2 - 220, H / 2 - 36, 440, 56);
       ctx.fillStyle = roundColor;
       ctx.font = '800 30px system-ui, sans-serif';
@@ -941,12 +941,12 @@
     ctx.shadowColor = p.color;
     ctx.shadowBlur = 12;
     // Tracks, body, turret and barrel.
-    ctx.fillStyle = 'rgba(7, 9, 13, 0.85)';
+    ctx.fillStyle = 'rgba(18, 17, 15, 0.85)';
     ctx.fillRect(-13, -12, 26, 5); ctx.fillRect(-13, 7, 26, 5);
     ctx.fillStyle = p.color;
     ctx.fillRect(-11, -9, 22, 18);
     ctx.shadowBlur = 0;
-    ctx.fillStyle = 'rgba(7, 9, 13, 0.45)';
+    ctx.fillStyle = 'rgba(18, 17, 15, 0.45)';
     ctx.beginPath(); ctx.arc(0, 0, 6.5, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = p.color;
     ctx.fillRect(2, -2.5, 16, 5);
@@ -989,7 +989,7 @@
     var s = CRATE * (1 + 0.06 * Math.sin(time * 4 + k.x));
     ctx.shadowColor = color;
     ctx.shadowBlur = 14;
-    ctx.fillStyle = '#0b0d12';
+    ctx.fillStyle = '#171512';
     ctx.strokeStyle = color;
     ctx.lineWidth = 2.5;
     ctx.beginPath();

@@ -1,0 +1,82 @@
+[
+  {
+    "slug": "momsberegner",
+    "name": "Momsberegner",
+    "name_en": "VAT calculator",
+    "tagline": "Læg 25 % moms til et beløb, eller træk momsen ud af et beløb inkl. moms.",
+    "tagline_en": "Add 25 % Danish VAT (moms) to an amount, or take the VAT out of an amount that includes it.",
+    "description": "Skriv et beløb, og vælg om det er uden eller med moms. Du får beløbet uden moms, selve momsen og beløbet med moms med det samme.\n\nDen danske momssats er 25 %. Momsen af et beløb uden moms er altså 25 % af beløbet, mens momsen i et beløb med moms er 20 % af beløbet (fordi 25/125 = 20 %). Det er den regel, der oftest giver fejl i fakturaer og regnskaber, så beregneren viser begge veje.\n\nDu kan også beregne flere linjer på én gang, fx alle udgifter fra en måned, og få summen af momsen.",
+    "description_en": "Type an amount and choose whether it is without or with VAT. You get the amount without VAT, the VAT itself and the amount with VAT straight away.\n\nThe Danish VAT rate (moms) is 25 %. The VAT on an amount without VAT is 25 % of it, while the VAT inside an amount with VAT is 20 % of it (because 25/125 = 20 %). That rule is behind many mistakes in invoices and bookkeeping, so the calculator shows both directions.\n\nYou can also work out several amounts at once, for example all expenses from a month, and get the total VAT.",
+    "icon": "/tools/momsberegner/icon.svg",
+    "tech": [
+      "Almindelig JavaScript: ingen frameworks eller biblioteker, alt regnes ud i din browser",
+      "Øre-præcist: beløb regnes i hele øre, så afrundingen aldrig skrider",
+      "Dansk talformat: du kan skrive både 1.234,50 og 1234.50"
+    ],
+    "tech_en": [
+      "Plain JavaScript: no frameworks or libraries, everything is calculated in your browser",
+      "Øre-precise: amounts are calculated in whole øre, so rounding never drifts",
+      "Danish or English number format: you can type both 1.234,50 and 1234.50"
+    ]
+  },
+  {
+    "slug": "timeprisberegner",
+    "name": "Timeprisberegner",
+    "name_en": "Hourly rate calculator",
+    "tagline": "Hvad skal du tage i timen som selvstændig for at få den løn udbetalt, du ønsker?",
+    "tagline_en": "What should you charge per hour as a self-employed person in Denmark to take home the pay you want?",
+    "description": "Skriv, hvad du vil have udbetalt om måneden efter skat, hvad virksomheden koster at drive, og hvor mange timer du realistisk kan fakturere. Beregneren regner baglæns og finder den timepris uden moms, der skal til, inklusive skat.\n\nSkatten er et skøn for en enkeltmandsvirksomhed, hvor hele overskuddet beskattes som personlig indkomst: arbejdsmarkedsbidrag, bundskat, kommuneskat og eventuel kirkeskat, mellemskat, topskat og toptopskat, med personfradrag, beskæftigelsesfradrag og skatteloftet, efter Skattestyrelsens satser for 2026. Kommuneskatten skriver du selv, fordi den afhænger af din kommune.\n\nDen tager ikke højde for virksomhedsordningen, kapitalindkomst, pensionsfradrag eller andre fradrag, så brug tallet som et udgangspunkt, ikke som din endelige skat. Husk også, at ikke alle timer kan faktureres: administration, salg og ferie skal betales af de timer, du sælger.",
+    "description_en": "Type what you want to take home each month after tax, what the business costs to run, and how many hours you can realistically bill. The calculator works backwards and finds the hourly rate without VAT that you need, tax included.\n\nThe tax is an estimate for a Danish sole proprietorship (enkeltmandsvirksomhed) where the whole profit is taxed as personal income: labour market contribution (am-bidrag), bottom tax, municipal tax and church tax if you pay it, middle tax, top tax and top-top tax, with the personal allowance, the employment allowance and the tax ceiling, using the Danish Tax Agency’s 2026 rates. You type in your municipal tax rate yourself, because it depends on where you live.\n\nIt does not take the business tax scheme (virksomhedsordningen), capital income, pension deductions or other deductions into account, so use the result as a starting point, not as your final tax. Remember too that not every hour can be billed: admin, sales and holidays have to be paid for by the hours you sell.",
+    "icon": "/tools/timeprisberegner/icon.svg",
+    "tech": [
+      "Almindelig JavaScript: ingen frameworks eller biblioteker, alt regnes ud i din browser",
+      "Dansk personskat 2026: satser og grænser fra skat.dk (am-bidrag 8 %, bundskat 12,01 %, mellemskat, topskat, toptopskat, personfradrag, beskæftigelsesfradrag og skatteloftet på 44,57 %)",
+      "Regner baglæns: en binær søgning finder det overskud, der giver præcis den udbetaling, du har bedt om"
+    ],
+    "tech_en": [
+      "Plain JavaScript: no frameworks or libraries, everything is calculated in your browser",
+      "Danish income tax for 2026: rates and thresholds from skat.dk (am-bidrag 8 %, bundskat 12.01 %, mellemskat, topskat, toptopskat, personal allowance, employment allowance and the 44.57 % tax ceiling)",
+      "Works backwards: a binary search finds the profit that leaves exactly the take-home pay you asked for"
+    ]
+  },
+  {
+    "slug": "faktura",
+    "name": "Faktura- og tilbudsgenerator",
+    "name_en": "Invoice and quote generator",
+    "tagline": "Lav en pæn faktura eller et tilbud med moms og gem det som PDF. Gratis og uden login.",
+    "tagline_en": "Make a clean invoice or quote with Danish VAT and save it as a PDF. Free, no sign-up.",
+    "description": "Udfyld dine egne oplysninger, kundens oplysninger og linjerne, og fakturaen bliver regnet ud mens du skriver: beløb uden moms, 25 % moms og total. Klik på \"Gem som PDF\", og vælg \"Gem som PDF\" som printer i din browser.\n\nSkift til tilbud, hvis du vil sende et tilbud i stedet. Har du ikke momsregistrering, kan du slå momsen fra.\n\nFakturaen har felterne, som en dansk faktura skal have: dato, et fortløbende fakturanummer, dit CVR-nummer, dit og kundens navn og adresse, leveringsdato, hvad der er leveret, og momsen. Kryds \"Husk mine oplysninger\" af, så husker din browser dine egne oplysninger og næste fakturanummer til næste gang. Kunden og linjerne bliver aldrig gemt.",
+    "description_en": "Fill in your own details, the customer’s details and the lines, and the invoice adds itself up as you type: amount without VAT, 25 % VAT and the total. Click \"Save as PDF\" and choose \"Save as PDF\" as the printer in your browser.\n\nSwitch to quote if you want to send a quote instead. If you are not VAT-registered, you can turn VAT off. The invoice itself can be in Danish or English: it follows the language you choose at the top of the page.\n\nThe invoice has the fields a Danish invoice must have: date, a sequential invoice number, your CVR number, your and the customer’s name and address, delivery date, what was delivered, and the VAT. Tick \"Remember my details\" and your browser remembers your own details and the next invoice number for next time. The customer and the lines are never saved.",
+    "icon": "/tools/faktura/icon.svg",
+    "tech": [
+      "Almindelig JavaScript: ingen frameworks eller biblioteker, fakturaen er sat op i HTML og CSS",
+      "PDF: browserens egen udskriftsdialog med et print-stylesheet, så æ, ø og å kommer rigtigt med",
+      "localStorage: kun hvis du krydser \"Husk mine oplysninger\" af, og kun dine egne oplysninger og næste fakturanummer"
+    ],
+    "tech_en": [
+      "Plain JavaScript: no frameworks or libraries, the invoice is laid out in HTML and CSS",
+      "PDF: the browser’s own print dialog with a print stylesheet, so æ, ø and å come out right",
+      "localStorage: only if you tick \"Remember my details\", and only your own details and the next invoice number"
+    ]
+  },
+  {
+    "slug": "cvr-opslag",
+    "name": "CVR-opslag",
+    "name_en": "CVR lookup",
+    "tagline": "Slå en dansk virksomhed op på CVR-nummer eller navn, og kopier adressen til din faktura.",
+    "tagline_en": "Look up a Danish company by CVR number or name, and copy the address to your invoice.",
+    "description": "Søg på et CVR-nummer, et P-nummer eller et firmanavn. Du får virksomhedens navn, adresse, virksomhedsform, branche, startdato og status, og kan kopiere navn og adresse med ét klik, fx til fakturagenerator.\n\nOpslaget bruger CVR API (cvrapi.dk), en uafhængig tjeneste med data fra Det Centrale Virksomhedsregister. Din browser spørger CVR API direkte, når du klikker på Søg, og der er en grænse på 50 gratis opslag om dagen pr. internetforbindelse. Virker opslaget ikke, kan du altid søge i det officielle register på datacvr.virk.dk.",
+    "description_en": "Search for a CVR number, a P-number or a company name. You get the company’s name, address, company type, industry, start date and status, and can copy the name and address in one click, for example into the invoice generator.\n\nThe lookup uses CVR API (cvrapi.dk), an independent service with data from the Danish Central Business Register. Your browser asks CVR API directly when you click Search, and there is a limit of 50 free lookups a day per internet connection. If the lookup does not work, you can always search the official register at datacvr.virk.dk.",
+    "icon": "/tools/cvr-opslag/icon.svg",
+    "tech": [
+      "Almindelig JavaScript: ingen frameworks eller biblioteker",
+      "CVR API (cvrapi.dk): data fra Det Centrale Virksomhedsregister, hentet kun når du søger",
+      "Clipboard API: kopier virksomhedens navn og adresse med ét klik"
+    ],
+    "tech_en": [
+      "Plain JavaScript: no frameworks or libraries",
+      "CVR API (cvrapi.dk): data from the Danish Central Business Register, fetched only when you search",
+      "Clipboard API: copy the company’s name and address in one click"
+    ]
+  }
+]

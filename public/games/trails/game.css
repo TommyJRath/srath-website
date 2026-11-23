@@ -27,14 +27,14 @@
 }
 .tr-stage canvas {
   display: block; border-radius: 12px; border: 1px solid var(--border-strong);
-  background: radial-gradient(800px 400px at 50% 0%, rgba(45, 212, 191, .05), transparent 70%), #07090d;
-  box-shadow: 0 30px 80px -45px rgba(45, 212, 191, .4);
+  background: #12110f;
+  box-shadow: 0 24px 60px -40px rgba(0, 0, 0, .8);
 }
 
 .tr-overlay {
   position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
   gap: 8px; padding: 20px; text-align: center; overflow-y: auto;
-  background: rgba(7, 9, 13, .78); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+  background: rgba(18, 17, 15, .78); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
   border-radius: 12px; animation: enter .3s var(--ease) both;
 }
 .tr-overlay[hidden] { display: none; }
@@ -56,7 +56,7 @@
   font: 600 .85rem var(--font); cursor: pointer;
 }
 .tr-seg-btn:hover { color: var(--text); }
-.tr-seg-btn[aria-pressed="true"] { background: var(--surface-2); color: var(--text); box-shadow: inset 0 0 0 1px rgba(45, 212, 191, .35); }
+.tr-seg-btn[aria-pressed="true"] { background: var(--surface-2); color: var(--text); box-shadow: inset 0 0 0 1px rgba(232, 163, 61, .45); }
 
 .tr-legend-note { font-size: .85rem; margin: 14px 0 6px !important; }
 .tr-legend {
@@ -73,14 +73,14 @@
 .tr-legend strong { color: var(--text); font-weight: 600; }
 .tr-legend-icon {
   display: inline-grid; place-items: center; flex: none; width: 22px; height: 22px; border-radius: 50%;
-  border: 2px solid; font: 700 .8rem var(--font); background: #0b0d12;
+  border: 2px solid; font: 700 .8rem var(--font); background: #171512;
 }
 
 /* Online lobby */
 .tr-invite { display: flex; gap: 6px; justify-content: center; margin: 12px auto 4px; max-width: 520px; }
 .tr-invite-link {
   flex: 1; min-width: 0; height: 36px; padding: 0 10px; border-radius: 9px; border: 1px solid var(--border-strong);
-  background: #07090d; color: var(--text); font: 500 .85rem var(--mono);
+  background: #12110f; color: var(--text); font: 500 .85rem var(--mono);
 }
 .tr-invite-link:focus { outline: none; border-color: var(--accent); }
 .tr-code { margin: 4px 0 0 !important; font-size: .9rem; }
@@ -88,10 +88,10 @@
 .tr-join { display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
 .tr-join-code {
   width: 7.5em; height: 36px; padding: 0 10px; border-radius: 9px; border: 1px solid var(--border-strong);
-  background: #07090d; color: var(--text); font: 700 1rem var(--mono); letter-spacing: .15em; text-transform: uppercase; text-align: center;
+  background: #12110f; color: var(--text); font: 700 1rem var(--mono); letter-spacing: .15em; text-transform: uppercase; text-align: center;
 }
 .tr-join-code:focus { outline: none; border-color: var(--accent); }
-.tr-join-msg { min-height: 1.2em; margin: 4px 0 0 !important; font-size: .85rem; color: #fb7185; }
+.tr-join-msg { min-height: 1.2em; margin: 4px 0 0 !important; font-size: .85rem; color: #d4573f; }
 .tr-lobby { justify-content: center; margin-top: 12px; }
 .tr-lobby .tr-chip span:last-child { color: var(--text); }
 .tr-lobby-status { font-size: .85rem; }
@@ -135,7 +135,7 @@
 .tr-profile { margin-top: 6px; }
 .tr-name-input {
   width: 12em; height: 36px; padding: 0 10px; border-radius: 9px; border: 1px solid var(--border-strong);
-  background: #07090d; color: var(--text); font: 600 .95rem var(--font);
+  background: #12110f; color: var(--text); font: 600 .95rem var(--font);
 }
 .tr-name-input:focus { outline: none; border-color: var(--accent); }
 .tr-swatches { display: inline-flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
@@ -144,5 +144,5 @@
   background: var(--c); box-shadow: 0 0 10px -2px var(--c); background-clip: padding-box; transition: transform .15s;
 }
 .tr-swatch:hover:not(:disabled) { transform: scale(1.12); }
-.tr-swatch[aria-pressed="true"] { border-color: #fff; box-shadow: 0 0 0 2px var(--c), 0 0 14px var(--c); }
+.tr-swatch[aria-pressed="true"] { border-color: #fff; box-shadow: 0 0 0 2px var(--c); }
 .tr-swatch:disabled { opacity: .18; cursor: not-allowed; box-shadow: none; }

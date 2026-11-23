@@ -25,8 +25,8 @@
   try { localStorage.removeItem('trails:streaks'); } catch (e) { /* the win streaks that used to be ranked */ }
 
   var COLORS = [
-    { name: 'Teal', hex: '#2dd4bf' }, { name: 'Indigo', hex: '#818cf8' }, { name: 'Amber', hex: '#fbbf24' },
-    { name: 'Pink', hex: '#f472b6' }, { name: 'Sky', hex: '#38bdf8' }, { name: 'Lime', hex: '#a3e635' },
+    { name: 'Orange', hex: '#e8a33d' }, { name: 'Blue', hex: '#7aa7d6' }, { name: 'Green', hex: '#93b86e' },
+    { name: 'Red', hex: '#d4573f' }, { name: 'Purple', hex: '#b784b0' }, { name: 'White', hex: '#e3d6bb' },
   ];
 
   // Power-ups. kind: 'self' helps whoever takes it, 'others' hits everyone else, 'arena' changes the arena.
@@ -42,7 +42,7 @@
     clear: { kind: 'arena', label: 'Clear', glyph: '✕', weight: 1, desc: 'wipes every line off the arena' },
     shrink: { kind: 'arena', label: 'Shrink', glyph: '⊡', weight: 1, desc: 'the walls close in' },
   };
-  var KIND_COLORS = { self: '#2dd4bf', others: '#fb7185', arena: '#fbbf24' };
+  var KIND_COLORS = { self: '#93b86e', others: '#d4573f', arena: '#7aa7d6' };
   var PICK_R = 14;               // pickup radius
   var PICK_EVERY = [2.5, 5];     // seconds between new pickups
   var PICK_MAX = 3;              // at most this many on the arena
@@ -597,7 +597,7 @@
 
   function roundEnded(survivor) {
     roundMessage = survivor ? who(survivor) + (who(survivor) === 'You' ? ' survive the round' : ' takes the round') : 'Nobody survives';
-    roundColor = survivor ? survivor.color : '#9aa3b5';
+    roundColor = survivor ? survivor.color : '#a39b8b';
     live.textContent = roundMessage + '.';
     if (survivor && !survivor.bot && (!net || isMe(survivor))) tone(784, 0.25, 'triangle', 0.08);
   }
@@ -647,7 +647,7 @@
     var r = PICK_R * (1 + 0.06 * Math.sin(time * 5 + k.x));
     ctx.shadowColor = color;
     ctx.shadowBlur = 16;
-    ctx.fillStyle = '#0b0d12';
+    ctx.fillStyle = '#171512';
     ctx.strokeStyle = color;
     ctx.lineWidth = 2.5;
     ctx.beginPath(); ctx.arc(k.x, k.y, r, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
@@ -694,7 +694,7 @@
     // Trails with a soft glow.
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.shadowBlur = 10 * dpr;
-    ctx.shadowColor = 'rgba(45, 212, 191, 0.35)';
+    ctx.shadowColor = 'rgba(236, 230, 216, 0.25)';
     ctx.drawImage(trailCanvas, 0, 0);
     ctx.shadowBlur = 0;
     ctx.setTransform(scale * dpr, 0, 0, scale * dpr, 0, 0);
@@ -702,10 +702,10 @@
     // Closing walls (Shrink).
     if (inset > 0.001) {
       var b = bounds();
-      ctx.fillStyle = 'rgba(251, 113, 133, 0.07)';
+      ctx.fillStyle = 'rgba(212, 87, 63, 0.07)';
       ctx.fillRect(0, 0, W, b.t); ctx.fillRect(0, b.b, W, H - b.b);
       ctx.fillRect(0, b.t, b.l, b.b - b.t); ctx.fillRect(b.r, b.t, W - b.r, b.b - b.t);
-      ctx.strokeStyle = 'rgba(251, 113, 133, 0.75)';
+      ctx.strokeStyle = 'rgba(212, 87, 63, 0.75)';
       ctx.lineWidth = 2;
       ctx.setLineDash([10, 8]);
       ctx.strokeRect(b.l, b.t, b.r - b.l, b.b - b.t);
@@ -720,7 +720,7 @@
         ctx.globalAlpha = fx(p, 'ghost') ? 0.45 : 1;
         ctx.shadowColor = p.color;
         ctx.shadowBlur = 14;
-        ctx.fillStyle = p.gap > 0 || fx(p, 'ghost') ? '#0b0d12' : p.color;
+        ctx.fillStyle = p.gap > 0 || fx(p, 'ghost') ? '#171512' : p.color;
         ctx.strokeStyle = p.color;
         ctx.lineWidth = 2;
         ctx.beginPath();
@@ -781,11 +781,11 @@
 
     ctx.textAlign = 'center';
     if (phase === 'ready') {
-      ctx.fillStyle = '#e7e9ee';
+      ctx.fillStyle = '#ece6d8';
       ctx.font = '800 54px system-ui, sans-serif';
       ctx.fillText(String(Math.max(1, Math.ceil(readyTime / 0.55))), W / 2, H / 2 + 18);
       ctx.font = '600 16px system-ui, sans-serif';
-      ctx.fillStyle = '#9aa3b5';
+      ctx.fillStyle = '#a39b8b';
       ctx.fillText('Round ' + round + '  ·  first to ' + target, W / 2, H / 2 + 52);
     }
     if (phase === 'roundover') {
@@ -917,8 +917,8 @@
     body.append(choice('Power-ups', [[true, 'On'], [false, 'Off']], setup.powerups, function (v) { setup.powerups = v; showMenu(); }));
     if (setup.powerups) {
       var note = el('p', 'tr-legend-note');
-      note.innerHTML = 'Drive into a power-up to take it. <span style="color:' + KIND_COLORS.self + '">Teal</span> helps you, ' +
-        '<span style="color:' + KIND_COLORS.others + '">rose</span> hits everyone else, <span style="color:' + KIND_COLORS.arena + '">amber</span> changes the arena. ' +
+      note.innerHTML = 'Drive into a power-up to take it. <span style="color:' + KIND_COLORS.self + '">Green</span> helps you, ' +
+        '<span style="color:' + KIND_COLORS.others + '">red</span> hits everyone else, <span style="color:' + KIND_COLORS.arena + '">blue</span> changes the arena. ' +
         'Tap one to leave it out.';
       body.append(note, legend());
     }

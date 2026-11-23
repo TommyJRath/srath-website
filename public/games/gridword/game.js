@@ -148,8 +148,8 @@
     '<p>Guess the five-letter word in six tries. Each guess must be a real English word.</p>',
     '<div class="gw-example">' + exampleRow('crane', ['hit', 'miss', 'near', 'miss', 'miss']) + '</div>',
     '<ul class="gw-legend">',
-    '<li><span class="gw-swatch hit"></span><span><strong>Teal</strong>: the letter is in the right spot.</span></li>',
-    '<li><span class="gw-swatch near"></span><span><strong>Indigo</strong>: the letter is in the word, but in another spot.</span></li>',
+    '<li><span class="gw-swatch hit"></span><span><strong>Orange</strong>: the letter is in the right spot.</span></li>',
+    '<li><span class="gw-swatch near"></span><span><strong>Blue</strong>: the letter is in the word, but in another spot.</span></li>',
     '<li><span class="gw-swatch miss"></span><span><strong>Dark</strong>: the letter is not in the word.</span></li>',
     '</ul>',
     '<p>The <strong>Daily</strong> word is the same for everyone and changes at midnight. <strong>Practice</strong> gives you a new random word whenever you like and does not count towards your statistics.</p>',
@@ -443,7 +443,7 @@
   }
 
   function shareResult() {
-    var emoji = { hit: '🟦', near: '🟪', miss: '⬛' };
+    var emoji = { hit: '🟧', near: '🟦', miss: '⬛' };
     var won = state.guesses[state.guesses.length - 1] === state.answer;
     var text = 'Gridword #' + (state.day + 1) + ' ' + (won ? state.guesses.length : 'X') + '/' + TRIES + '\n\n' +
       state.guesses.map(function (g) { return score(g, state.answer).map(function (m) { return emoji[m]; }).join(''); }).join('\n') +

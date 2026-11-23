@@ -21,12 +21,14 @@ export const icons = {
   doc: '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8l-5-5Z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg>',
 };
 
-const logoMark = (id) => `<svg class="logo-mark" viewBox="0 0 32 32" aria-hidden="true"><defs><linearGradient id="${id}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2dd4bf"/><stop offset="1" stop-color="#818cf8"/></linearGradient></defs><rect width="32" height="32" rx="8" fill="url(#${id})"/><path d="M22 10H10v6h12v6H10" fill="none" stroke="#0b0d12" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+// eslint-disable-next-line no-unused-vars
+const logoMark = (id) => `<svg class="logo-mark" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="5" fill="#e8a33d"/><path d="M22 10H10v6h12v6H10" fill="none" stroke="#1b1916" stroke-width="3.2" stroke-linecap="square" stroke-linejoin="miter"/></svg>`;
 
-export function layout({ site, assets, hasPartners = false, hasGames = false, path, title, description, body, head = '', noindex = false, jsonLd = null }) {
+export function layout({ site, assets, hasPartners = false, hasGames = false, hasTools = false, path, title, description, body, head = '', noindex = false, jsonLd = null, lang = 'en' }) {
   const nav = [
     NAV[0],
     hasGames && { href: '/games/', label: 'Games' },
+    hasTools && { href: '/tools/', label: 'Tools' },
     hasPartners && { href: '/partners/', label: 'Partners' },
     ...NAV.slice(1),
   ].filter(Boolean);
@@ -35,14 +37,14 @@ export function layout({ site, assets, hasPartners = false, hasGames = false, pa
   const year = new Date().getUTCFullYear();
 
   return `<!doctype html>
-<html lang="en">
+<html lang="${lang}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${esc(fullTitle)}</title>
 <meta name="description" content="${esc(description)}">
 <link rel="canonical" href="${esc(canonical)}">
-${noindex ? '<meta name="robots" content="noindex">\n' : ''}<meta name="theme-color" content="#0b0d12">
+${noindex ? '<meta name="robots" content="noindex">\n' : ''}<meta name="theme-color" content="#1b1916">
 <meta name="color-scheme" content="dark">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="${esc(site.name)}">
@@ -89,6 +91,7 @@ ${body}
           <li><a href="/#projects">Projects</a></li>
           <li><a href="/apps/">Apps</a></li>
           ${hasGames ? '<li><a href="/games/">Games</a></li>' : ''}
+          ${hasTools ? '<li><a href="/tools/">Tools</a></li>' : ''}
           ${hasPartners ? '<li><a href="/partners/">Partners</a></li>' : ''}
           <li><a href="/contact/">Contact</a></li>
           ${site.linkedin ? `<li><a href="${esc(site.linkedin)}" rel="noopener noreferrer me">LinkedIn</a></li>` : ''}
@@ -125,10 +128,11 @@ export function emailLink(site, { subject, className = '', label } = {}) {
   return `<a${className ? ` class="${className}"` : ''} href="${esc(href)}">${label ?? esc(site.email)}</a>`;
 }
 
+// `eyebrow` is accepted for older callers but no longer shown: small capitals above every heading was a template look.
+// eslint-disable-next-line no-unused-vars
 export function pageHeader({ eyebrow, title, lead, extra = '' }) {
   return `<section class="page-header">
   <div class="container">
-    ${eyebrow ? `<p class="eyebrow">${eyebrow}</p>` : ''}
     <h1>${title}</h1>
     ${lead ? `<p class="lead">${lead}</p>` : ''}
     ${extra}
@@ -150,7 +154,7 @@ export function playButton(app, className = 'btn btn-primary') {
 }
 
 export function appCard(app) {
-  return `<article class="card app-card reveal">
+  return `<article class="card app-card">
   <a class="app-card-link" href="/apps/${app.slug}/" aria-label="${esc(app.name)} — details"></a>
   <div class="app-card-head">
     <img class="app-icon" src="${esc(app.icon)}" alt="" width="64" height="64" loading="lazy" decoding="async">
@@ -181,7 +185,7 @@ function projectCard(p) {
     : p.icon
     ? `<img class="app-icon" src="${esc(p.icon)}" alt="" width="56" height="56" loading="lazy" decoding="async">`
     : `<span class="app-icon project-monogram" aria-hidden="true">${esc(p.name.charAt(0))}</span>`;
-  return `<article class="card app-card project-card reveal">
+  return `<article class="card app-card project-card">
   ${p.url ? `<a class="app-card-link" href="${esc(p.url)}"${rel} aria-label="${esc(p.name)}"></a>` : ''}
   <div class="app-card-head">
     ${visual}

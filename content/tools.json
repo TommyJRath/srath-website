@@ -1,25 +1,5 @@
 [
   {
-    "slug": "momsberegner",
-    "name": "Momsberegner",
-    "name_en": "VAT calculator",
-    "tagline": "Læg 25 % moms til et beløb, eller træk momsen ud af et beløb inkl. moms.",
-    "tagline_en": "Add 25 % Danish VAT (moms) to an amount, or take the VAT out of an amount that includes it.",
-    "description": "Skriv et beløb, og vælg om det er uden eller med moms. Du får beløbet uden moms, selve momsen og beløbet med moms med det samme.\n\nDen danske momssats er 25 %. Momsen af et beløb uden moms er altså 25 % af beløbet, mens momsen i et beløb med moms er 20 % af beløbet (fordi 25/125 = 20 %). Det er den regel, der oftest giver fejl i fakturaer og regnskaber, så beregneren viser begge veje.\n\nDu kan også beregne flere linjer på én gang, fx alle udgifter fra en måned, og få summen af momsen.",
-    "description_en": "Type an amount and choose whether it is without or with VAT. You get the amount without VAT, the VAT itself and the amount with VAT straight away.\n\nThe Danish VAT rate (moms) is 25 %. The VAT on an amount without VAT is 25 % of it, while the VAT inside an amount with VAT is 20 % of it (because 25/125 = 20 %). That rule is behind many mistakes in invoices and bookkeeping, so the calculator shows both directions.\n\nYou can also work out several amounts at once, for example all expenses from a month, and get the total VAT.",
-    "icon": "/tools/momsberegner/icon.svg",
-    "tech": [
-      "Almindelig JavaScript: ingen frameworks eller biblioteker, alt regnes ud i din browser",
-      "Øre-præcist: beløb regnes i hele øre, så afrundingen aldrig skrider",
-      "Dansk talformat: du kan skrive både 1.234,50 og 1234.50"
-    ],
-    "tech_en": [
-      "Plain JavaScript: no frameworks or libraries, everything is calculated in your browser",
-      "Øre-precise: amounts are calculated in whole øre, so rounding never drifts",
-      "Danish or English number format: you can type both 1.234,50 and 1234.50"
-    ]
-  },
-  {
     "slug": "timeprisberegner",
     "name": "Timeprisberegner",
     "name_en": "Hourly rate calculator",

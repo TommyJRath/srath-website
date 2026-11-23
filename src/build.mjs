@@ -339,7 +339,7 @@ function toolsIndexPage({ site, tools }) {
     path: '/tools/',
     lang: 'da',
     title: titleDa,
-    description: 'Gratis momsberegner, timeprisberegner, faktura- og tilbudsgenerator og CVR-opslag på dansk og engelsk. Ingen login, ingen cookies, og dine tal bliver i din browser.',
+    description: 'Gratis timeprisberegner, faktura- og tilbudsgenerator og CVR-opslag på dansk og engelsk. Ingen login, ingen cookies, og dine tal bliver i din browser.',
     head: `<link rel="stylesheet" href="${versioned('/tools/tools.css')}">`,
     body: `<section class="page-header">
   <div class="container">

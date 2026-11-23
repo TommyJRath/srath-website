@@ -148,7 +148,7 @@ Add an item for real news only, such as an app going live on Google Play or a ne
 
 ## Free tools
 
-Four free tools for freelancers and sole traders in Denmark live under `/tools/`: a VAT calculator, an hourly rate calculator, an invoice and quote generator, and a CVR lookup. Each page has a large Dansk / English switch at the top. The choice is remembered in the browser, and `?lang=en` opens a page in English.
+Three free tools for freelancers and sole traders in Denmark live under `/tools/`: an hourly rate calculator, an invoice and quote generator, and a CVR lookup. Each page has a large Dansk / English switch at the top. The choice is remembered in the browser, and `?lang=en` opens a page in English.
 
 - `content/tools.json`: one entry per tool: `slug`, `name`, `tagline`, `description`, `icon`, `tech`, plus English versions in `name_en`, `tagline_en`, `description_en` and `tech_en`.
 - `content/tools/<slug>.html`: the tool's form. Danish text goes in the element, English in `data-en="..."` (or `data-en-html`, `data-en-placeholder`, `data-en-aria-label`, `data-en-title`).

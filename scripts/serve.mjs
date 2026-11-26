@@ -19,8 +19,20 @@ const TYPES = {
   '.webp': 'image/webp', '.ico': 'image/x-icon',
 };
 
+// On Windows a file being served can briefly block deleting dist/. A failed rebuild is retried a few times
+// before giving up until the next change.
+let retries = 0;
 function rebuild() {
-  try { build(); } catch (err) { console.error(`\nBuild failed.\n${err.message}\n`); }
+  try {
+    build();
+    retries = 0;
+  } catch (err) {
+    console.error(`\nBuild failed.\n${err.message}\n`);
+    if (/EPERM|EBUSY|ENOTEMPTY|ENOENT/.test(err.message) && retries < 5) {
+      retries += 1;
+      setTimeout(rebuild, 300 * retries);
+    }
+  }
 }
 
 if (process.argv.includes('--watch')) {
@@ -46,6 +58,14 @@ http.createServer((req, res) => {
   let status = 200;
   if (!fs.existsSync(file)) { status = 404; file = path.join(DIST, '404.html'); }
 
-  res.writeHead(status, { 'Content-Type': TYPES[path.extname(file)] || 'application/octet-stream', 'Cache-Control': 'no-store' });
-  fs.createReadStream(file).pipe(res);
+  // During a rebuild a file can vanish between the check and the read: answer "try again" instead of crashing.
+  const stream = fs.createReadStream(file);
+  stream.on('error', () => {
+    if (!res.headersSent) res.writeHead(503, { 'Content-Type': 'text/plain; charset=utf-8', 'Retry-After': '1' });
+    res.end('Rebuilding, reload in a moment.');
+  });
+  stream.on('open', () => {
+    res.writeHead(status, { 'Content-Type': TYPES[path.extname(file)] || 'application/octet-stream', 'Cache-Control': 'no-store' });
+    stream.pipe(res);
+  });
 }).listen(PORT, () => console.log(`Serving dist/ at http://localhost:${PORT}`));

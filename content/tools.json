@@ -1,5 +1,89 @@
 [
   {
+    "slug": "faktura",
+    "name": "Faktura- og tilbudsgenerator",
+    "name_en": "Invoice and quote generator",
+    "tagline": "Lav en pæn faktura eller et tilbud med moms og gem det som PDF. Gratis og uden login.",
+    "tagline_en": "Make a clean invoice or quote with Danish VAT and save it as a PDF. Free, no sign-up.",
+    "description": "Udfyld dine egne oplysninger, kundens oplysninger og linjerne, og fakturaen bliver regnet ud mens du skriver. Klik på \"Hent PDF\", så får du fakturaen som en PDF-fil, klar til at sende. Vil du hellere have den på papir, så klik på \"Udskriv\".\n\nVælg momsen: 25 % dansk moms, ingen moms hvis du ikke er momsregistreret, eller en virksomhed i et andet EU-land. Ved EU-salg af ydelser skriver fakturaen \"omvendt betalingspligt\", og ved varer at leveringen er momsfri, sådan som skat.dk kræver, og den viser kundens momsnummer.\n\nSkift til tilbud, hvis du vil sende et tilbud i stedet. Giver du rabat, står den som sin egen linje, og momsen regnes af beløbet efter rabat. Tilføj dit logo, gem dine faste kunder, så du kan vælge dem næste gang, og hent linjer direkte fra tidsregistreringen eller tilbudsberegneren.\n\nFakturaen har felterne, som en dansk faktura skal have: dato, et fortløbende fakturanummer, dit CVR-nummer, dit og kundens navn og adresse, leveringsdato, hvad der er leveret, og momsen. Dine egne oplysninger og gemte kunder bliver kun gemt i din browser, og kun når du beder om det.",
+    "description_en": "Fill in your own details, the customer's details and the lines, and the invoice adds itself up as you type. Click \"Download PDF\" and you get the invoice as a PDF file, ready to send. If you would rather have it on paper, click \"Print\".\n\nChoose the VAT: 25 % Danish VAT, no VAT if you are not VAT-registered, or a business in another EU country. For EU sales of services the invoice says \"reverse charge\", and for goods that the supply is VAT exempt, as skat.dk requires, and it shows the customer's VAT number.\n\nSwitch to quote to send a quote instead. A discount is shown as its own line, and the VAT is worked out on the amount after the discount. Add your logo, save your regular customers so you can pick them next time, and bring lines straight in from the time tracker or the quote calculator.\n\nThe invoice has the fields a Danish invoice must have: date, a sequential invoice number, your CVR number, your and the customer's name and address, delivery date, what was delivered, and the VAT. Your own details and saved customers are kept only in your browser, and only when you ask.",
+    "icon": "/tools/faktura/icon.svg",
+    "tech": [
+      "Almindelig JavaScript: ingen frameworks eller biblioteker, fakturaen er sat op i HTML og CSS",
+      "PDF: lavet direkte i din browser af en lille PDF-generator uden biblioteker, med PDF'ens standardskrifter (æ, ø og å virker) og dit logo som JPEG",
+      "localStorage: kun hvis du krydser \"Husk mine oplysninger\" af, og kun dine egne oplysninger og næste fakturanummer",
+      "localStorage: gemte kunder, kun når du klikker på \"Gem kunde\""
+    ],
+    "tech_en": [
+      "Plain JavaScript: no frameworks or libraries, the invoice is laid out in HTML and CSS",
+      "PDF: made directly in your browser by a small PDF generator with no libraries, using the PDF standard fonts (æ, ø and å work) and your logo as a JPEG",
+      "localStorage: only if you tick \"Remember my details\", and only your own details and the next invoice number",
+      "localStorage: saved customers, only when you click \"Save customer\""
+    ]
+  },
+  {
+    "slug": "tidsregistrering",
+    "name": "Tidsregistrering",
+    "name_en": "Time tracker",
+    "tagline": "Start og stop et ur pr. kunde og opgave, og lav en faktura ud fra timerne med ét klik.",
+    "tagline_en": "Start and stop a timer per customer and task, and turn the hours into an invoice in one click.",
+    "description": "Skriv kunden og opgaven, og tryk Start. Uret kører videre, selv om du lukker siden, og når du trykker Stop, bliver tiden gemt. Glemte du at starte uret, kan du skrive timerne ind i hånden.\n\nVælg den tid, du vil fakturere, skriv din timepris, og vælg om hver linje skal rundes op til kvarte eller halve timer. Klik på \"Fakturer den valgte tid\", så åbner fakturageneratoren med én linje pr. kunde og opgave, og tiden bliver markeret som faktureret.\n\nDin tid bliver kun gemt i din browser. Hent en CSV-fil en gang imellem som sikkerhedskopi, eller hvis du vil arbejde videre med tallene i et regneark.",
+    "description_en": "Type the customer and the task, and press Start. The timer keeps running even if you close the page, and when you press Stop, the time is saved. Forgot to start it? Add the hours by hand.\n\nSelect the time you want to invoice, enter your hourly rate, and choose whether each line is rounded up to quarter or half hours. Click \"Invoice the selected time\" and the invoice generator opens with one line per customer and task, and the time is marked as invoiced.\n\nYour time is saved only in your browser. Download a CSV file now and then as a backup, or to work with the numbers in a spreadsheet.",
+    "icon": "/tools/tidsregistrering/icon.svg",
+    "tech": [
+      "Almindelig JavaScript: ingen frameworks eller biblioteker, alt regnes ud i din browser",
+      "localStorage: din tid og den kørende tæller gemmes i din browser",
+      "CSV med semikolon, så filen åbner rigtigt i dansk Excel"
+    ],
+    "tech_en": [
+      "Plain JavaScript: no frameworks or libraries, everything is calculated in your browser",
+      "localStorage: your time and the running timer are saved in your browser",
+      "CSV with semicolons, so the file opens correctly in Danish Excel"
+    ]
+  },
+  {
+    "slug": "tilbudsberegner",
+    "name": "Tilbudsberegner",
+    "name_en": "Quote calculator",
+    "tagline": "Regn prisen på en opgave ud: timer med buffer, materialer med avance, og send det videre som et tilbud.",
+    "tagline_en": "Work out the price of a job: hours with a buffer, materials with markup, and send it on as a quote.",
+    "description": "Skriv hvor mange timer opgaven tager, din timepris og en buffer til det uforudsete, som lægges oven i timerne. Tilføj materialer og indkøb til kostpris, og vælg din avance og en eventuel rabat.\n\nDu ser prisen til kunden med og uden moms, og hvor meget du tjener på materialerne. Klik på \"Lav et tilbud ud fra det\", så åbner fakturageneratoren et tilbud med arbejdet og hver vare som linjer og rabatten som sin egen linje, klar til at sende.",
+    "description_en": "Enter how many hours the job takes, your hourly rate and a buffer for the unexpected, which is added to the hours. Add materials and purchases at cost, and choose your markup and any discount.\n\nYou see the price for the customer with and without VAT, and how much you earn on the materials. Click \"Make a quote from this\" and the invoice generator opens a quote with the work and each item as lines and the discount as its own line, ready to send.",
+    "icon": "/tools/tilbudsberegner/icon.svg",
+    "tech": [
+      "Almindelig JavaScript: ingen frameworks eller biblioteker, alt regnes ud i din browser",
+      "Beløb regnes i hele øre, så afrundingen aldrig skrider",
+      "Sender linjerne videre til fakturageneratoren i din browser"
+    ],
+    "tech_en": [
+      "Plain JavaScript: no frameworks or libraries, everything is calculated in your browser",
+      "Amounts are calculated in whole øre, so rounding never drifts",
+      "Hands the lines to the invoice generator inside your browser"
+    ]
+  },
+  {
+    "slug": "rykker",
+    "name": "Rykkergenerator",
+    "name_en": "Payment reminder",
+    "tagline": "Skriv en korrekt rykker med rykkergebyr og morarente efter renteloven, og gem den som PDF.",
+    "tagline_en": "Write a correct payment reminder with the reminder fee and late-payment interest under Danish law, and save it as PDF.",
+    "description": "Udfyld fakturaen, der ikke er betalt, og vælg om det er første, anden eller tredje rykker. Rykkeren regner selv rykkergebyret og morarenten ud fra forfaldsdagen til i dag, og mellem virksomheder kan du lægge det faste kompensationsbeløb til.\n\nReglerne er fra renteloven: højst 100 kr. i rykkergebyr pr. rykker, for højst 3 rykkere sendt med mindst 10 dages mellemrum, og morarente med Nationalbankens udlånsrente pr. 1. januar og 1. juli plus 8 procentpoint. Mellem virksomheder kan du desuden kræve 310 kr. i kompensation. Tredje rykker varsler inkasso.\n\nHent rykkeren som PDF, eller udskriv den. Har du krydset \"Husk mine oplysninger\" af i fakturageneratoren, bliver dine egne oplysninger og dit logo hentet derfra. Intet af det, du skriver, bliver gemt.",
+    "description_en": "Fill in the unpaid invoice and choose whether it is the first, second or third reminder. The reminder works out the fee and the late-payment interest from the due date to today, and between businesses you can add the fixed compensation fee.\n\nThe rules are from the Danish Interest Act (renteloven): a reminder fee of at most 100 kr. per reminder, for at most 3 reminders sent at least 10 days apart, and interest at Nationalbanken's lending rate on 1 January and 1 July plus 8 percentage points. Between businesses you can also claim 310 kr. in compensation. The third reminder warns of debt collection.\n\nDownload the reminder as a PDF, or print it. If you ticked \"Remember my details\" in the invoice generator, your own details and logo are taken from there. Nothing you type is saved.",
+    "icon": "/tools/rykker/icon.svg",
+    "tech": [
+      "Almindelig JavaScript: ingen frameworks eller biblioteker, alt regnes ud i din browser",
+      "Renteloven §§ 3, 5, 9 a og 9 b fra retsinformation.dk; referencerenten fra Nationalbanken",
+      "Renten regnes pr. dag og deles op, når satsen skifter 1. januar og 1. juli",
+      "PDF: lavet direkte i din browser, med dit logo fra fakturageneratoren"
+    ],
+    "tech_en": [
+      "Plain JavaScript: no frameworks or libraries, everything is calculated in your browser",
+      "Renteloven §§ 3, 5, 9 a and 9 b from retsinformation.dk; the reference rate from Nationalbanken",
+      "Interest per day, split where the rate changes on 1 January and 1 July",
+      "PDF: made directly in your browser, with your logo from the invoice generator"
+    ]
+  },
+  {
     "slug": "timeprisberegner",
     "name": "Timeprisberegner",
     "name_en": "Hourly rate calculator",
@@ -20,23 +104,65 @@
     ]
   },
   {
-    "slug": "faktura",
-    "name": "Faktura- og tilbudsgenerator",
-    "name_en": "Invoice and quote generator",
-    "tagline": "Lav en pæn faktura eller et tilbud med moms og gem det som PDF. Gratis og uden login.",
-    "tagline_en": "Make a clean invoice or quote with Danish VAT and save it as a PDF. Free, no sign-up.",
-    "description": "Udfyld dine egne oplysninger, kundens oplysninger og linjerne, og fakturaen bliver regnet ud mens du skriver: beløb uden moms, 25 % moms og total. Klik på \"Gem som PDF\", og vælg \"Gem som PDF\" som printer i din browser.\n\nSkift til tilbud, hvis du vil sende et tilbud i stedet. Har du ikke momsregistrering, kan du slå momsen fra.\n\nFakturaen har felterne, som en dansk faktura skal have: dato, et fortløbende fakturanummer, dit CVR-nummer, dit og kundens navn og adresse, leveringsdato, hvad der er leveret, og momsen. Kryds \"Husk mine oplysninger\" af, så husker din browser dine egne oplysninger og næste fakturanummer til næste gang. Kunden og linjerne bliver aldrig gemt.",
-    "description_en": "Fill in your own details, the customer’s details and the lines, and the invoice adds itself up as you type: amount without VAT, 25 % VAT and the total. Click \"Save as PDF\" and choose \"Save as PDF\" as the printer in your browser.\n\nSwitch to quote if you want to send a quote instead. If you are not VAT-registered, you can turn VAT off. The invoice itself can be in Danish or English: it follows the language you choose at the top of the page.\n\nThe invoice has the fields a Danish invoice must have: date, a sequential invoice number, your CVR number, your and the customer’s name and address, delivery date, what was delivered, and the VAT. Tick \"Remember my details\" and your browser remembers your own details and the next invoice number for next time. The customer and the lines are never saved.",
-    "icon": "/tools/faktura/icon.svg",
+    "slug": "skat-til-side",
+    "name": "Skat til side",
+    "name_en": "Set aside for tax",
+    "tagline": "Hvor meget af en betaling skal du lægge til side til moms og skat?",
+    "tagline_en": "How much of a payment should you put aside for VAT and tax?",
+    "description": "Skriv beløbet, du har fået betalt, og om det er med eller uden moms. Fortæl hvor stor en del der dækker udgifter til opgaven, og hvad du regner med at tjene i år.\n\nDu får momsen, som skal til Skattestyrelsen, og indkomstskatten af overskuddet regnet med den marginalskat, du rammer ved dit forventede overskud. Resten er dit at bruge.\n\nSkatten er et skøn efter Skattestyrelsens satser for 2026 for en enkeltmandsvirksomhed uden virksomhedsordning. Din B-skat dækker måske allerede en del af den.",
+    "description_en": "Enter the amount you were paid and whether it includes VAT. Say how much of it covers expenses for the job, and what you expect to earn this year.\n\nYou get the VAT for the Danish Tax Agency, and the income tax on the profit at the marginal rate you meet at your expected profit. The rest is yours to spend.\n\nThe tax is an estimate using the Danish Tax Agency's 2026 rates for a sole proprietorship outside the business tax scheme. Your preliminary tax (B-skat) may already cover part of it.",
+    "icon": "/tools/skat-til-side/icon.svg",
     "tech": [
-      "Almindelig JavaScript: ingen frameworks eller biblioteker, fakturaen er sat op i HTML og CSS",
-      "PDF: browserens egen udskriftsdialog med et print-stylesheet, så æ, ø og å kommer rigtigt med",
-      "localStorage: kun hvis du krydser \"Husk mine oplysninger\" af, og kun dine egne oplysninger og næste fakturanummer"
+      "Almindelig JavaScript: ingen frameworks eller biblioteker, alt regnes ud i din browser",
+      "Samme skatteberegning som timeprisberegneren, med satserne for 2026 fra skat.dk"
     ],
     "tech_en": [
-      "Plain JavaScript: no frameworks or libraries, the invoice is laid out in HTML and CSS",
-      "PDF: the browser’s own print dialog with a print stylesheet, so æ, ø and å come out right",
-      "localStorage: only if you tick \"Remember my details\", and only your own details and the next invoice number"
+      "Plain JavaScript: no frameworks or libraries, everything is calculated in your browser",
+      "The same tax calculation as the hourly rate calculator, with the 2026 rates from skat.dk"
+    ]
+  },
+  {
+    "slug": "koerebog",
+    "name": "Kørebog",
+    "name_en": "Mileage log",
+    "tagline": "Før kørebog over erhvervskørsel i egen bil, og se kørselsgodtgørelsen efter Skattestyrelsens satser.",
+    "tagline_en": "Keep a log of business driving in your own car, and see the mileage allowance at the official Danish rates.",
+    "description": "Skriv hver tur ind med dato, mål og delmål, formål og kilometer. Kørebogen regner godtgørelsen ud efter Skattestyrelsens satser: for 2026 er det 3,94 kr. pr. km for de første 20.000 km og 2,28 kr. derefter, og 0,64 kr. pr. km på cykel eller knallert.\n\nKørebogen har de oplysninger, skat.dk kræver som dokumentation: kørslens formål, mål og delmål, dato, antal kilometer, beregningen efter satserne, og at kørslen er i dit eget køretøj. Hent den som PDF eller udskriv den, eller hent en CSV-fil til din revisor.\n\nTurene bliver kun gemt i din browser. Spørg din revisor, hvordan beløbet skal bruges i dit regnskab, hvis du er selvstændig.",
+    "description_en": "Enter each trip with the date, destination and stops, purpose and kilometres. The log works out the allowance at the Danish Tax Agency's rates: for 2026 that is 3.94 kr. per km for the first 20,000 km and 2.28 kr. after that, and 0.64 kr. per km by bicycle or moped.\n\nThe log has the details skat.dk requires as documentation: the purpose of the trip, the destination and stops, the date, the number of kilometres, the calculation at the rates, and that the trip was in your own vehicle. Download it as a PDF or print it, or download a CSV file for your accountant.\n\nThe trips are saved only in your browser. If you are self-employed, ask your accountant how to use the amount in your accounts.",
+    "icon": "/tools/koerebog/icon.svg",
+    "tech": [
+      "Almindelig JavaScript: ingen frameworks eller biblioteker, alt regnes ud i din browser",
+      "Satser for 2025, 2026 og 2027 fra skat.dk; grænsen på 20.000 km regnes pr. år",
+      "localStorage: turene gemmes i din browser",
+      "CSV med semikolon til dansk Excel, og PDF lavet i din browser"
+    ],
+    "tech_en": [
+      "Plain JavaScript: no frameworks or libraries, everything is calculated in your browser",
+      "Rates for 2025, 2026 and 2027 from skat.dk; the 20,000 km limit counts per year",
+      "localStorage: the trips are saved in your browser",
+      "CSV with semicolons for Danish Excel, and a PDF made in your browser"
+    ]
+  },
+  {
+    "slug": "frister",
+    "name": "Momsfrister",
+    "name_en": "VAT deadlines",
+    "tagline": "Se dine kommende momsfrister, tilføj B-skat og andre datoer, og få det hele i din kalender.",
+    "tagline_en": "See your coming VAT deadlines, add B-skat and other dates, and put it all in your calendar.",
+    "description": "Vælg om du afregner moms halvårligt, kvartalsvist eller månedligt, så ser du dine kommende frister for at indberette og betale. Datoerne er fra skat.dk, hvor weekender og helligdage allerede er taget med.\n\nTilføj dine egne datoer, fx dine B-skat-rater, som du finder i TastSelv, og hent det hele som en kalenderfil til Outlook, Google Kalender eller telefonen, med en påmindelse et par dage før.",
+    "description_en": "Choose whether you report VAT half-yearly, quarterly or monthly, and you see your coming deadlines to report and pay. The dates are from skat.dk, with weekends and public holidays already taken into account.\n\nAdd your own dates, such as your B-skat instalments, which you find in TastSelv, and download everything as a calendar file for Outlook, Google Calendar or your phone, with a reminder a few days before.",
+    "icon": "/tools/frister/icon.svg",
+    "tech": [
+      "Almindelig JavaScript: ingen frameworks eller biblioteker, alt regnes ud i din browser",
+      "Momsfrister fra skat.dk til og med marts 2028",
+      "iCalendar (.ics) med påmindelser, lavet i din browser",
+      "localStorage: dine egne datoer gemmes i din browser"
+    ],
+    "tech_en": [
+      "Plain JavaScript: no frameworks or libraries, everything is calculated in your browser",
+      "VAT deadlines from skat.dk up to March 2028",
+      "iCalendar (.ics) with reminders, made in your browser",
+      "localStorage: your own dates are saved in your browser"
     ]
   },
   {

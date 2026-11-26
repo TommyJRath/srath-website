@@ -1,0 +1,56 @@
+[
+  {
+    "slug": "tokens",
+    "category": "Foundations",
+    "title": "Colours and type",
+    "description": "The whole site is built on a handful of tokens: warm charcoal, one amber accent, a serif for headings and a monospace for small labels. All system fonts, so nothing is loaded from other servers."
+  },
+  {
+    "slug": "buttons",
+    "category": "Controls",
+    "title": "Buttons and links",
+    "description": "One solid button for the main action, a quiet one next to it, and a text link whose arrow moves on hover. Flat colours, a visible focus ring for keyboard users, and no lift or glow."
+  },
+  {
+    "slug": "segmented",
+    "category": "Controls",
+    "title": "Segmented toggle",
+    "description": "Used for choices like invoice or quote. The selected state is the real aria-pressed attribute, so the CSS and screen readers read the same thing."
+  },
+  {
+    "slug": "language-switch",
+    "category": "Controls",
+    "title": "Dansk / English switch",
+    "description": "The big switch at the top of every tool. One amber pill slides to the chosen language with a slight overshoot, while the text colours fade across. The flags are small inline SVGs, so they look the same on every computer, unlike emoji flags, which Windows shows as letters."
+  },
+  {
+    "slug": "input-with-unit",
+    "category": "Forms",
+    "title": "Input with a unit and validation",
+    "description": "The unit is drawn inside the field with CSS, so it is never part of the value. The field turns red and explains itself when the text isn't a number, and the result updates as you type."
+  },
+  {
+    "slug": "copy-results",
+    "category": "Forms",
+    "title": "Click-to-copy results",
+    "description": "Each amount is a button styled like the number it copies, with a short confirmation. Copying may be blocked in this embedded demo; it works on the tool pages."
+  },
+  {
+    "slug": "login-character",
+    "category": "Forms",
+    "title": "Login form with Bay Ganyo",
+    "description": "A demo login form with Bay Ganyo, the Bulgarian character from Aleko Konstantinov’s stories (1895), in our own drawing: kalpak hat, a rose and a big moustache, all in SVG. His eyes follow what you type in the email field, he covers his eyes while you are at the password, and he peeks between his fingers, moustache twitching, when you show the password. Nothing is sent anywhere. He is decoration only, so screen readers skip him, and with reduced motion he changes pose without moving."
+  },
+  {
+    "slug": "project-rows",
+    "category": "Layout",
+    "title": "Project rows",
+    "description": "The home page lists projects as rows instead of a grid of identical cards. The whole row is clickable through the link's ::after, so there is only one link for screen readers."
+  },
+  {
+    "slug": "coffee-rings",
+    "category": "Animation",
+    "title": "Coffee rings on canvas",
+    "description": "One of the tools on the home page workbench. Each ring gets its own random gap, size, squash, thickness and sometimes a drip, so no two look alike."
+  }
+]

@@ -1,0 +1,45 @@
+<div class="tl-grid">
+  <div class="card">
+    <p class="tl-card-title" data-en="The payment">Betalingen</p>
+    <div class="tl-fields">
+      <label class="tl-field">
+        <span data-en="Amount you were paid">Beløb du har fået betalt</span>
+        <span class="tl-affix" data-suffix="kr."><input id="st-amount" class="tl-input tl-input-big" inputmode="decimal" autocomplete="off" value="12500"></span>
+      </label>
+      <div class="tl-field">
+        <span class="tl-label" id="st-vat-label" data-en="The amount is">Beløbet er</span>
+        <div class="tl-seg" role="group" aria-labelledby="st-vat-label">
+          <button type="button" data-vat="inc" aria-pressed="true" data-en="With 25 % VAT">Med 25 % moms</button>
+          <button type="button" data-vat="none" aria-pressed="false" data-en="Without VAT">Uden moms</button>
+        </div>
+      </div>
+      <label class="tl-field">
+        <span><span data-en="Share that covers expenses">Andel der dækker udgifter</span> <span class="tl-hint" data-en="· materials, travel, software for this job">· materialer, kørsel, software til opgaven</span></span>
+        <span class="tl-affix" data-suffix="%"><input id="st-exp" class="tl-input" inputmode="decimal" value="0"></span>
+      </label>
+    </div>
+
+    <p class="tl-card-title" data-en="Your year">Dit år</p>
+    <div class="tl-fields tl-fields-3">
+      <label class="tl-field"><span data-en="Expected profit this year">Forventet overskud i år</span><span class="tl-affix" data-suffix="kr."><input id="st-profit" class="tl-input" inputmode="decimal" value="400000"></span></label>
+      <label class="tl-field"><span data-en="Municipal tax">Kommuneskat</span><span class="tl-affix" data-suffix="%"><input id="st-kom" class="tl-input" inputmode="decimal" value="25"></span></label>
+      <label class="tl-field"><span data-en="Church tax">Kirkeskat</span><span class="tl-affix" data-suffix="%"><input id="st-kirke" class="tl-input" inputmode="decimal" value="0"></span></label>
+    </div>
+  </div>
+
+  <div class="card tl-sticky" aria-live="polite">
+    <div class="tl-hero">
+      <p class="tl-hero-label" data-en="Set aside">Læg til side</p>
+      <p class="tl-hero-value" id="st-aside">–</p>
+      <p class="tl-hero-sub" id="st-aside-sub">–</p>
+    </div>
+    <dl class="tl-result">
+      <div><dt data-en="VAT to pay to the Danish Tax Agency">Moms til Skattestyrelsen</dt><dd id="st-vat">–</dd></div>
+      <div><dt id="st-tax-label"></dt><dd id="st-tax">–</dd></div>
+      <div><dt data-en="Covers expenses">Dækker udgifter</dt><dd id="st-expenses">–</dd></div>
+      <div class="tl-total"><dt data-en="Yours to spend">Dit at bruge</dt><dd id="st-yours">–</dd></div>
+    </dl>
+    <p class="tl-error" id="st-error" hidden></p>
+    <p class="tl-note" id="st-note"></p>
+  </div>
+</div>

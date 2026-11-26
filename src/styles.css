@@ -324,10 +324,15 @@ a.news-item:hover .news-arrow { transform: translateX(3px); }
 @media (max-width: 480px) {
   .header-inner { height: 58px; }
   .nav-list a { padding: 8px 9px; font-size: .9rem; }
+  .nav-wide-only { display: none; }
   .brand-name { display: none; }
   .actions .btn { flex: 1 1 100%; }
   .info-list > div { flex-direction: column; gap: 2px; }
   .info-list dd { text-align: left; }
+}
+@media (max-width: 360px) {
+  .nav-list { gap: 0; }
+  .nav-list a { padding: 8px 6px; font-size: .85rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {

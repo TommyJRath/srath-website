@@ -1,0 +1,57 @@
+<div class="tl-grid">
+  <div class="card">
+    <p class="tl-card-title" data-en="Timer">Stopur</p>
+    <div class="tr-timer">
+      <p class="tr-clock" id="tt-clock">0:00:00</p>
+      <div class="tl-fields tl-fields-2">
+        <label class="tl-field"><span data-en="Customer or project">Kunde eller projekt</span><input class="tl-input" id="tt-project" list="tt-projects" autocomplete="off"></label>
+        <label class="tl-field"><span data-en="What are you doing?">Hvad laver du?</span><input class="tl-input" id="tt-desc" autocomplete="off" placeholder="Design af forside" data-en-placeholder="Designing the home page"></label>
+      </div>
+      <datalist id="tt-projects"></datalist>
+      <div class="tl-actions"><button type="button" class="btn btn-primary" id="tt-toggle" data-en="Start">Start</button></div>
+    </div>
+
+    <p class="tl-card-title" style="margin-top:28px" data-en="Add time by hand">Tilføj tid i hånden</p>
+    <form class="tl-fields tl-fields-3" id="tt-manual">
+      <label class="tl-field"><span data-en="Date">Dato</span><input class="tl-input" type="date" id="tt-m-date" required></label>
+      <label class="tl-field"><span data-en="Hours">Timer</span><input class="tl-input" id="tt-m-hours" inputmode="decimal" placeholder="1,5" data-en-placeholder="1.5" required></label>
+      <div class="tl-field" style="align-self:end"><button class="btn btn-ghost" type="submit" data-en="Add">Tilføj</button></div>
+    </form>
+    <p class="tl-note" data-en="Uses the customer and description above. Your time is saved only in this browser.">Bruger kunden og beskrivelsen ovenfor. Din tid gemmes kun i denne browser.</p>
+  </div>
+
+  <div class="card" aria-live="polite">
+    <div class="tl-fields tl-fields-2">
+      <label class="tl-field"><span data-en="Show">Vis</span>
+        <select class="tl-select" id="tt-filter">
+          <option value="open" data-en="Not invoiced yet">Ikke faktureret endnu</option>
+          <option value="all" data-en="Everything">Alt</option>
+        </select>
+      </label>
+      <label class="tl-field"><span data-en="Customer or project">Kunde eller projekt</span><select class="tl-select" id="tt-pfilter"><option value="" data-en="All">Alle</option></select></label>
+    </div>
+    <div class="kb-table-wrap" style="margin-top:14px">
+      <table class="kb-table">
+        <thead><tr><th><span class="sr-only" data-en="Select">Vælg</span></th><th data-en="Date">Dato</th><th data-en="Customer / task">Kunde / opgave</th><th class="r" data-en="Hours">Timer</th><th class="kb-del-col"></th></tr></thead>
+        <tbody id="tt-rows"></tbody>
+      </table>
+    </div>
+    <p class="tl-note" id="tt-empty" data-en="No time registered yet. Start the timer or add time by hand.">Ingen tid registreret endnu. Start stopuret, eller tilføj tid i hånden.</p>
+    <div class="tl-hero" style="margin-top:16px">
+      <p class="tl-hero-label" data-en="Selected">Valgt</p>
+      <p class="tl-hero-value" id="tt-sel-hours">0 t</p>
+      <p class="tl-hero-sub" id="tt-sel-sum"></p>
+    </div>
+    <div class="tl-fields tl-fields-2">
+      <label class="tl-field"><span><span data-en="Hourly rate">Timepris</span> <span class="tl-hint" data-en-html="· without VAT · &lt;a href=&quot;/tools/timeprisberegner/?lang=en&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;work it out&lt;/a&gt;">· uden moms · <a href="/tools/timeprisberegner/" target="_blank" rel="noopener">regn den ud</a></span></span><span class="tl-affix" data-suffix="kr."><input class="tl-input" id="tt-rate" inputmode="decimal"></span></label>
+      <label class="tl-field"><span data-en="Round each line up to">Rund hver linje op til</span>
+        <select class="tl-select" id="tt-round"><option value="0" data-en="No rounding">Ingen afrunding</option><option value="0.25" data-en="Quarter hours">Kvarte timer</option><option value="0.5" data-en="Half hours">Halve timer</option></select>
+      </label>
+    </div>
+    <div class="tl-actions">
+      <button type="button" class="btn btn-primary" id="tt-invoice" data-en="Invoice the selected time">Fakturer den valgte tid</button>
+      <button type="button" class="btn btn-ghost tl-btn-sm" id="tt-csv" data-en="Download CSV">Hent CSV</button>
+    </div>
+    <p class="tl-note" data-en="Invoicing opens the invoice generator with one line per customer and task, and marks the time as invoiced.">Fakturering åbner fakturageneratoren med én linje pr. kunde og opgave og markerer tiden som faktureret.</p>
+  </div>
+</div>

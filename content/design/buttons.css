@@ -1,0 +1,18 @@
+.actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 11px 18px; border-radius: var(--radius-sm); border: 1px solid transparent;
+  font: 600 .95rem/1.2 var(--font); text-decoration: none; cursor: pointer;
+  transition: background .2s, border-color .2s, color .2s;
+}
+/* Flat: no gradient, no glow, no lift on hover. */
+.btn-primary { background: var(--accent); color: var(--accent-ink); }
+.btn-primary:hover { background: var(--accent-hover); }
+.btn-ghost { background: var(--surface); border-color: var(--border-strong); color: var(--text); }
+.btn-ghost:hover { border-color: var(--accent); }
+.btn:focus-visible, .text-link:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+.text-link { display: inline-flex; align-items: center; gap: 6px; color: var(--accent); font-weight: 600; text-decoration: none; }
+.text-link svg { width: 1.1em; height: 1.1em; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; transition: transform .2s; }
+.text-link:hover svg { transform: translateX(3px); }

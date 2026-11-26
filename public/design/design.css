@@ -1,0 +1,71 @@
+/* Web design page (/design/): live examples with their code. Uses the site's tokens from /assets/styles.css. */
+
+.design-layout { display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 48px; align-items: start; padding-top: clamp(32px, 5vw, 56px); padding-bottom: clamp(48px, 8vw, 96px); }
+.design-toc { position: sticky; top: 88px; max-height: calc(100vh - 110px); overflow-y: auto; display: grid; gap: 6px; padding-right: 4px; }
+
+/* One fold-out group per category (<details>), with a chevron that turns when it opens. */
+.design-group summary {
+  display: flex; align-items: center; gap: 8px; padding: 6px 0; cursor: pointer; list-style: none;
+  font: .8rem var(--mono); color: var(--muted); user-select: none;
+}
+.design-group summary::-webkit-details-marker { display: none; }
+.design-group summary::before {
+  content: ""; width: 7px; height: 7px; flex: none; margin: 0 2px 0 1px;
+  border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor;
+  transform: rotate(-45deg); transition: transform .2s ease;
+}
+.design-group[open] summary::before { transform: rotate(45deg); }
+.design-group summary:hover { color: var(--text); }
+.design-group summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: var(--radius-sm); }
+.design-count { margin-left: auto; font-size: .75rem; color: var(--muted); opacity: .7; }
+.design-group ol { list-style: none; margin: 2px 0 10px; padding: 0; display: grid; gap: 2px; border-left: 1px solid var(--border); }
+.design-toc a { display: block; padding: 5px 0 5px 14px; margin-left: -1px; border-left: 1px solid transparent; color: var(--muted); text-decoration: none; font-size: .92rem; }
+.design-toc a:hover, .design-toc a[aria-current="true"] { color: var(--text); border-left-color: var(--accent); }
+@media (prefers-reduced-motion: reduce) { .design-group summary::before { transition: none; } }
+@media (max-width: 900px) {
+  .design-layout { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+  .design-toc { position: static; max-height: none; overflow: visible; }
+  .design-group ol { display: flex; flex-wrap: wrap; gap: 4px 14px; border: 0; margin-left: 20px; }
+  .design-toc a { padding: 0; border: 0; }
+}
+
+/* Category headings on the page. */
+.design-category { display: grid; grid-template-columns: minmax(0, 1fr); min-width: 0; gap: clamp(40px, 6vw, 64px); scroll-margin-top: 88px; }
+.design-category-title {
+  font-size: clamp(1.6rem, 1.3rem + 1.2vw, 2.2rem); margin: 0; padding-bottom: 12px; border-bottom: 1px solid var(--border-strong);
+}
+
+.design-items { display: grid; grid-template-columns: minmax(0, 1fr); gap: clamp(48px, 7vw, 80px); }
+.design-item { scroll-margin-top: 88px; min-width: 0; }
+.design-text { max-width: 64ch; }
+.design-text h3 { font-size: clamp(1.3rem, 1.15rem + .6vw, 1.6rem); margin: 0 0 .35em; }
+.design-text p { color: var(--muted); margin: 0 0 18px; }
+
+/* The live example: its own document in a frame, so its CSS can't clash with the page. */
+.design-demo { border: 1px solid var(--border); border-radius: var(--radius) var(--radius) 0 0; overflow: hidden; background: #1b1916; }
+.design-demo iframe { display: block; width: 100%; height: 160px; border: 0; background: #1b1916; }
+
+/* Code box */
+.code { border: 1px solid var(--border); border-top: 0; border-radius: 0 0 var(--radius) var(--radius); background: #141210; }
+.code-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 6px 8px 0 8px; border-bottom: 1px solid var(--border); }
+.code-tabs { display: flex; gap: 2px; }
+.code-tabs button {
+  font: .82rem var(--mono); color: var(--muted); background: none; border: 0; border-bottom: 2px solid transparent;
+  padding: 8px 12px; cursor: pointer;
+}
+.code-tabs button:hover { color: var(--text); }
+.code-tabs button[aria-selected="true"] { color: var(--text); border-bottom-color: var(--accent); }
+.code-copy { font: .8rem var(--mono); color: var(--accent); background: none; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); padding: 4px 10px; margin-bottom: 6px; cursor: pointer; }
+.code-copy:hover { border-color: var(--accent); }
+.code-panel { margin: 0; padding: 16px 18px; max-height: 420px; overflow: auto; font: .84rem/1.6 var(--mono); color: #d6cfbf; tab-size: 2; }
+.code-panel:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.code-panel code { font: inherit; background: none; border: 0; padding: 0; }
+
+/* Syntax colours, from the site's palette. */
+.tk-com { color: #7d7568; font-style: italic; }
+.tk-str { color: #93b86e; }
+.tk-tag, .tk-kw, .tk-at { color: #e8a33d; }
+.tk-attr, .tk-prop { color: #7aa7d6; }
+.tk-num, .tk-re { color: #d98c6f; }
+.tk-fn, .tk-sel { color: #e3d6bb; }
+.tk-var { color: #b784b0; }

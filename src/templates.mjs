@@ -5,7 +5,8 @@ import { esc } from './markdown.mjs';
 
 const NAV = [
   { href: '/apps/', label: 'Apps' },
-  { href: '/privacy/', label: 'Privacy' },
+  // Hidden from the top menu on phones, where it doesn't fit; it is always in the footer.
+  { href: '/privacy/', label: 'Privacy', wideOnly: true },
   { href: '/contact/', label: 'Contact' },
 ];
 
@@ -24,11 +25,12 @@ export const icons = {
 // eslint-disable-next-line no-unused-vars
 const logoMark = (id) => `<svg class="logo-mark" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="5" fill="#e8a33d"/><path d="M22 10H10v6h12v6H10" fill="none" stroke="#1b1916" stroke-width="3.2" stroke-linecap="square" stroke-linejoin="miter"/></svg>`;
 
-export function layout({ site, assets, hasPartners = false, hasGames = false, hasTools = false, path, title, description, body, head = '', noindex = false, jsonLd = null, lang = 'en' }) {
+export function layout({ site, assets, hasPartners = false, hasGames = false, hasTools = false, hasDesign = false, path, title, description, body, head = '', noindex = false, jsonLd = null, lang = 'en' }) {
   const nav = [
     NAV[0],
     hasGames && { href: '/games/', label: 'Games' },
     hasTools && { href: '/tools/', label: 'Tools' },
+    hasDesign && { href: '/design/', label: 'Design' },
     hasPartners && { href: '/partners/', label: 'Partners' },
     ...NAV.slice(1),
   ].filter(Boolean);
@@ -68,7 +70,7 @@ ${jsonLd ? `<script type="application/ld+json">${JSON.stringify(jsonLd).replace(
     <a class="brand" href="/" aria-label="${esc(site.name)} — home">${logoMark('logo-h')}<span class="brand-name">${esc(site.name)}</span></a>
     <nav aria-label="Main">
       <ul class="nav-list">
-        ${nav.map((n) => `<li><a href="${n.href}"${path.startsWith(n.href) ? ' aria-current="page"' : ''}>${n.label}</a></li>`).join('\n        ')}
+        ${nav.map((n) => `<li${n.wideOnly ? ' class="nav-wide-only"' : ''}><a href="${n.href}"${path.startsWith(n.href) ? ' aria-current="page"' : ''}>${n.label}</a></li>`).join('\n        ')}
       </ul>
     </nav>
   </div>
@@ -92,6 +94,7 @@ ${body}
           <li><a href="/apps/">Apps</a></li>
           ${hasGames ? '<li><a href="/games/">Games</a></li>' : ''}
           ${hasTools ? '<li><a href="/tools/">Tools</a></li>' : ''}
+          ${hasDesign ? '<li><a href="/design/">Web design</a></li>' : ''}
           ${hasPartners ? '<li><a href="/partners/">Partners</a></li>' : ''}
           <li><a href="/contact/">Contact</a></li>
           ${site.linkedin ? `<li><a href="${esc(site.linkedin)}" rel="noopener noreferrer me">LinkedIn</a></li>` : ''}

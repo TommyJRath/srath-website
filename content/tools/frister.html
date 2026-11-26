@@ -1,0 +1,37 @@
+<div class="tl-grid">
+  <div class="card">
+    <div class="tl-field">
+      <span class="tl-label" id="fr-period-label" data-en="You report VAT">Du afregner moms</span>
+      <div class="tl-seg" role="group" aria-labelledby="fr-period-label">
+        <button type="button" data-period="half" aria-pressed="false" data-en="Half-yearly">Halvårligt</button>
+        <button type="button" data-period="quarter" aria-pressed="true" data-en="Quarterly">Kvartalsvist</button>
+        <button type="button" data-period="month" aria-pressed="false" data-en="Monthly">Månedligt</button>
+      </div>
+    </div>
+
+    <p class="tl-card-title" style="margin-top:26px" data-en="Your own dates">Dine egne datoer</p>
+    <p class="tl-note" style="margin-top:0" data-en-html="Add your B-skat payment dates, which you find in TastSelv under Betal skat, or anything else you must not forget. Saved only in this browser.">Tilføj dine B-skat-datoer, som du finder i TastSelv under Betal skat, eller andet du ikke må glemme. Gemmes kun i denne browser.</p>
+    <form class="tl-fields tl-fields-3" id="fr-own">
+      <label class="tl-field"><span data-en="Date">Dato</span><input class="tl-input" type="date" id="fr-own-date" required></label>
+      <label class="tl-field" style="grid-column: span 2"><span data-en="What">Hvad</span><input class="tl-input" id="fr-own-text" placeholder="B-skat, rate 1" data-en-placeholder="B-skat, instalment 1" required></label>
+    </form>
+    <div class="tl-actions" style="margin-top:8px"><button class="btn btn-ghost tl-btn-sm" type="submit" form="fr-own" data-en="Add date">Tilføj dato</button></div>
+
+    <p class="tl-card-title" style="margin-top:26px" data-en="Into your calendar">I din kalender</p>
+    <label class="tl-field"><span data-en="Remind me">Påmind mig</span>
+      <select class="tl-select" id="fr-alarm">
+        <option value="3" data-en="3 days before">3 dage før</option>
+        <option value="7" data-en="A week before">En uge før</option>
+        <option value="1" data-en="The day before">Dagen før</option>
+      </select>
+    </label>
+    <div class="tl-actions"><button type="button" class="btn btn-primary" id="fr-ics" data-en="Download calendar file">Hent kalenderfil</button></div>
+    <p class="tl-note" data-en="A .ics file opens in Outlook, Google Calendar and on your phone. It contains the deadlines listed on the right.">En .ics-fil kan åbnes i Outlook, Google Kalender og på telefonen. Den indeholder fristerne til højre.</p>
+  </div>
+
+  <div class="card" aria-live="polite">
+    <p class="tl-card-title" data-en="Coming deadlines">Kommende frister</p>
+    <ul class="fr-list" id="fr-list"></ul>
+    <p class="tl-note" id="fr-source"></p>
+  </div>
+</div>

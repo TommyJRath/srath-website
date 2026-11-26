@@ -1,47 +1,12 @@
 // Timeprisberegner: the hourly rate a Danish sole trader needs for a given take-home pay.
 //
-// Tax model (estimate), 2026 rates from https://skat.dk/hjaelp/satser and
-// https://skat.dk/hjaelp/bundskat-mellemskat-topskat-og-toptopskat:
-//   - The whole profit is personal income (no virksomhedsordning, no capital income, no pension).
-//   - am-bidrag 8 % of the profit; personlig indkomst = profit − am-bidrag.
-//   - beskæftigelsesfradrag 12,75 % of the profit, max 63.300 kr., deducted in skattepligtig indkomst.
-//   - personfradrag 54.100 kr. against bundskat, kommuneskat and kirkeskat.
-//   - bundskat 12,01 % of personlig indkomst.
-//   - mellemskat 7,5 % above 641.200 kr., topskat 7,5 % above 777.900 kr.,
-//     toptopskat 5 % above 2.592.700 kr. (all of personlig indkomst after am-bidrag).
-//   - skatteloft 44,57 %: kommuneskat + bundskat + mellemskat may not exceed it, so mellemskat is reduced
-//     in municipalities with a high rate. Kirkeskat and am-bidrag are outside the ceiling, and topskat
-//     and toptopskat come on top of it.
+// Tax: SrathTools.danishTax in /tools/tools.js (2026 rates, shared with "Skat til side").
 (function () {
   'use strict';
   var T = window.SrathTools;
   var $ = function (id) { return document.getElementById(id); };
 
-  var R = {
-    am: 0.08, bund: 0.1201, persfradrag: 54100,
-    beskPct: 0.1275, beskMax: 63300,
-    mellem: 0.075, mellemGraense: 641200,
-    top: 0.075, topGraense: 777900,
-    toptop: 0.05, toptopGraense: 2592700,
-    loft: 0.4457,
-  };
-
-  /** Tax for a yearly profit (kroner). k and c are the municipal and church rates as fractions. */
-  function tax(profit, k, c) {
-    var p = Math.max(0, profit);
-    var am = R.am * p;
-    var pi = p - am;
-    var besk = Math.min(R.beskPct * p, R.beskMax);
-    var skattepligtig = Math.max(0, pi - besk);
-    var bund = R.bund * Math.max(0, pi - R.persfradrag);
-    var kom = k * Math.max(0, skattepligtig - R.persfradrag);
-    var kirke = c * Math.max(0, skattepligtig - R.persfradrag);
-    var mellemRate = Math.max(0, Math.min(R.mellem, R.loft - k - R.bund));
-    var mellem = mellemRate * Math.max(0, pi - R.mellemGraense);
-    var top = R.top * Math.max(0, pi - R.topGraense) + R.toptop * Math.max(0, pi - R.toptopGraense);
-    var total = am + bund + kom + kirke + mellem + top;
-    return { am: am, bund: bund, kom: kom, kirke: kirke, mellem: mellem, top: top, total: total };
-  }
+  var tax = T.danishTax;
 
   /** The profit that leaves exactly `net` after tax (binary search; take-home rises with profit). */
   function profitFor(net, k, c) {

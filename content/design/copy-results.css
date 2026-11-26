@@ -1,0 +1,15 @@
+.result { margin: 0; max-width: 420px; }
+.result > div { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.result > div:last-child { border-bottom: 0; }
+.result dt { color: var(--muted); }
+.result dd { margin: 0; }
+.total dt { color: var(--text); font-weight: 700; }
+
+/* A button that looks like the number it copies. */
+.copy {
+  font: inherit; font-weight: 600; font-variant-numeric: tabular-nums; color: inherit;
+  background: none; border: 0; border-bottom: 1px dashed var(--border-strong); padding: 0; cursor: pointer;
+}
+.copy:hover { color: var(--accent); border-bottom-color: var(--accent); }
+.total .copy { font-size: 1.2rem; color: var(--accent); }
+.note { font-size: .85rem; color: var(--muted); margin: 14px 0 0; }

@@ -1,0 +1,62 @@
+<div class="inv-layout">
+  <form class="inv-form card" id="rk-form" autocomplete="on">
+    <p class="tl-card-title" data-en="You">Dig</p>
+    <div class="tl-fields tl-fields-2">
+      <label class="tl-field"><span data-en="Business name">Firmanavn</span><input class="tl-input" data-f="sName" autocomplete="organization"></label>
+      <label class="tl-field"><span data-en="CVR number">CVR-nummer</span><input class="tl-input" data-f="sCvr" inputmode="numeric"></label>
+      <label class="tl-field"><span data-en="Address">Adresse</span><textarea class="tl-textarea" data-f="sAddr" rows="2"></textarea></label>
+      <label class="tl-field"><span data-en="Payment details">Betalingsoplysninger</span><textarea class="tl-textarea" data-f="sPay" rows="2"></textarea></label>
+    </div>
+    <p class="tl-note" id="rk-from-invoice" hidden data-en="Your details and logo are taken from the invoice generator, where you ticked Remember my details.">Dine oplysninger og dit logo er hentet fra fakturageneratoren, hvor du har krydset Husk mine oplysninger af.</p>
+
+    <p class="tl-card-title tl-section" data-en="The customer">Kunden</p>
+    <div class="tl-fields">
+      <label class="tl-field"><span data-en="Name">Navn</span><input class="tl-input" data-f="bName"></label>
+      <label class="tl-field"><span data-en="Address">Adresse</span><textarea class="tl-textarea" data-f="bAddr" rows="2"></textarea></label>
+    </div>
+    <div class="tl-field" style="margin-top:12px">
+      <span class="tl-label" id="rk-who-label" data-en="The customer is">Kunden er</span>
+      <div class="tl-seg" role="group" aria-labelledby="rk-who-label">
+        <button type="button" data-who="b2b" aria-pressed="true" data-en="A business">En virksomhed</button>
+        <button type="button" data-who="b2c" aria-pressed="false" data-en="A private person">En privatperson</button>
+      </div>
+    </div>
+
+    <p class="tl-card-title tl-section" data-en="The unpaid invoice">Den ubetalte faktura</p>
+    <div class="tl-fields tl-fields-3">
+      <label class="tl-field"><span data-en="Invoice number">Fakturanummer</span><input class="tl-input" data-f="no"></label>
+      <label class="tl-field"><span data-en="Invoice date">Fakturadato</span><input class="tl-input" type="date" data-f="invDate"></label>
+      <label class="tl-field"><span data-en="Due date">Forfaldsdato</span><input class="tl-input" type="date" data-f="due"></label>
+      <label class="tl-field"><span><span data-en="Amount owed">Skyldigt beløb</span> <span class="tl-hint" data-en="· incl. VAT">· inkl. moms</span></span><span class="tl-affix" data-suffix="kr."><input class="tl-input" data-f="amount" inputmode="decimal"></span></label>
+    </div>
+
+    <p class="tl-card-title tl-section" data-en="The reminder">Rykkeren</p>
+    <div class="tl-fields tl-fields-3">
+      <label class="tl-field"><span data-en="Reminder no.">Rykker nr.</span>
+        <select class="tl-select" data-f="nr"><option value="1">1</option><option value="2">2</option><option value="3">3</option></select>
+      </label>
+      <label class="tl-field"><span data-en="Date of the reminder">Rykkerens dato</span><input class="tl-input" type="date" data-f="date"></label>
+      <label class="tl-field"><span data-en="Pay within">Betal inden</span><span class="tl-affix" data-suffix="dage"><input class="tl-input" data-f="days" inputmode="numeric" value="10"></span></label>
+    </div>
+    <div class="tl-fields" style="margin-top:14px">
+      <label class="tl-check"><input type="checkbox" id="rk-fee" checked> <span data-en="Add a reminder fee of 100 kr.">Læg rykkergebyr på 100 kr. til</span></label>
+      <label class="tl-check"><input type="checkbox" id="rk-interest" checked> <span data-en="Add late-payment interest from the due date">Læg morarente til fra forfaldsdagen</span></label>
+      <label class="tl-check" id="rk-comp-row"><input type="checkbox" id="rk-comp"> <span data-en="Add the compensation fee of 310 kr. (business customers, once)">Læg kompensationsbeløb på 310 kr. til (erhvervskunder, én gang)</span></label>
+      <label class="tl-check"><input type="checkbox" id="rk-earlier"> <span data-en="Include fees and interest from earlier reminders">Medtag gebyrer og renter fra tidligere rykkere</span></label>
+      <div class="tl-fields tl-fields-2" id="rk-earlier-fields" hidden>
+        <label class="tl-field"><span data-en="Earlier fees and interest">Tidligere gebyrer og renter</span><span class="tl-affix" data-suffix="kr."><input class="tl-input" data-f="earlier" inputmode="decimal"></span></label>
+      </div>
+    </div>
+    <p class="tl-error" id="rk-error" hidden></p>
+    <div class="tl-actions">
+      <button type="button" class="btn btn-primary" id="rk-pdf" data-en="Download PDF">Hent PDF</button>
+      <button type="button" class="btn btn-ghost" id="rk-print" data-en="Print">Udskriv</button>
+    </div>
+    <p class="tl-note" data-en-html="The rules: a reminder fee of at most 100 kr. per reminder, for at most 3 reminders sent at least 10 days apart (renteloven § 9 b). Interest from the due date at Nationalbanken's lending rate on 1 January or 1 July plus 8 percentage points (renteloven §§ 3 and 5): 9.75 % in the first half of 2026 and 10.00 % in the second. Between businesses also a fixed compensation fee of 310 kr. (renteloven § 9 a, stk. 3). Nothing you type is saved.">Reglerne: rykkergebyr på højst 100 kr. pr. rykker, for højst 3 rykkere sendt med mindst 10 dages mellemrum (renteloven § 9 b). Morarente fra forfaldsdagen med Nationalbankens udlånsrente pr. 1. januar eller 1. juli plus 8 procentpoint (renteloven §§ 3 og 5): 9,75 % i første halvår 2026 og 10,00 % i andet. Mellem virksomheder desuden et fast kompensationsbeløb på 310 kr. (renteloven § 9 a, stk. 3). Intet af det du skriver bliver gemt.</p>
+  </form>
+
+  <div class="inv-preview-wrap">
+    <p class="tl-card-title inv-preview-title" data-en="Preview">Forhåndsvisning</p>
+    <div class="inv-paper" id="rk-paper"></div>
+  </div>
+</div>

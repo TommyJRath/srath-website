@@ -1,0 +1,28 @@
+.lang-switch {
+  position: relative; display: inline-flex; gap: 4px; padding: 4px;
+  border-radius: 999px; background: var(--surface); border: 1px solid var(--accent);
+}
+.lang-switch button {
+  position: relative; z-index: 1; /* above the sliding highlight */
+  display: inline-flex; align-items: center; gap: 9px;
+  font: 700 1rem var(--font); color: var(--muted);
+  background: none; border: 0; padding: 9px 18px 9px 12px; border-radius: 999px; cursor: pointer;
+  transition: color .3s ease;
+}
+.lang-switch button:hover { color: var(--text); }
+.lang-switch button[aria-pressed="true"] { color: var(--accent-ink); }
+.lang-switch svg { width: 26px; height: 18px; border-radius: 3px; box-shadow: 0 0 0 1px rgba(255, 255, 255, .25); }
+
+/* One amber pill that slides under the chosen button, with a slight overshoot.
+   JavaScript sets its width and position; CSS animates the change. */
+.thumb {
+  position: absolute; top: 4px; bottom: 4px; left: 4px; width: 0;
+  border-radius: 999px; background: var(--accent);
+  transition: transform .42s cubic-bezier(.34, 1.36, .64, 1), width .42s cubic-bezier(.34, 1.36, .64, 1);
+}
+.thumb.instant { transition: none; }
+@media (prefers-reduced-motion: reduce) {
+  .thumb, .lang-switch button { transition: none; }
+}
+
+.greeting { font: 500 1.4rem var(--serif); margin: 18px 0 0; }

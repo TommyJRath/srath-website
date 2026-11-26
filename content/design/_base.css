@@ -1,0 +1,28 @@
+/* The design tokens every example builds on: warm charcoal, one amber accent,
+   a serif for headings and a monospace for small labels. System fonts only. */
+:root {
+  --bg: #1b1916;
+  --surface: #221f1b;
+  --surface-2: #2a2621;
+  --border: #34302a;
+  --border-strong: #4a443b;
+  --text: #ece6d8;
+  --muted: #a39b8b;
+  --accent: #e8a33d;
+  --accent-hover: #f0b860;
+  --accent-ink: #1b1916;
+  --radius: 6px;
+  --radius-sm: 4px;
+  --font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --serif: "Iowan Old Style", Charter, "Bitstream Charter", "Sitka Text", Cambria, Georgia, serif;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  color-scheme: dark;
+}
+
+body {
+  margin: 0;
+  padding: 24px;
+  background: var(--bg);
+  color: var(--text);
+  font: 1rem/1.6 var(--font);
+}

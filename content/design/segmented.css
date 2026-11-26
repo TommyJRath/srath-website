@@ -1,0 +1,14 @@
+.seg {
+  display: inline-flex; flex-wrap: wrap; gap: 2px; padding: 3px;
+  border-radius: var(--radius); background: var(--surface); border: 1px solid var(--border);
+}
+.seg button {
+  font: 500 .9rem var(--font); color: var(--muted); background: none; border: 0;
+  padding: 8px 14px; border-radius: var(--radius-sm); cursor: pointer; transition: color .2s, background .2s;
+}
+.seg button:hover { color: var(--text); }
+/* The pressed state is the real aria-pressed attribute, so screen readers hear it too. */
+.seg button[aria-pressed="true"] { color: var(--accent-ink); background: var(--accent); }
+.seg button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.out { color: var(--muted); margin: 16px 0 0; }
+.out strong { color: var(--text); }

@@ -1,0 +1,76 @@
+.login { display: flex; flex-direction: column; align-items: center; max-width: 340px; margin: 0 auto; }
+
+/* The character ------------------------------------------------------------------------------- */
+.buddy { width: 190px; height: auto; overflow: hidden; margin-bottom: -6px; }
+/* Only the animated parts turn and move around their own box (other parts keep their SVG transforms). */
+.eye, .pupil, .finger, .mst { transform-box: fill-box; }
+
+/* The moustache: each half turns around the middle, so the ends can twitch up. */
+.mst { transition: transform .35s cubic-bezier(.34, 1.6, .64, 1); }
+.mst-left { transform-origin: 100% 50%; }
+.mst-right { transform-origin: 0% 50%; }
+
+/* Eyes follow the text cursor (JS sets --look-x / --look-y), and blink now and then. */
+.pupil { transform: translate(var(--look-x, 0px), var(--look-y, 0px)); transition: transform .18s ease-out; }
+.eye { transform-origin: center; animation: blink 5s infinite; }
+@keyframes blink { 0%, 94%, 100% { transform: scaleY(1); } 97% { transform: scaleY(.1); } }
+
+.mouth { transition: opacity .2s; }
+.mouth-o { opacity: 0; }
+
+/* Hands rest below the face and come up to cover the eyes. */
+/* Each hand tilts around its fingertips (fixed points in the drawing, so spreading fingers don't move them). */
+.hand { transform: translateY(80px); transform-box: view-box; transition: transform .45s cubic-bezier(.34, 1.4, .64, 1); }
+.finger { transform-origin: 50% 100%; transition: transform .35s cubic-bezier(.34, 1.4, .64, 1); }
+
+/* Covering, the hands tilt out from the fingertips, so the mouth stays in view between the wrists. */
+.hand-left { transform-origin: 76px 88px; }
+.hand-right { transform-origin: 124px 88px; }
+.is-covering .hand-left { transform: rotate(12deg); }
+.is-covering .hand-right { transform: rotate(-12deg); }
+.is-covering .mouth-smile { opacity: 0; }
+.is-covering .mouth-o { opacity: 1; }
+
+/* Peeking: on one hand the outer finger tilts out and the middle and inner finger tilt in together,
+   opening a gap beside the middle finger, and the eye looks out through it. */
+.is-peeking .hand-left .f1 { transform: rotate(-12deg); }
+.is-peeking .hand-left .f2 { transform: rotate(42deg); }
+.is-peeking .hand-left .f3 { transform: rotate(48deg); }
+.is-peeking .mouth-smile { opacity: 1; }
+.is-peeking .mst-left { transform: rotate(9deg); }
+.is-peeking .mst-right { transform: rotate(-9deg); }
+.is-peeking .mouth-o { opacity: 0; }
+
+/* A small nod when the form is sent. */
+.is-nodding { animation: nod .5s ease-in-out; }
+@keyframes nod { 0%, 100% { transform: translateY(0); } 40% { transform: translateY(6px); } 70% { transform: translateY(-2px); } }
+
+/* The form --------------------------------------------------------------------------------------- */
+.login-form { display: grid; gap: 12px; width: 100%; padding: 22px; box-sizing: border-box;
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); }
+.field { display: grid; gap: 6px; font-size: .88rem; font-weight: 600; }
+.input {
+  width: 100%; box-sizing: border-box; height: 44px; font: inherit; font-size: 1rem; color: var(--text);
+  background: #171512; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); padding: 0 12px;
+}
+.input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(232, 163, 61, .18); }
+.password { position: relative; margin-top: -6px; }
+.password .input { padding-right: 70px; }
+.show {
+  position: absolute; right: 6px; top: 6px; height: 32px; padding: 0 10px;
+  font: 600 .82rem var(--font); color: var(--accent); background: none;
+  border: 1px solid var(--border-strong); border-radius: var(--radius-sm); cursor: pointer;
+}
+.show:hover, .show[aria-pressed="true"] { border-color: var(--accent); }
+.show:focus-visible, .submit:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.submit {
+  height: 44px; margin-top: 4px; font: 600 .95rem var(--font); color: var(--accent-ink);
+  background: var(--accent); border: 0; border-radius: var(--radius-sm); cursor: pointer;
+}
+.submit:hover { background: var(--accent-hover); }
+.note { min-height: 1.3em; margin: 0; font-size: .85rem; color: var(--muted); text-align: center; }
+
+@media (prefers-reduced-motion: reduce) {
+  .pupil, .hand, .finger, .mouth, .mst { transition: none; }
+  .eye, .is-nodding { animation: none; }
+}

@@ -15,6 +15,17 @@
 }
 .lang-switch button:hover { color: var(--text); background: var(--surface-2); }
 .lang-switch button[aria-pressed="true"] { color: var(--accent-ink); background: var(--accent); }
+/* With JavaScript the highlight is one element that slides between the two buttons, with a slight overshoot. */
+.lang-switch.has-thumb { position: relative; }
+.lang-switch.has-thumb button { position: relative; z-index: 1; transition: color .3s ease; }
+.lang-switch.has-thumb button[aria-pressed="true"] { background: none; }
+.lang-switch.has-thumb button:not([aria-pressed="true"]):hover { background: none; color: var(--text); }
+.lang-thumb {
+  position: absolute; top: 4px; bottom: 4px; left: 4px; width: 0; border-radius: 999px; background: var(--accent);
+  transition: transform .42s cubic-bezier(.34, 1.36, .64, 1), width .42s cubic-bezier(.34, 1.36, .64, 1);
+}
+.lang-thumb.is-instant { transition: none; }
+@media (prefers-reduced-motion: reduce) { .lang-thumb, .lang-switch.has-thumb button { transition: none; } }
 .lang-flag { width: 26px; height: 18px; border-radius: 3px; flex: none; box-shadow: 0 0 0 1px rgba(255, 255, 255, .25); }
 @media (max-width: 480px) { .tool-topbar .lang-switch { width: 100%; } .lang-switch button { flex: 1; justify-content: center; } }
 @media print { .lang-switch { display: none !important; } }
@@ -27,7 +38,7 @@
 /* Layout: inputs left, results right; one column on phones. */
 .tl-grid { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 20px; align-items: start; }
 .tl-grid > .card { min-width: 0; }
-@media (max-width: 860px) { .tl-grid { grid-template-columns: 1fr; } }
+@media (max-width: 860px) { .tl-grid { grid-template-columns: minmax(0, 1fr); } }
 .tl-sticky { position: sticky; top: 88px; }
 @media (max-width: 860px) { .tl-sticky { position: static; } }
 
@@ -39,7 +50,14 @@
 .tl-fields-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .tl-fields-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 @media (max-width: 560px) { .tl-fields-2, .tl-fields-3 { grid-template-columns: 1fr; } }
-.tl-field { display: grid; gap: 6px; min-width: 0; }
+.tl-field { display: grid; grid-template-rows: 1fr auto; gap: 6px; min-width: 0; }
+/* Fields side by side line up: every input and dropdown is the same height and sits at the bottom of its
+   cell, right under its label, so a label that wraps onto two lines doesn't push its field out of line.
+   A text box instead grows to the height of the fields next to it. */
+.tl-field > * { align-self: end; }
+.tl-field:has(> .tl-textarea) { grid-template-rows: auto 1fr; }
+.tl-field:has(> .tl-textarea) > * { align-self: start; }
+.tl-field > .tl-textarea { align-self: stretch; }
 .tl-field > span, .tl-label { font-size: .88rem; font-weight: 600; color: var(--text); }
 .tl-hint { font-size: .8rem; color: var(--muted); font-weight: 400; }
 .tl-input, .tl-select, .tl-textarea {
@@ -48,6 +66,7 @@
   padding: 10px 12px; transition: border-color .2s, box-shadow .2s;
 }
 .tl-textarea { resize: vertical; min-height: 64px; line-height: 1.45; }
+.tl-input:not(.tl-input-big), .tl-select { height: 46px; }
 .tl-input:hover, .tl-select:hover, .tl-textarea:hover { border-color: #3d4659; }
 .tl-input:focus, .tl-select:focus, .tl-textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(232, 163, 61, .18); }
 .tl-input[aria-invalid="true"] { border-color: #f87171; }
@@ -118,6 +137,12 @@
 @media (max-width: 1000px) { .inv-layout { grid-template-columns: 1fr; } }
 .inv-line { grid-template-columns: minmax(0, 1fr) 70px 110px 36px; }
 @media (max-width: 560px) { .inv-line { grid-template-columns: minmax(0, 1fr) 60px 92px 36px; } .inv-line .tl-input { padding: 9px 8px; } }
+/* With Danish VAT each line has a VAT tickbox (untick for outlays and other VAT-free lines). */
+.inv-line-vat { display: none; }
+.inv-vat-lines .inv-line { grid-template-columns: minmax(0, 1fr) 70px 110px 44px 36px; }
+.inv-vat-lines .inv-line-vat { display: grid; place-items: center; text-align: center; }
+.inv-line-vat input { width: 20px; height: 20px; accent-color: var(--accent); cursor: pointer; }
+@media (max-width: 560px) { .inv-vat-lines .inv-line { grid-template-columns: minmax(0, 1fr) 54px 84px 36px 32px; } }
 .inv-preview-wrap { position: sticky; top: 88px; }
 @media (max-width: 1000px) { .inv-preview-wrap { position: static; } }
 
@@ -164,4 +189,80 @@
   body.inv-printing .inv-preview-wrap { position: static; }
   body.inv-printing .inv-paper { box-shadow: none; padding: 0; border-radius: 0; min-height: 0; font-size: 11pt; }
   body.inv-printing .inv-paper * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+
+/* Saved customers row (invoice) ------------------------------------------------ */
+.inv-customers { display: flex; flex-wrap: wrap; align-items: end; gap: 10px; margin-bottom: 14px; }
+.inv-customers .tl-field { flex: 1 1 220px; }
+/* The buttons line up with the dropdown: same height, same bottom edge. */
+.inv-customers .tl-select, .inv-customers .btn { height: 46px; }
+.inv-customers .btn { padding-top: 0; padding-bottom: 0; }
+
+/* Payment reminder letter --------------------------------------------------------- */
+.rk-letter { margin: 0 0 18px; }
+.rk-letter p { margin: 0 0 10px; }
+.rk-totals { width: min(100%, 380px); }
+.rk-small { font-size: 11px; color: #6b7280; text-align: right; margin: 6px 0 0; }
+
+/* Tables: mileage log, time tracker ------------------------------------------------ */
+.kb-table-wrap { position: relative; overflow-x: auto; margin: 0 0 6px; }
+.kb-table { width: 100%; border-collapse: collapse; font-size: .92rem; }
+.kb-table th { font: .8rem var(--mono); color: var(--muted); text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--border-strong); white-space: nowrap; }
+.kb-table td { padding: 8px 6px; border-bottom: 1px solid var(--border); vertical-align: top; }
+.kb-table .r { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.kb-table tfoot td { font-weight: 600; border-bottom: 0; border-top: 1px solid var(--border-strong); }
+.kb-table .kb-del-col { width: 44px; text-align: right; }
+.kb-table input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--accent); }
+.kb-table tr.is-done td { color: var(--muted); }
+.kb-print-head { display: none; }
+
+/* Time tracker clock ------------------------------------------------------------------ */
+.tr-clock { font: 500 clamp(2.4rem, 1.8rem + 2.5vw, 3.4rem)/1 var(--mono); letter-spacing: -0.02em; margin: 4px 0 18px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.tr-clock.is-running { color: var(--accent); }
+
+/* Quote calculator lines --------------------------------------------------------------- */
+.tb-line { grid-template-columns: minmax(0, 1fr) 70px 110px 36px; }
+@media (max-width: 560px) { .tb-line { grid-template-columns: minmax(0, 1fr) 58px 92px 36px; } }
+
+/* Deadline list ------------------------------------------------------------------------- */
+.fr-list { list-style: none; margin: 0; padding: 0; }
+.fr-item { display: grid; grid-template-columns: 8.5rem minmax(0, 1fr) auto auto; gap: 4px 16px; align-items: baseline; padding: 12px 0; border-bottom: 1px solid var(--border); }
+.fr-date { font: .85rem var(--mono); color: var(--muted); }
+.fr-title { font-weight: 500; }
+.fr-vat .fr-title::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 2px; background: var(--accent); margin-right: 8px; vertical-align: 1px; }
+.fr-own .fr-title::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 2px; background: var(--muted); margin-right: 8px; vertical-align: 1px; }
+.fr-when { font-size: .85rem; color: var(--muted); white-space: nowrap; }
+@media (max-width: 560px) { .fr-item { grid-template-columns: minmax(0, 1fr) auto; } .fr-date { grid-column: 1 / -1; } }
+
+/* Printing the mileage log: only the table, black on white. */
+@media print {
+  body.kb-printing { background: #fff !important; color: #000 !important; }
+  body.kb-printing .site-header, body.kb-printing .site-footer, body.kb-printing .tool-topbar, body.kb-printing .tool-title,
+  body.kb-printing .tool-lead, body.kb-printing .kb-form, body.kb-printing .tool-about, body.kb-printing .tool-more,
+  body.kb-printing .tl-hero, body.kb-printing .tl-actions, body.kb-printing #kb-empty, body.kb-printing .kb-del-col,
+  body.kb-printing .skip-link { display: none !important; }
+  body.kb-printing .tl-grid { display: block; }
+  body.kb-printing .card { border: 0; background: none; padding: 0; }
+  body.kb-printing .kb-print-head { display: block; }
+  body.kb-printing .kb-print-head h2 { color: #000; margin: 0 0 4px; }
+  body.kb-printing .kb-table th, body.kb-printing .kb-table td, body.kb-printing .tl-note { color: #000; border-color: #999; }
+}
+
+/* Invoice logo ------------------------------------------------------------------------------ */
+.inv-logo { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.inv-logo img { max-width: 140px; max-height: 48px; border-radius: var(--radius-sm); background: #fff; padding: 4px; }
+.inv-logo-pick { position: relative; }
+.inv-logo-pick:focus-within { outline: 2px solid var(--accent); outline-offset: 2px; }
+.inv-logo-img { display: block; max-width: 150px; max-height: 56px; margin: 0 0 10px auto; }
+
+/* Find the customer in CVR (invoice) ---------------------------------------------------------- */
+.inv-cvr { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin: 12px 0 0; }
+.inv-cvr .tl-note { margin: 0; flex: 1 1 260px; }
+
+/* A clear break between the sections of a form (you / the customer / …): a line that stops short of the
+   card's edges. */
+.tl-card-title.tl-section { margin-top: 32px; }
+.tl-card-title.tl-section::before {
+  content: ""; display: block; height: 1px; background: var(--border-strong);
+  margin: 0 24px 26px;
 }

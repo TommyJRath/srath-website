@@ -20,6 +20,7 @@ import crypto from 'node:crypto';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { esc, parseFrontMatter, renderMarkdown } from './markdown.mjs';
 import { layout, pageHeader, appGrid, projectGrid, emailLink, playButton, sampleBadge, icons } from './templates.mjs';
+import { highlight } from './highlight.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const CONTENT = path.join(ROOT, 'content');
@@ -339,7 +340,7 @@ function toolsIndexPage({ site, tools }) {
     path: '/tools/',
     lang: 'da',
     title: titleDa,
-    description: 'Gratis timeprisberegner, faktura- og tilbudsgenerator og CVR-opslag på dansk og engelsk. Ingen login, ingen cookies, og dine tal bliver i din browser.',
+    description: 'Gratis faktura- og tilbudsgenerator, tidsregistrering, rykkere, kørebog, momsfrister, timeprisberegner og CVR-opslag på dansk og engelsk. Ingen login, ingen cookies, og dine tal bliver i din browser.',
     head: `<link rel="stylesheet" href="${versioned('/tools/tools.css')}">`,
     body: `<section class="page-header">
   <div class="container">
@@ -363,6 +364,9 @@ function toolsIndexPage({ site, tools }) {
 <script src="${versioned('/tools/tools.js')}" defer></script>`,
   };
 }
+
+/** Tools that make PDF files load /tools/pdf.js. */
+const PDF_TOOLS = ['faktura', 'rykker', 'koerebog'];
 
 function toolPage({ site, tools }, tool) {
   const base = `/tools/${tool.slug}`;
@@ -421,7 +425,7 @@ ${others.length ? `<section class="section section-tight section-alt tool-more">
   </div>
 </section>` : ''}
 <script src="${versioned('/tools/tools.js')}" defer></script>
-<script src="${versioned(`${base}/tool.js`)}" defer></script>`,
+${PDF_TOOLS.includes(tool.slug) ? `<script src="${versioned('/tools/pdf.js')}" defer></script>\n` : ''}<script src="${versioned(`${base}/tool.js`)}" defer></script>`,
   };
 }
 
@@ -736,8 +740,8 @@ function privacyIndexPage({ site, apps, policies, games, tools }) {
     ${games.length ? '<p>The browser games save your progress and statistics in your own browser (local storage) so you can continue where you left off. You can delete it by clearing the site data for srath.dk in your browser.</p>\n' : ''}    <p>The website is hosted on GitHub Pages, a service provided by GitHub, Inc. When you visit the site, GitHub processes technical information such as your IP address in order to deliver the pages and keep the service secure. See the <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement" rel="noopener noreferrer">GitHub General Privacy Statement</a> for details.</p>
     ${games.some((g) => g.relay) ? `<p id="online-games">Some games can be played online with other people. Only when you create or join an online game, your browser connects to a small relay that runs on Cloudflare Workers, a service provided by Cloudflare, Inc. Cloudflare processes technical information such as your IP address in order to deliver the connection and keep the service secure. The relay only passes game messages between the players in the same game: steering, positions, and the name and colour each player chooses in the lobby. It does not store them, and there are no accounts or chat. The name you type is also remembered in your own browser for next time. Other players do not see your IP address. See the <a href="https://www.cloudflare.com/privacypolicy/" rel="noopener noreferrer">Cloudflare Privacy Policy</a> for details.</p>
     <p id="game-rankings">When you finish Gridword or BREACH://, your result is sent to the same Cloudflare service so the game can show how you rank against other players: for Gridword the number of guesses, your solving time and your streak; for BREACH:// your time and number of commands. Only anonymous counts are stored (for example, how many players solved today's Gridword in four guesses), never anything that identifies you: no names, no IP addresses and no device identifiers. Your IP address is processed by Cloudflare to deliver the request and is held briefly in memory to limit abuse. Gridword's daily counts are deleted two days later.</p>
-` : ''}${tools.length ? `    <p id="tools">The free tools under <a href="/tools/">/tools/</a> do their calculations in your own browser. Nothing you type is sent to ${esc(site.name)}. The invoice and quote generator can remember your own business details and the next invoice number in your browser (local storage), but only if you tick "Husk mine oplysninger" ("Remember my details"); untick it to delete them.</p>
-` : ''}${tools.some((t) => t.slug === 'cvr-opslag') ? `    <p id="cvr-lookup">Only when you search in the CVR lookup, your browser sends the search text directly to CVR API (cvrapi.dk), an independent service that provides data from the Danish Central Business Register. CVR API processes technical information such as your IP address in order to answer the request and to enforce its daily limit on free lookups. ${esc(site.name)} does not receive or store your searches.</p>
+` : ''}${tools.length ? `    <p id="tools">The free tools under <a href="/tools/">/tools/</a> do their calculations in your own browser. Nothing you type is sent to ${esc(site.name)}. Some tools keep what you enter in your own browser (local storage), so it is still there next time. It never leaves your device, and PDFs are made in your browser too: the invoice generator keeps your business details, your logo and the next invoice number only if you tick "Husk mine oplysninger" ("Remember my details"), and customers only when you click "Gem kunde" ("Save customer"); the time tracker keeps your time entries; the mileage log keeps your trips, name and vehicle; the VAT deadlines tool keeps the dates you add; and the chosen language (Danish or English) is remembered. When you send lines from the time tracker or the quote calculator to the invoice generator, they are kept in your browser only until the invoice page opens. While a tab with the invoice generator is open, the invoice you are working on is kept as a draft in that tab (session storage), so it survives going to another page and back; it is deleted when you close the tab. You can delete everything by clearing the site data for srath.dk in your browser, or with the delete buttons in each tool.</p>
+` : ''}${tools.some((t) => t.slug === 'cvr-opslag') ? `    <p id="cvr-lookup">Only when you search in the CVR lookup, or click "Find i CVR" ("Find in CVR") in the invoice generator, your browser sends the search text directly to CVR API (cvrapi.dk), an independent service that provides data from the Danish Central Business Register. CVR API processes technical information such as your IP address in order to answer the request and to enforce its daily limit on free lookups. ${esc(site.name)} does not receive or store your searches.</p>
 ` : ''}    <p>If you contact ${esc(site.name)} by email, your message and address are used only to respond to your enquiry. Contact: ${emailLink(site)}.</p>
   </div>
 </section>`,
@@ -782,6 +786,107 @@ ${html}
     </div>
   </div>
 </article>`,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Web design: live examples with their code (content/design.json + content/design/<slug>.html|css|js)
+// ---------------------------------------------------------------------------
+
+function loadDesign() {
+  const file = path.join(CONTENT, 'design.json');
+  if (!fs.existsSync(file)) return { items: [], base: '' };
+  const dir = path.join(CONTENT, 'design');
+  const read = (name) => (fs.existsSync(path.join(dir, name)) ? fs.readFileSync(path.join(dir, name), 'utf8').trim() : '');
+  const items = readJson('design.json').map((d, i) => {
+    for (const field of ['slug', 'title', 'description']) {
+      if (!d[field]) throw new Error(`design.json[${i}]: missing required field "${field}".`);
+    }
+    const item = { ...d, html: read(`${d.slug}.html`), css: read(`${d.slug}.css`), js: read(`${d.slug}.js`) };
+    if (!item.html) throw new Error(`design.json[${i}]: missing content/design/${d.slug}.html`);
+    return item;
+  });
+  return { items, base: read('_base.css') };
+}
+
+/** Added to every demo (not shown in its code box): reports the content height to the page, which sizes the frame. */
+const DEMO_SIZER = `<script>(function(){function s(){parent.postMessage({srathDemoHeight:Math.ceil(document.body.getBoundingClientRect().height)},'*')}s();addEventListener('load',s);if(window.ResizeObserver)new ResizeObserver(s).observe(document.body)})()<\/script>`;
+
+/** The full document a demo runs in: the shared tokens, the example's CSS, HTML and JS. */
+function demoDocument(base, item) {
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><style>${base}\n${item.css}</style></head><body>${item.html}${item.js ? `<script>${item.js}<\/script>` : ''}${DEMO_SIZER}</body></html>`;
+}
+
+function codeTabs(item, base) {
+  const tabs = [
+    item.slug === 'tokens' && ['Tokens', 'css', base],
+    ['HTML', 'html', item.html],
+    item.css && ['CSS', 'css', item.css],
+    item.js && ['JS', 'js', item.js],
+  ].filter(Boolean);
+  const id = `code-${item.slug}`;
+  return `<div class="code" data-code>
+      <div class="code-bar">
+        <div class="code-tabs" role="tablist" aria-label="${esc(item.title)}: code">
+          ${tabs.map(([label], i) => `<button type="button" role="tab" id="${id}-tab-${i}" aria-controls="${id}-panel-${i}" aria-selected="${i === 0}" tabindex="${i === 0 ? 0 : -1}">${label}</button>`).join('')}
+        </div>
+        <button type="button" class="code-copy" data-copy>Copy</button>
+      </div>
+      ${tabs.map(([label, lang, src], i) => `<pre class="code-panel" role="tabpanel" id="${id}-panel-${i}" aria-labelledby="${id}-tab-${i}" tabindex="0"${i ? ' hidden' : ''}><code class="lang-${lang}">${highlight(src, lang)}</code></pre>`).join('\n      ')}
+    </div>`;
+}
+
+/** "Controls" → "controls", for ids. */
+function slugify(text) {
+  return String(text).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+}
+
+function designPage({ site }, design) {
+  // Examples grouped by category, in the order the categories first appear in design.json.
+  const groups = [];
+  design.items.forEach((d) => {
+    const name = d.category || 'Examples';
+    let g = groups.find((x) => x.name === name);
+    if (!g) { g = { name, id: `cat-${slugify(name)}`, items: [] }; groups.push(g); }
+    g.items.push(d);
+  });
+  // The sidebar: one fold-out list per category (a native <details>, so it works without JavaScript).
+  const toc = groups.map((g) => `<details class="design-group" open data-group="${g.id}">
+      <summary><span>${esc(g.name)}</span><span class="design-count">${g.items.length}</span></summary>
+      <ol>${g.items.map((d) => `<li><a href="#${d.slug}">${esc(d.title)}</a></li>`).join('')}</ol>
+    </details>`).join('\n    ');
+  const item = (d) => `<section class="design-item" id="${d.slug}" aria-labelledby="${d.slug}-title">
+  <div class="design-text">
+    <h3 id="${d.slug}-title">${esc(d.title)}</h3>
+    <p>${esc(d.description)}</p>
+  </div>
+  <div class="design-demo">
+    <iframe title="${esc(d.title)}: live example" srcdoc="${esc(demoDocument(design.base, d))}" allow="clipboard-write"></iframe>
+  </div>
+  ${codeTabs(d, design.base)}
+</section>`;
+  const sections = groups.map((g) => `<section class="design-category" id="${g.id}" aria-labelledby="${g.id}-title">
+  <h2 class="design-category-title" id="${g.id}-title">${esc(g.name)}</h2>
+${g.items.map(item).join('\n')}
+</section>`).join('\n');
+  return {
+    path: '/design/',
+    title: 'Web design',
+    description: `Elements from ${site.name}'s website with the code that makes them: buttons, toggles, a language switch, form fields and a canvas animation. Plain HTML, CSS and JavaScript.`,
+    head: `<link rel="stylesheet" href="${versioned('/design/design.css')}">`,
+    body: `${pageHeader({
+      title: 'Web design',
+      lead: 'Small pieces of this website, each with the code that makes it. Plain HTML, CSS and JavaScript with no frameworks. Try the examples, and copy anything you like.',
+    })}
+<div class="container design-layout">
+  <nav class="design-toc" aria-label="Examples">
+    ${toc}
+  </nav>
+  <div class="design-items">
+${sections}
+  </div>
+</div>
+<script src="${versioned('/design/design.js')}" defer></script>`,
   };
 }
 
@@ -933,12 +1038,13 @@ export function build({ quiet = false } = {}) {
     throw err;
   }
 
-  fs.rmSync(DIST, { recursive: true, force: true });
+  // Retries: on Windows the local preview server can hold a file open for a moment.
+  fs.rmSync(DIST, { recursive: true, force: true, maxRetries: 10, retryDelay: 50 });
   // public/ is copied byte-for-byte; nothing in it is ever transformed (app-ads.txt depends on this).
   fs.cpSync(PUBLIC, DIST, { recursive: true });
 
   const assets = { css: publishAsset('styles.css'), js: publishAsset('main.js') };
-  const ctx = { site: content.site, assets, hasPartners: content.partners.length > 0, hasGames: content.games.length > 0, hasTools: content.tools.length > 0 };
+  const ctx = { site: content.site, assets, hasPartners: content.partners.length > 0, hasGames: content.games.length > 0, hasTools: content.tools.length > 0, hasDesign: fs.existsSync(path.join(CONTENT, 'design.json')) };
 
   const pages = [
     homePage(content),
@@ -949,6 +1055,7 @@ export function build({ quiet = false } = {}) {
     ...(content.games.length ? [gamesIndexPage(content), ...content.games.map((g) => gamePage(content, g))] : []),
     ...content.games.filter((g) => g.vault).map((g) => vaultPage(content, g)),
     ...(content.tools.length ? [toolsIndexPage(content), ...content.tools.map((t) => toolPage(content, t))] : []),
+    ...(ctx.hasDesign ? [designPage(content, loadDesign())] : []),
     partnersPage(content),
     contactPage(content),
     notFoundPage(),

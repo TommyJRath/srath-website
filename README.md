@@ -16,6 +16,7 @@ Website for **SRATH**, a Danish sole proprietorship that develops and publishes 
 - [Look and feel](#look-and-feel)
 - [Projects on the home page](#projects-on-the-home-page)
 - [Free tools](#free-tools)
+- [Web design page](#web-design-page)
 - [Browser games](#browser-games)
 - [Partners and suppliers](#partners-and-suppliers)
 - [Adding an application](#adding-an-application)
@@ -148,13 +149,32 @@ Add an item for real news only, such as an app going live on Google Play or a ne
 
 ## Free tools
 
-Three free tools for freelancers and sole traders in Denmark live under `/tools/`: an hourly rate calculator, an invoice and quote generator, and a CVR lookup. Each page has a large Dansk / English switch at the top. The choice is remembered in the browser, and `?lang=en` opens a page in English.
+Free tools for freelancers and sole traders in Denmark live under `/tools/`: an invoice and quote generator, a time tracker, a quote calculator, a payment reminder generator, an hourly rate calculator, "set aside for tax", a mileage log, VAT deadlines, and a CVR lookup. Each page has a large Dansk / English switch at the top. The choice is remembered in the browser, and `?lang=en` opens a page in English (and remembers it).
+
+The time tracker and the quote calculator hand lines to the invoice generator with `T.sendToInvoice()`: the lines wait in localStorage (`srath-faktura-import`) until the invoice page picks them up and deletes them. The payment reminder reads your own details from the invoice generator, if you let it remember them.
 
 - `content/tools.json`: one entry per tool: `slug`, `name`, `tagline`, `description`, `icon`, `tech`, plus English versions in `name_en`, `tagline_en`, `description_en` and `tech_en`.
 - `content/tools/<slug>.html`: the tool's form. Danish text goes in the element, English in `data-en="..."` (or `data-en-html`, `data-en-placeholder`, `data-en-aria-label`, `data-en-title`).
 - `public/tools/<slug>/tool.js`: the tool's behaviour. Shared helpers in `public/tools/tools.js`: Danish and English number parsing, amounts in øre, `T.t(da, en)` for text and `T.onLang()` to redraw when the language changes. Shared styles in `public/tools/tools.css`.
-- The hourly rate calculator uses Danish tax rates for 2026 from skat.dk (constants at the top of its `tool.js`). **Update them every January.**
+**Figures to update** (each is marked in its file, with its source):
+
+| When | What | Where |
+| --- | --- | --- |
+| Every January | Income tax rates and thresholds (skat.dk) | `danishTax()` in `public/tools/tools.js`, used by the hourly rate calculator and "set aside for tax" |
+| Every December | Next year's mileage rates (skat.dk/hjaelp/satser, category Kørsel) | `RATES` in `public/tools/koerebog/tool.js` |
+| 1 January and 1 July | Late-payment interest: Nationalbanken's lending rate + 8 percentage points | `RATES` in `public/tools/rykker/tool.js` (it warns for dates after `KNOWN_UNTIL`) |
+| When skat.dk publishes them (the list runs to March 2028) | VAT deadlines | `VAT` in `public/tools/frister/tool.js` |
 - The CVR lookup calls CVR API (cvrapi.dk) from the visitor's own browser, only when they search. The privacy page describes this (`#cvr-lookup`).
+
+## Web design page
+
+`/design/` shows pieces of this site as live examples, each with its code in HTML / CSS / JS tabs and a Copy button.
+
+- `content/design.json`: one entry per example: `slug`, `category`, `title`, `description`, in page order. Examples are grouped by `category` (in the order categories first appear); each category is a heading on the page and a fold-out group in the sidebar. A new category is just a new name.
+- `content/design/<slug>.html`, `.css` and `.js` (CSS and JS are optional): the example's code. The same files are used for the live demo and for the code boxes, so what you see is what you copy.
+- `content/design/_base.css`: the shared tokens every demo starts from; shown as the "Tokens" tab of the first example.
+- Each demo runs in its own frame (`srcdoc`), so its CSS can't clash with the page. A small script added to every demo (`DEMO_SIZER` in `src/build.mjs`, not shown in the code box) reports its height, and `public/design/design.js` sizes the frame.
+- Syntax colouring happens at build time in `src/highlight.mjs`; the page loads no highlighter.
 
 ## Browser games
 

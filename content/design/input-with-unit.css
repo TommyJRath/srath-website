@@ -1,0 +1,22 @@
+.field { display: grid; gap: 6px; max-width: 320px; }
+.field > span { font-size: .88rem; font-weight: 600; }
+.hint { font-weight: 400; color: var(--muted); }
+
+.input {
+  width: 100%; box-sizing: border-box; font: inherit; font-size: 1.5rem; font-weight: 700; color: var(--text);
+  background: #171512; border: 1px solid var(--border-strong); border-radius: var(--radius-sm);
+  padding: 12px 52px 12px 14px; transition: border-color .2s, box-shadow .2s;
+}
+.input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(232, 163, 61, .18); }
+.input[aria-invalid="true"] { border-color: #d4573f; }
+
+/* The unit sits inside the field, drawn by CSS from data-suffix, so it is never part of the value. */
+.affix { position: relative; }
+.affix::after {
+  content: attr(data-suffix); position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+  color: var(--muted); pointer-events: none;
+}
+
+.error { color: #f0a08f; font-size: .9rem; margin: 10px 0 0; }
+.result { color: var(--muted); margin: 14px 0 0; }
+.result strong { color: var(--accent); font-variant-numeric: tabular-nums; }

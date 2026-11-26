@@ -1,0 +1,57 @@
+<div class="tl-grid kb-layout">
+  <div class="card kb-form">
+    <p class="tl-card-title" data-en="New trip">Ny tur</p>
+    <form id="kb-form" class="tl-fields">
+      <div class="tl-fields tl-fields-2">
+        <label class="tl-field"><span data-en="Date">Dato</span><input class="tl-input" type="date" id="kb-date" required></label>
+        <label class="tl-field"><span data-en="Kilometres">Kilometer</span><span class="tl-affix" data-suffix="km"><input class="tl-input" id="kb-km" inputmode="decimal" autocomplete="off" required></span></label>
+      </div>
+      <label class="tl-field"><span><span data-en="From">Fra</span> <span class="tl-hint" data-en="· where you started">· hvor du kørte fra</span></span><input class="tl-input" id="kb-from" placeholder="Hjem, Vejnavn 1, By" data-en-placeholder="Home, 1 Street, Town"></label>
+      <label class="tl-field"><span><span data-en="Destination and stops">Mål og delmål</span> <span class="tl-hint" data-en="· e.g. Customer A/S, Aarhus – Supplier, Randers">· fx Kunde A/S, Aarhus – Leverandør, Randers</span></span><input class="tl-input" id="kb-to" required></label>
+      <label class="tl-field"><span data-en="Purpose">Formål</span><input class="tl-input" id="kb-purpose" placeholder="Møde om nyt projekt" data-en-placeholder="Meeting about a new project" required></label>
+      <label class="tl-check"><input type="checkbox" id="kb-return"> <span data-en="Return trip: count the kilometres twice">Tur/retur: tæl kilometerne to gange</span></label>
+      <div class="tl-actions" style="margin-top:4px"><button class="btn btn-primary" type="submit" data-en="Add trip">Tilføj tur</button></div>
+    </form>
+
+    <p class="tl-card-title" style="margin-top:28px" data-en="On the log">På kørebogen</p>
+    <div class="tl-fields tl-fields-2">
+      <label class="tl-field"><span data-en="Your name">Dit navn</span><input class="tl-input" id="kb-name" autocomplete="name"></label>
+      <label class="tl-field"><span><span data-en="Vehicle">Køretøj</span> <span class="tl-hint" data-en="· e.g. registration number">· fx registreringsnummer</span></span><input class="tl-input" id="kb-car" placeholder="AB 12 345"></label>
+      <label class="tl-field"><span data-en="Vehicle type">Køretøjstype</span>
+        <select class="tl-select" id="kb-type">
+          <option value="car" data-en="Own car or motorbike">Egen bil eller motorcykel</option>
+          <option value="bike" data-en="Own bicycle or moped">Egen cykel eller knallert</option>
+        </select>
+      </label>
+      <label class="tl-field"><span data-en="Year">År</span><select class="tl-select" id="kb-year"></select></label>
+    </div>
+    <p class="tl-note" data-en="The trips and the details above are saved only in this browser, so you can keep adding to the log. Use Download CSV now and then as a backup.">Turene og oplysningerne ovenfor gemmes kun i denne browser, så du kan blive ved med at skrive i kørebogen. Brug Hent CSV en gang imellem som sikkerhedskopi.</p>
+  </div>
+
+  <div class="card kb-result" aria-live="polite">
+    <div class="tl-hero">
+      <p class="tl-hero-label" id="kb-hero-label"></p>
+      <p class="tl-hero-value" id="kb-total">0,00 kr.</p>
+      <p class="tl-hero-sub" id="kb-sub"></p>
+    </div>
+    <div class="kb-print-head">
+      <h2 id="kb-print-title"></h2>
+      <p id="kb-print-meta"></p>
+    </div>
+    <div class="kb-table-wrap">
+      <table class="kb-table">
+        <thead><tr><th data-en="Date">Dato</th><th data-en="Destination and stops">Mål og delmål</th><th data-en="Purpose">Formål</th><th class="r">Km</th><th class="r" data-en="Amount">Beløb</th><th class="kb-del-col"><span class="sr-only" data-en="Delete">Slet</span></th></tr></thead>
+        <tbody id="kb-rows"></tbody>
+        <tfoot><tr><td colspan="3" data-en="Total">I alt</td><td class="r" id="kb-sum-km"></td><td class="r" id="kb-sum-kr"></td><td></td></tr></tfoot>
+      </table>
+    </div>
+    <p class="tl-note" id="kb-empty" data-en="No trips this year yet. Add the first one on the left.">Ingen ture i år endnu. Tilføj den første til venstre.</p>
+    <div class="tl-actions">
+      <button type="button" class="btn btn-primary tl-btn-sm" id="kb-pdf" data-en="Download PDF">Hent PDF</button>
+      <button type="button" class="btn btn-ghost tl-btn-sm" id="kb-print" data-en="Print">Udskriv</button>
+      <button type="button" class="btn btn-ghost tl-btn-sm" id="kb-csv" data-en="Download CSV">Hent CSV</button>
+      <button type="button" class="btn btn-ghost tl-btn-sm" id="kb-clear" data-en="Delete this year's trips">Slet årets ture</button>
+    </div>
+    <p class="tl-note" id="kb-rates"></p>
+  </div>
+</div>

@@ -1,5 +1,19 @@
 [
   {
+    "slug": "login-character",
+    "category": "Featured",
+    "title": "Login form with Bay Ganyo",
+    "description": "A demo login form with Bay Ganyo, the Bulgarian character from Aleko Konstantinov’s stories (1895), in our own drawing: kalpak hat, a rose and a big moustache, all in SVG. His eyes follow what you type in the email field, he covers his eyes while you are at the password, and he peeks between his fingers, moustache twitching, when you show the password. Nothing is sent anywhere. He is decoration only, so screen readers skip him, and with reduced motion he changes pose without moving.",
+    "featured": true
+  },
+  {
+    "slug": "login-viking",
+    "category": "Featured",
+    "title": "Login form with a viking",
+    "description": "The same login form with a different face: a viking with a round iron helmet, a nose guard and a braided ginger beard. Real viking helmets had no horns; those came from 1800s opera costumes. Only the drawing changes. The eyes, hands and peeking use the same CSS and JavaScript as Bay Ganyo, because both characters share the same eye and hand positions.",
+    "featured": true
+  },
+  {
     "slug": "tokens",
     "category": "Foundations",
     "title": "Colours and type",
@@ -34,12 +48,6 @@
     "category": "Forms",
     "title": "Click-to-copy results",
     "description": "Each amount is a button styled like the number it copies, with a short confirmation. Copying may be blocked in this embedded demo; it works on the tool pages."
-  },
-  {
-    "slug": "login-character",
-    "category": "Forms",
-    "title": "Login form with Bay Ganyo",
-    "description": "A demo login form with Bay Ganyo, the Bulgarian character from Aleko Konstantinov’s stories (1895), in our own drawing: kalpak hat, a rose and a big moustache, all in SVG. His eyes follow what you type in the email field, he covers his eyes while you are at the password, and he peeks between his fingers, moustache twitching, when you show the password. Nothing is sent anywhere. He is decoration only, so screen readers skip him, and with reduced motion he changes pose without moving."
   },
   {
     "slug": "project-rows",

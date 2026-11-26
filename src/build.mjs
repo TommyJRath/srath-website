@@ -855,7 +855,8 @@ function designPage({ site }, design) {
       <summary><span>${esc(g.name)}</span><span class="design-count">${g.items.length}</span></summary>
       <ol>${g.items.map((d) => `<li><a href="#${d.slug}">${esc(d.title)}</a></li>`).join('')}</ol>
     </details>`).join('\n    ');
-  const item = (d) => `<section class="design-item" id="${d.slug}" aria-labelledby="${d.slug}-title">
+  // "featured": true in design.json gives an example the highlighted frame (the best one, at the top).
+  const item = (d) => `<section class="design-item${d.featured ? ' is-featured' : ''}" id="${d.slug}" aria-labelledby="${d.slug}-title">
   <div class="design-text">
     <h3 id="${d.slug}-title">${esc(d.title)}</h3>
     <p>${esc(d.description)}</p>
@@ -872,7 +873,7 @@ ${g.items.map(item).join('\n')}
   return {
     path: '/design/',
     title: 'Web design',
-    description: `Elements from ${site.name}'s website with the code that makes them: buttons, toggles, a language switch, form fields and a canvas animation. Plain HTML, CSS and JavaScript.`,
+    description: `Elements from ${site.name}'s website with the code that makes them: a login form with an animated Bay Ganyo, buttons, toggles, a language switch, form fields and a canvas animation. Plain HTML, CSS and JavaScript.`,
     head: `<link rel="stylesheet" href="${versioned('/design/design.css')}">`,
     body: `${pageHeader({
       title: 'Web design',

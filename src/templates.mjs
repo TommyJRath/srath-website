@@ -23,7 +23,8 @@ export const icons = {
 };
 
 // eslint-disable-next-line no-unused-vars
-const logoMark = (id) => `<svg class="logo-mark" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="5" fill="#e8a33d"/><path d="M22 10H10v6h12v6H10" fill="none" stroke="#1b1916" stroke-width="3.2" stroke-linecap="square" stroke-linejoin="miter"/></svg>`;
+// The logo: an S held in square brackets, like a part in a clamp, followed by "rath" (together: SRATH).
+const logoMark = () => `<svg class="logo-mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M6.5 3.5H2.5v25h4M25.5 3.5h4v25h-4" fill="none" stroke="#a39b8b" stroke-width="2.4" stroke-linecap="square"/><path d="M21.4 11c-.8-2.3-2.9-3.5-5.6-3.5-3.2 0-5.4 1.8-5.4 4.3 0 2.7 2.5 3.5 5.6 4.3 3.2.8 5.6 1.8 5.6 4.6 0 2.6-2.4 4.3-5.8 4.3-2.9 0-5-1.3-5.9-3.6M21.6 7.8v3.8M10 20.2v4.2" fill="none" stroke="#e8a33d" stroke-width="2.6" stroke-linecap="round"/></svg>`;
 
 export function layout({ site, assets, hasPartners = false, hasGames = false, hasTools = false, hasDesign = false, path, title, description, body, head = '', noindex = false, jsonLd = null, lang = 'en' }) {
   const nav = [
@@ -67,7 +68,7 @@ ${jsonLd ? `<script type="application/ld+json">${JSON.stringify(jsonLd).replace(
 <a class="skip-link" href="#main">Skip to content</a>
 <header class="site-header">
   <div class="container header-inner">
-    <a class="brand" href="/" aria-label="${esc(site.name)} — home">${logoMark('logo-h')}<span class="brand-name">${esc(site.name)}</span></a>
+    <a class="brand" href="/" aria-label="${esc(site.name)} — home">${logoMark()}<span class="brand-name" aria-hidden="true">rath</span></a>
     <nav aria-label="Main">
       <ul class="nav-list">
         ${nav.map((n) => `<li${n.wideOnly ? ' class="nav-wide-only"' : ''}><a href="${n.href}"${path.startsWith(n.href) ? ' aria-current="page"' : ''}>${n.label}</a></li>`).join('\n        ')}
@@ -81,7 +82,7 @@ ${body}
 <footer class="site-footer">
   <div class="container footer-inner">
     <div class="footer-brand">
-      <a class="brand" href="/">${logoMark('logo-f')}<span class="brand-name">${esc(site.name)}</span></a>
+      <a class="brand" href="/" aria-label="${esc(site.name)} — home">${logoMark()}<span class="brand-name" aria-hidden="true">rath</span></a>
       <p class="muted small">${esc(site.tagline)}</p>
       ${legalLine(site)}
     </div>

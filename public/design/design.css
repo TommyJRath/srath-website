@@ -45,6 +45,12 @@
 .design-demo { border: 1px solid var(--border); border-radius: var(--radius) var(--radius) 0 0; overflow: hidden; background: #1b1916; }
 .design-demo iframe { display: block; width: 100%; height: 160px; border: 0; background: #1b1916; }
 
+/* The featured example (first on the page): an amber frame around the demo and its code. */
+.is-featured .design-demo, .is-featured .code { border-color: rgba(232, 163, 61, .55); }
+.is-featured .design-demo { border-width: 2px 2px 1px; }
+.is-featured .code { border-width: 0 2px 2px; }
+#cat-featured .design-category-title { color: var(--accent); }
+
 /* Code box */
 .code { border: 1px solid var(--border); border-top: 0; border-radius: 0 0 var(--radius) var(--radius); background: #141210; }
 .code-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 6px 8px 0 8px; border-bottom: 1px solid var(--border); }

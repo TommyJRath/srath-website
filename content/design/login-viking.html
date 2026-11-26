@@ -1,0 +1,70 @@
+<div class="login">
+  <!-- A viking: round iron helmet with a nose guard (real viking helmets had no horns), ginger
+     moustache and a braided beard. Decoration only, so screen readers skip it. -->
+  <svg class="buddy" viewBox="0 0 200 200" aria-hidden="true">
+    <!-- ears, face -->
+    <ellipse cx="37" cy="122" rx="10" ry="14" fill="#dfa47c"/>
+    <ellipse cx="163" cy="122" rx="10" ry="14" fill="#dfa47c"/>
+    <ellipse class="head" cx="100" cy="118" rx="64" ry="62" fill="#e9b48c"/>
+    <ellipse cx="60" cy="134" rx="11" ry="6" fill="#d4573f" opacity=".28"/>
+    <ellipse cx="140" cy="134" rx="11" ry="6" fill="#d4573f" opacity=".28"/>
+
+    <!-- ginger hair under a round iron helmet with a nose guard -->
+    <path d="M38 82C33 96 35 108 43 114L50 84ZM162 82C167 96 165 108 157 114L150 84Z" fill="#c96a33"/>
+    <path d="M38 84C38 40 64 14 100 14S162 40 162 84Z" fill="#8f969d"/>
+    <path d="M100 17V70M70 24q-14 20-16 46M130 24q14 20 16 46" fill="none" stroke="#767d84" stroke-width="3" stroke-linecap="round"/>
+    <rect x="35" y="70" width="130" height="15" rx="4" fill="#6f767d"/>
+    <g fill="#b9bfc4"><circle cx="48" cy="77.5" r="2.2"/><circle cx="72" cy="77.5" r="2.2"/><circle cx="128" cy="77.5" r="2.2"/><circle cx="152" cy="77.5" r="2.2"/></g>
+    <path d="M94 82h12v32q-6 7-12 0z" fill="#6f767d"/>
+
+    <!-- eyebrows, eyes, nose -->
+    <path d="M60 88q16-10 32-2M108 86q16-8 32 2" fill="none" stroke="#a9521f" stroke-width="6" stroke-linecap="round"/>
+    <g class="eyes">
+      <g class="eye"><ellipse cx="76" cy="104" rx="12" ry="14" fill="#fff8ec"/><circle class="pupil" cx="76" cy="107" r="6" fill="#1b1916"/></g>
+      <g class="eye"><ellipse cx="124" cy="104" rx="12" ry="14" fill="#fff8ec"/><circle class="pupil" cx="124" cy="107" r="6" fill="#1b1916"/></g>
+    </g>
+    <ellipse cx="100" cy="124" rx="11" ry="9" fill="#d9946b"/>
+
+    <!-- braided beard, drawn under the mouth so the mouth stays in view -->
+    <path d="M42 124C44 168 68 194 100 196C132 194 156 168 158 124C150 146 134 156 116 157L100 160L84 157C66 156 50 146 42 124Z" fill="#c96a33"/>
+    <path d="M60 160q6 12 4 24M78 168q3 12 0 24M122 168q-3 12 0 24M140 160q-6 12-4 24" fill="none" stroke="#a9521f" stroke-width="2.5" stroke-linecap="round"/>
+    <g fill="#c96a33" stroke="#a9521f" stroke-width="1.5"><rect x="84" y="186" width="10" height="16" rx="4"/><rect x="106" y="186" width="10" height="16" rx="4"/></g>
+    <g fill="#d9c29a"><rect x="83" y="192" width="12" height="4" rx="1.5"/><rect x="105" y="192" width="12" height="4" rx="1.5"/></g>
+
+    <!-- mouth under a big ginger moustache -->
+    <path class="mouth mouth-smile" d="M88 143q12 9 24 0" fill="none" stroke="#7a3a2a" stroke-width="3.5" stroke-linecap="round"/>
+    <ellipse class="mouth mouth-o" cx="100" cy="147" rx="5" ry="6" fill="#7a3a2a"/>
+    <path class="mst mst-left" d="M100 138C90 135 80 137 70 142C60 147 50 145 46 135C44 129 47 122 53 120C49 127 53 134 61 133C69 132 75 123 87 122C95 121 99 125 100 128Z" fill="#b8572a"/>
+    <path class="mst mst-right" d="M100 138C110 135 120 137 130 142C140 147 150 145 154 135C156 129 153 122 147 120C151 127 147 134 139 133C131 132 125 123 113 122C105 121 101 125 100 128Z" fill="#b8572a"/>
+
+    <!-- hands -->
+    <g class="hand hand-left">
+      <rect class="finger f1" x="56.5" y="90" width="13" height="46" rx="6.5" fill="#dfa47c" stroke="#c68560" stroke-width="1.5"/>
+      <rect class="finger f2" x="69.5" y="86" width="13" height="50" rx="6.5" fill="#dfa47c" stroke="#c68560" stroke-width="1.5"/>
+      <rect class="finger f3" x="82.5" y="90" width="13" height="46" rx="6.5" fill="#dfa47c" stroke="#c68560" stroke-width="1.5"/>
+      <ellipse cx="76" cy="140" rx="27" ry="18" fill="#dfa47c"/>
+    </g>
+    <g class="hand hand-right">
+      <rect class="finger f1" x="104.5" y="90" width="13" height="46" rx="6.5" fill="#dfa47c" stroke="#c68560" stroke-width="1.5"/>
+      <rect class="finger f2" x="117.5" y="86" width="13" height="50" rx="6.5" fill="#dfa47c" stroke="#c68560" stroke-width="1.5"/>
+      <rect class="finger f3" x="130.5" y="90" width="13" height="46" rx="6.5" fill="#dfa47c" stroke="#c68560" stroke-width="1.5"/>
+      <ellipse cx="124" cy="140" rx="27" ry="18" fill="#dfa47c"/>
+    </g>
+  </svg>
+
+  <form class="login-form" novalidate>
+    <label class="field">
+      <span>Email</span>
+      <input class="input" id="email" type="email" autocomplete="off" placeholder="you@example.com">
+    </label>
+    <label class="field" for="password">
+      <span>Password</span>
+    </label>
+    <div class="password">
+      <input class="input" id="password" type="password" autocomplete="off">
+      <button type="button" class="show" id="show" aria-pressed="false" aria-controls="password">Show</button>
+    </div>
+    <button type="submit" class="submit">Log in</button>
+    <p class="note" id="note" role="status"></p>
+  </form>
+</div>

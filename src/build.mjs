@@ -477,7 +477,7 @@ function benchData({ site, apps, tools, games }) {
   return { notes };
 }
 
-/** One row in "What I'm working on". `quiet` greys out the status (not launched yet). */
+/** One row in "What we're working on". `quiet` greys out the status (not launched yet). */
 function workRow({ kind, name, desc, status, url, quiet = false }) {
   const external = /^https?:\/\//.test(url || '');
   const name_ = url
@@ -552,19 +552,19 @@ function homePage({ site, apps, projects, partners, games, tools, news }) {
     },
     body: `${newsBanner(news)}<section class="hero" data-bench="${esc(JSON.stringify(benchData({ site, apps, tools, games })))}">
   <div class="container hero-inner">
-    <h1 class="hero-title">I build apps and tools after work. <span class="accent">Some of them ship.</span></h1>
+    <h1 class="hero-title">We build apps and tools after work. <span class="accent">Some of them ship.</span></h1>
     <p class="label hero-byline">${esc(site.legal.owner || site.name)} · software developer · ${esc(site.legal.country)}</p>
-    <p class="lead">${esc(site.name)} is my sole proprietorship. It's where my Android apps live, along with free tools for freelancers in Denmark, a few browser games and Baiganyo, a webshop I'm opening.</p>
+    <p class="lead">${esc(site.name)} is a Danish sole proprietorship. It's where our Android apps live, along with free tools for freelancers in Denmark, a few browser games and Baiganyo, a webshop we're opening.</p>
     <div class="actions">
-      <a class="btn btn-primary" href="#projects">See what I've made</a>
-      ${site.email ? emailLink(site, { className: 'btn btn-ghost', label: 'Email me' }) : '<a class="btn btn-ghost" href="/contact/">Contact</a>'}
+      <a class="btn btn-primary" href="#projects">See what we've made</a>
+      ${site.email ? emailLink(site, { className: 'btn btn-ghost', label: 'Email us' }) : '<a class="btn btn-ghost" href="/contact/">Contact</a>'}
     </div>
   </div>
 </section>
 
 <section class="section" id="projects" aria-labelledby="projects-heading">
   <div class="container">
-    <h2 id="projects-heading">What I'm working on</h2>
+    <h2 id="projects-heading">What we're working on</h2>
     <ul class="work-list">
       ${rows.join('\n      ')}
     </ul>
@@ -584,7 +584,7 @@ ${partners.length ? `
 <section class="section section-alt" aria-labelledby="about-heading">
   <div class="container about">
     <div class="prose">
-      <h2 id="about-heading">About me</h2>
+      <h2 id="about-heading">About us</h2>
       ${renderMarkdown(site.about || '').html}
     </div>
     <aside class="card info-card" aria-label="Business details">
@@ -601,8 +601,8 @@ ${partners.length ? `
   <div class="container">
     <div class="card cta">
       <div>
-        <h2 id="contact-heading">Write to me</h2>
-        <p class="muted">A question about an app, the tools or the webshop, or something else entirely? Send me an email.</p>
+        <h2 id="contact-heading">Write to us</h2>
+        <p class="muted">A question about an app, the tools or the webshop, or something else entirely? Send us an email.</p>
       </div>
       <div class="cta-actions">
         ${site.email ? emailLink(site, { className: 'btn btn-primary', label: `${icons.mail}${esc(site.email)}` }) : '<a class="btn btn-primary" href="/contact/">Contact</a>'}

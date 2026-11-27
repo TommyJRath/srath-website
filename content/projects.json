@@ -7,5 +7,35 @@
     "url": "https://baiganyo.dk",
     "linkLabel": "baiganyo.dk",
     "logo": "/images/projects/baiganyo-logo.svg"
+  },
+  {
+    "slug": "trader-dashboard",
+    "name": "Trader Dashboard",
+    "type": "Desktop tool",
+    "status": "Paper trading only",
+    "description": "A personal workbench for planning, testing and practising day trades, built around hard risk limits.",
+    "tagline": "A personal workbench for planning, testing and practising day trades, built around hard risk limits.",
+    "body": "Trader Dashboard is a tool we built for our own use. It runs on one Windows PC and takes a day trade through fixed steps: scan the market for setups, check the news, wait for the entry signal, set the stop and the target before buying, replay the trade against the stock's own history, size the position to the budget, and run a risk check. Each step writes a file that the next one reads, so every decision can be traced afterwards.\n\nThe risk check comes before everything else. A trade with no stop, a loss at the stop larger than the limit per trade, too little reward for the risk, or a day that has already used its loss limit is blocked, and the reason is shown. Getting out of a trade is never blocked.\n\nIt only trades practice money: a built-in simulator and an Alpaca paper account. Nothing is sent without a click, and the autopilot only proposes trades. It shows its reasoning and waits for Accept or Deny.\n\nThis is a personal software project. It is not investment advice, and SRATH does not offer it, or any trading or advisory service, to anyone.",
+    "features": [
+      "The trade in steps: scan, news, entry signal, exit plan, replay, sizing, risk check",
+      "Risk check that blocks any trade over the limits and says why",
+      "Replay a past trading day bar by bar, with the future and later news hidden",
+      "Strategy tests that pick on some months and check on later ones, with a final set kept aside",
+      "Autopilot that proposes trades and waits for a yes",
+      "Simulator and Alpaca paper trading only. Real money is not connected"
+    ],
+    "tech": [
+      "Python: a local web server on 127.0.0.1, standard library only",
+      "JavaScript: the dashboard itself, no framework",
+      "TradingView Lightweight Charts: candlestick charts",
+      "Alpaca API: paper trading account and price history",
+      "Yahoo Finance and SEC EDGAR: free prices, headlines and company filings",
+      "Claude Code skills: scanner, entry, exit, sizing and risk steps"
+    ],
+    "screenshots": [
+      { "src": "/images/projects/trader-dashboard/flow.png", "alt": "Trade step by step: scan, news, entry and exit planning panels" },
+      { "src": "/images/projects/trader-dashboard/replay.png", "alt": "Replaying a past trading day with the future hidden on the chart" },
+      { "src": "/images/projects/trader-dashboard/strategies.png", "alt": "Strategies page listing built-in entry strategies to compare" }
+    ]
   }
 ]

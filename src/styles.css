@@ -226,6 +226,8 @@ a.news-item:hover .news-arrow { transform: translateX(3px); }
 .screenshots { display: flex; gap: 16px; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 12px; scrollbar-color: var(--border-strong) transparent; }
 .screenshots .screenshot-video { width: clamp(220px, 52vw, 292px); height: auto; aspect-ratio: 9 / 16; border-radius: 18px; border: 1px solid var(--border); scroll-snap-align: start; flex: none; background: var(--surface); }
 .screenshots img { width: clamp(180px, 42vw, 240px); height: auto; aspect-ratio: 6 / 13; object-fit: cover; border-radius: 18px; border: 1px solid var(--border); scroll-snap-align: start; flex: none; background: var(--surface); }
+.screenshots-wide img { width: clamp(300px, 80vw, 760px); aspect-ratio: 16 / 10; border-radius: 10px; }
+.screenshots-wide a { flex: none; scroll-snap-align: start; }
 
 .check-list { list-style: none; padding: 0; }
 .check-list li { position: relative; padding-left: 28px; margin-bottom: 8px; }

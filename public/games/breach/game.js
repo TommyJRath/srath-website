@@ -208,7 +208,7 @@
     },
     projects: {
       cols: ['id', 'codename', 'kind', 'status'],
-      rows: [[1, 'EVERAFTER', 'android app', 'live'], [2, 'KVITOGFRIT', 'android app', 'live'], [3, 'REGNORM', 'android app', 'coming soon'], [4, 'BAIGANYO', 'webshop', 'opening soon'], [5, 'GRIDWORD', 'browser game', 'live'], [6, 'TRAILS', 'browser game', 'live'], [7, 'KNOCKOUT', 'browser game', 'live'], [8, 'RICOCHET', 'browser game', 'live'], [9, 'BREACH', 'browser game', 'classified']],
+      rows: [[1, 'EVERAFTER', 'android app', 'live'], [2, 'KVITOGFRIT', 'android app', 'live'], [3, 'REGNORM', 'android app', 'coming soon'], [4, 'BAIGANYO', 'webshop', 'opening soon'], [5, 'TRADER', 'desktop tool', 'paper only'], [6, 'GRIDWORD', 'browser game', 'live'], [7, 'TRAILS', 'browser game', 'live'], [8, 'KNOCKOUT', 'browser game', 'live'], [9, 'RICOCHET', 'browser game', 'live'], [10, 'BREACH', 'browser game', 'classified']],
     },
     vault: {
       cols: ['id', 'owner', 'fragment', 'note'],
@@ -922,6 +922,7 @@
     print('  knockout/        push the others off the platform     [[srath.dk/games/knockout|/games/knockout/]]');
     print('  ricochet/        tanks in a maze, shots that bounce   [[srath.dk/games/ricochet|/games/ricochet/]]');
     print('  baiganyo/        a webshop, opening soon              [[baiganyo.dk|https://baiganyo.dk]]');
+    print('  trader/          a day-trading workbench, paper only  [[srath.dk/projects/trader-dashboard|/projects/trader-dashboard/]]');
     print('  breach/          [classified]', 't-dim');
     print('');
     print('226 Transfer complete. (None of this helps with the mission. Worth a look, though.)', 't-dim');

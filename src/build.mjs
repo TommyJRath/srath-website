@@ -111,7 +111,9 @@ function loadContent() {
     for (const field of ['name', 'type', 'description']) {
       if (!p[field]) errors.push(`projects.json[${i}]: missing required field "${field}".`);
     }
-    for (const img of [p.icon, p.logo]) {
+    if (p.slug && !SLUG.test(p.slug)) errors.push(`projects.json[${i}]: slug must be lowercase letters, digits and hyphens.`);
+    if (p.slug && !p.body) errors.push(`projects.json[${i}]: a project with a slug needs a "body" for its page.`);
+    for (const img of [p.icon, p.logo, ...(p.screenshots ?? []).map((s) => s.src)]) {
       if (img && img.startsWith('/') && !fs.existsSync(path.join(PUBLIC, img))) {
         errors.push(`projects.json[${i}]: image not found: public${img}`);
       }
@@ -516,7 +518,7 @@ function homePage({ site, apps, projects, partners, games, tools, news }) {
       name: p.name,
       desc: p.description,
       status: p.status || p.linkLabel || 'Visit',
-      url: p.url,
+      url: p.slug ? `/projects/${p.slug}/` : p.url,
       quiet: Boolean(p.status && /soon|coming/i.test(p.status)),
     })),
     ...(games.length ? [workRow({
@@ -699,6 +701,56 @@ ${screenshots.length || app.video ? `<section class="section section-tight" aria
       <h2 class="info-title">Support</h2>
       <p class="small muted">Questions, bug reports or data requests for ${esc(app.name)}:</p>
       <p class="small">${emailLink(site, { subject: `Support: ${app.name}` })}</p>
+    </aside>
+  </div>
+</section>`,
+  };
+}
+
+/**
+ * A page for a non-app project that has a "slug" in projects.json, at /projects/<slug>/.
+ * Screenshots are wide (desktop) images, unlike the phone screenshots on app pages.
+ */
+function projectPage({ site }, p) {
+  const screenshots = p.screenshots ?? [];
+  const features = p.features ?? [];
+  const info = [
+    ['Made by', esc(site.name)],
+    ['Type', esc(p.type)],
+    p.status && ['Status', esc(p.status)],
+  ].filter(Boolean);
+  return {
+    path: `/projects/${p.slug}/`,
+    title: p.name,
+    description: p.tagline || p.description,
+    body: `<section class="page-header">
+  <div class="container">
+    <a class="back-link" href="/#projects">${icons.back}All projects</a>
+    <h1>${esc(p.name)}</h1>
+    <p class="lead">${esc(p.tagline || p.description)}</p>
+  </div>
+</section>
+${screenshots.length ? `<section class="section section-tight" aria-label="Screenshots">
+  <div class="container">
+    <div class="screenshots screenshots-wide" tabindex="0" aria-label="Screenshots, scrollable">
+      ${screenshots.map((s) => `<a href="${esc(s.src)}"><img src="${esc(s.src)}" alt="${esc(s.alt || `${p.name} screenshot`)}" width="1440" height="900" loading="lazy" decoding="async"></a>`).join('\n      ')}
+    </div>
+  </div>
+</section>` : ''}
+<section class="section section-tight">
+  <div class="container app-body">
+    <div class="prose">
+      <h2>About ${esc(p.name)}</h2>
+      ${paragraphs(p.body)}
+      ${features.length ? `<h3>Features</h3>
+      <ul class="check-list">${features.map((f) => `<li>${esc(f)}</li>`).join('')}</ul>` : ''}
+      ${techStack(p.tech)}
+    </div>
+    <aside class="card info-card" aria-label="Project information">
+      <h2 class="info-title">Information</h2>
+      <dl class="info-list">
+        ${info.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('\n        ')}
+      </dl>
     </aside>
   </div>
 </section>`,
@@ -1055,6 +1107,7 @@ export function build({ quiet = false } = {}) {
     ...content.apps.map((app) => privacyPage(content, app, content.policies.get(app.slug))),
     ...(content.games.length ? [gamesIndexPage(content), ...content.games.map((g) => gamePage(content, g))] : []),
     ...content.games.filter((g) => g.vault).map((g) => vaultPage(content, g)),
+    ...content.projects.filter((p) => p.slug).map((p) => projectPage(content, p)),
     ...(content.tools.length ? [toolsIndexPage(content), ...content.tools.map((t) => toolPage(content, t))] : []),
     ...(ctx.hasDesign ? [designPage(content, loadDesign())] : []),
     partnersPage(content),
